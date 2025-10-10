@@ -6,15 +6,17 @@ import java.time.Instant;
 @Entity
 @Table(name = "task")
 public class Task {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long task_id;
 
-    private String taskId;
+    @ManyToOne
+    @JoinColumn(name = "creator_id", referencedColumnName = "user_id")
+    private User creator;
+
     private String title;
     private String description;
-    private String creatorId;
+
     private String priority;
     private String status;
     private Instant startAt;
@@ -25,15 +27,18 @@ public class Task {
     public Task() {}
 
     // Getter & Setter
-    public Long getId() { return id; }
-    public String getTaskId() { return taskId; }
-    public void setTaskId(String taskId) { this.taskId = taskId; }
+    public Long getTaskId() { return task_id; }
+    public void setTaskId(Long taskId) { this.task_id = taskId; }
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
-    public String getCreatorId() { return creatorId; }
-    public void setCreatorId(String creatorId) { this.creatorId = creatorId; }
+    public User getCreator() {
+        return creator;
+    }
+    public void setCreator(User creator) {
+        this.creator = creator;
+    }
     public String getPriority() { return priority; }
     public void setPriority(String priority) { this.priority = priority; }
     public String getStatus() { return status; }
