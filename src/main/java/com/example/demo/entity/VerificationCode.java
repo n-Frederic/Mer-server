@@ -2,9 +2,11 @@ package com.example.demo.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+
+import java.time.LocalDateTime;
 
 @Entity
-@Table=
 public class VerificationCode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

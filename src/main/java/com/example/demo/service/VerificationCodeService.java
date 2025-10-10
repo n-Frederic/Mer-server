@@ -25,6 +25,7 @@ public class VerificationCodeService {
     }
 
     public void sendVerificationCode(String email) {
+
         // 校验邮箱格式
         if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
             throw new InvalidEmailException();
@@ -49,4 +50,5 @@ public class VerificationCodeService {
         }
     }
 }
+
 
