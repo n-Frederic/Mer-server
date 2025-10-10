@@ -88,7 +88,6 @@ CREATE TABLE IF NOT EXISTS user (
   name        VARCHAR(100) NOT NULL,
   username    VARCHAR(100) NOT NULL,
   email       VARCHAR(255) NOT NULL,
-  password    VARCHAR(100) NOT NULL,
   phone       VARCHAR(50),
   team_id     INT NULL,
   role_id     INT NULL,
@@ -279,40 +278,10 @@ CREATE TABLE IF NOT EXISTS notification (
   KEY idx_notif_type (type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
--- =========================
--- token（可选）
--- =========================
-
-CREATE TABLE IF NOT EXISTS user_token (
-                                          id           BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                          user_id      BIGINT NOT NULL,
-                                          token        CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL, -- 区分大小写，固定36含连字符
-    issued_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expires_at   DATETIME NOT NULL,               -- 令牌过期时间
-    revoked      TINYINT(1) NOT NULL DEFAULT 0,   -- 是否已吊销/登出
-    revoked_at   DATETIME NULL,
-    last_used_at DATETIME NULL,
-    ip           VARCHAR(45) NULL,                -- 可选：记录登录IP（IPv4/IPv6）
-    user_agent   VARCHAR(255) NULL,               -- 可选：记录UA
-
-    UNIQUE KEY uq_token (token),                  -- 令牌唯一
-    KEY idx_ut_user   (user_id),
-    KEY idx_ut_expire (expires_at),
-    KEY idx_ut_active (token, revoked, expires_at),
-
-    CONSTRAINT fk_ut_user
-    FOREIGN KEY (user_id) REFERENCES users(id)
-    ON DELETE CASCADE ON UPDATE CASCADE,
-
-    CHECK (expires_at > issued_at)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
 -- =========================
 -- 外键约束（分批添加，避免循环依赖）
 -- 使用过程 add_fk_if_not_exists 逐条幂等添加
 -- =========================
--- 用户登录令牌表（按 UUID-v4 36 字符存储）
 
 -- 部门的父子关系
 CALL add_fk_if_not_exists(
