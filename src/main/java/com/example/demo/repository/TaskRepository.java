@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
     Page<Task> findByCreatorIdAndStatusContainingAndPriorityContaining(
-            String creatorId, String status, String priority, Pageable pageable);
+            Long creatorId, String status, String priority, Pageable pageable);
 
     Page<Task> findByStatusContainingAndPriorityContaining(
             String status, String priority, Pageable pageable);

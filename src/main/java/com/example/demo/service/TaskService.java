@@ -17,7 +17,7 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
-    public Map<String, Object> getPersonalTasks(String userId, String status, String priority, int page, int pageSize) {
+    public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
         Page<Task> taskPage = taskRepository.findByCreatorIdAndStatusContainingAndPriorityContaining(
                 userId,
                 status == null ? "" : status,
