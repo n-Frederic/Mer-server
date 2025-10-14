@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/journals")
+@RequestMapping("journals")
 public class LogController {
 
     private final LogService logService;
@@ -27,7 +27,7 @@ public class LogController {
             @RequestParam(required = false) String date,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "9") int pageSize,
-            @RequestHeader("Authorization") String token
+            @RequestHeader(value = "Authorization", required = false) String token
     ) {
         // TODO: 这里可以从 token 解析出 userId（暂时模拟）
         Long authorId = 1L; // 示例，后续替换成实际登录用户
