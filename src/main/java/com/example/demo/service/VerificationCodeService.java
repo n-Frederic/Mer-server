@@ -42,6 +42,7 @@ public class VerificationCodeService {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(email);
+            message.setFrom("2625791372@qq.com");
             message.setSubject("注册验证码");
             message.setText("您的验证码是: " + code + "，有效期5分钟。");
             mailSender.send(message);
