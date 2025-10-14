@@ -1,6 +1,8 @@
--- 建议：先创建一个独立的 schema
--- CREATE DATABASE IF NOT EXISTS work_os DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
--- USE work_os;
+-- =========================================================
+-- 建议：使用独立 schema
+-- =========================================================
+CREATE DATABASE IF NOT EXISTS work_os DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE work_os;
 
 -- 统一缺省设置
 SET NAMES utf8mb4;
@@ -33,464 +35,303 @@ BEGIN
 END//
 DELIMITER ;
 
--- =========================
+-- =========================================================
+-- 删除旧表（防止结构未更新）
+-- =========================================================
+DROP TABLE IF EXISTS
+    login,
+    notification,
+    comment,
+    attachment,
+    ai_analysis_task_map,
+    ai_analysis_log_map,
+    ai_analysis,
+    dashboard_item,
+    log_keyword,
+    log,
+    task_report,
+    task_assignment,
+    task,
+    user,
+    team,
+    department,
+    role_permission,
+    permission,
+    role;
+
+-- =========================================================
 -- 基础字典 / 权限体系
--- =========================
-
-CREATE TABLE IF NOT EXISTS role (
-  role_id       INT PRIMARY KEY AUTO_INCREMENT,
-  name          VARCHAR(100) NOT NULL,
-  description   TEXT,
-  UNIQUE KEY uq_role_name (name)
+-- =========================================================
+CREATE TABLE role (
+                      role_id       INT PRIMARY KEY AUTO_INCREMENT,
+                      name          VARCHAR(100) NOT NULL,
+                      description   TEXT,
+                      UNIQUE KEY uq_role_name (name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS permission (
-  perm_id       INT PRIMARY KEY AUTO_INCREMENT,
-  code          VARCHAR(100) NOT NULL, -- e.g. task.create, log.edit
-  name          VARCHAR(100) NOT NULL,
-  description   TEXT,
-  UNIQUE KEY uq_perm_code (code)
+CREATE TABLE permission (
+                            perm_id       INT PRIMARY KEY AUTO_INCREMENT,
+                            code          VARCHAR(100) NOT NULL,
+                            name          VARCHAR(100) NOT NULL,
+                            description   TEXT,
+                            UNIQUE KEY uq_perm_code (code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS role_permission (
-  id            INT PRIMARY KEY AUTO_INCREMENT,
-  role_id       INT NOT NULL,
-  perm_id       INT NOT NULL,
-  UNIQUE KEY uq_role_perm (role_id, perm_id),
-  KEY idx_rp_role (role_id),
-  KEY idx_rp_perm (perm_id)
+CREATE TABLE role_permission (
+                                 id            INT PRIMARY KEY AUTO_INCREMENT,
+                                 role_id       INT NOT NULL,
+                                 perm_id       INT NOT NULL,
+                                 UNIQUE KEY uq_role_perm (role_id, perm_id),
+                                 KEY idx_rp_role (role_id),
+                                 KEY idx_rp_perm (perm_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =========================
+-- =========================================================
 -- 组织结构
--- =========================
-
-CREATE TABLE IF NOT EXISTS department (
-  dept_id        INT PRIMARY KEY AUTO_INCREMENT,
-  name           VARCHAR(100) NOT NULL,
-  parent_dept_id INT NULL,
-  UNIQUE KEY uq_dept_name (name),
-  KEY idx_parent_dept (parent_dept_id)
+-- =========================================================
+CREATE TABLE department (
+                            dept_id        INT PRIMARY KEY AUTO_INCREMENT,
+                            name           VARCHAR(100) NOT NULL,
+                            parent_dept_id INT NULL,
+                            UNIQUE KEY uq_dept_name (name),
+                            KEY idx_parent_dept (parent_dept_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS team (
-  team_id    INT PRIMARY KEY AUTO_INCREMENT,
-  name       VARCHAR(100) NOT NULL,
-  dept_id    INT NULL,
-  leader_id  BIGINT NULL,
-  UNIQUE KEY uq_team_name (name),
-  KEY idx_team_dept (dept_id),
-  KEY idx_team_leader (leader_id)
+CREATE TABLE team (
+                      team_id    INT PRIMARY KEY AUTO_INCREMENT,
+                      name       VARCHAR(100) NOT NULL,
+                      dept_id    INT NULL,
+                      leader_id  BIGINT NULL,
+                      UNIQUE KEY uq_team_name (name),
+                      KEY idx_team_dept (dept_id),
+                      KEY idx_team_leader (leader_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS user (
-  user_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
-  name        VARCHAR(100) NOT NULL,
-  username    VARCHAR(100) NOT NULL,
-  email       VARCHAR(255) NOT NULL,
-  phone       VARCHAR(50),
-  team_id     INT NULL,
-  role_id     INT NULL,
-  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_user_username (username),
-  UNIQUE KEY uq_user_email (email),
-  KEY idx_user_team (team_id),
-  KEY idx_user_role (role_id)
+CREATE TABLE user (
+                      user_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      name        VARCHAR(100) NOT NULL,
+                      username    VARCHAR(100) NOT NULL,
+                      email       VARCHAR(255) NOT NULL,
+                      phone       VARCHAR(50),
+                      team_id     INT NULL,
+                      role_id     INT NULL,
+                      created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                      updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                      UNIQUE KEY uq_user_username (username),
+                      UNIQUE KEY uq_user_email (email),
+                      KEY idx_user_team (team_id),
+                      KEY idx_user_role (role_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =========================
+-- =========================================================
 -- 任务与派发
--- =========================
-
-CREATE TABLE IF NOT EXISTS task (
-  task_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
-  title       VARCHAR(255) NOT NULL,
-  description TEXT,
-  creator_id  BIGINT NOT NULL,
-  priority    ENUM('Low','Medium','High','Urgent') NOT NULL DEFAULT 'Low',
-  status      ENUM('Published','Assigned','InProgress','Reported','Completed','Closed') NOT NULL DEFAULT 'Published',
-  start_at    DATETIME NULL,
-  due_at      DATETIME NULL,
-  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  KEY idx_task_creator (creator_id),
-  KEY idx_task_status (status),
-  KEY idx_task_priority (priority),
-  KEY idx_task_due (due_at)
+-- =========================================================
+CREATE TABLE task (
+                      task_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
+                      title       VARCHAR(255) NOT NULL,
+                      description TEXT,
+                      creator_id  BIGINT NOT NULL,
+                      priority    ENUM('Low','Medium','High','Urgent') NOT NULL DEFAULT 'Low',
+                      status      ENUM('Published','Assigned','InProgress','Reported','Completed','Closed') NOT NULL DEFAULT 'Published',
+                      start_at    DATETIME NULL,
+                      due_at      DATETIME NULL,
+                      created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                      updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                      KEY idx_task_creator (creator_id),
+                      KEY idx_task_status (status),
+                      KEY idx_task_priority (priority),
+                      KEY idx_task_due (due_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS task_assignment (
-  assignment_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  task_id       BIGINT NOT NULL,
-  assignee_id   BIGINT NOT NULL,
-  assigned_by   BIGINT NOT NULL,
-  assigned_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  accept_at     DATETIME NULL,
-  finish_at     DATETIME NULL,
-  progress_pct  INT NOT NULL DEFAULT 0,
-  status        ENUM('Pending','Accepted','Rejected','Completed') NOT NULL DEFAULT 'Pending',
-  CHECK (progress_pct BETWEEN 0 AND 100),
-  KEY idx_ta_task (task_id),
-  KEY idx_ta_assignee (assignee_id),
-  KEY idx_ta_assigned_by (assigned_by),
-  KEY idx_ta_status (status)
+CREATE TABLE task_assignment (
+                                 assignment_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                 task_id       BIGINT NOT NULL,
+                                 assignee_id   BIGINT NOT NULL,
+                                 assigned_by   BIGINT NOT NULL,
+                                 assigned_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                 accept_at     DATETIME NULL,
+                                 finish_at     DATETIME NULL,
+                                 progress_pct  INT NOT NULL DEFAULT 0,
+                                 status        ENUM('Pending','Accepted','Rejected','Completed') NOT NULL DEFAULT 'Pending',
+                                 CHECK (progress_pct BETWEEN 0 AND 100),
+                                 KEY idx_ta_task (task_id),
+                                 KEY idx_ta_assignee (assignee_id),
+                                 KEY idx_ta_assigned_by (assigned_by),
+                                 KEY idx_ta_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS task_report (
-  report_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
-  task_id      BIGINT NOT NULL,
-  reporter_id  BIGINT NOT NULL,
-  content      TEXT,
-  attachments  TEXT, -- 可保存 JSON（若需要可改为 JSON 类型）
-  created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  KEY idx_tr_task (task_id),
-  KEY idx_tr_reporter (reporter_id),
-  FULLTEXT KEY ftx_tr_content (content)
+CREATE TABLE task_report (
+                             report_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
+                             task_id      BIGINT NOT NULL,
+                             reporter_id  BIGINT NOT NULL,
+                             content      TEXT,
+                             attachments  TEXT,
+                             created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                             KEY idx_tr_task (task_id),
+                             KEY idx_tr_reporter (reporter_id),
+                             FULLTEXT KEY ftx_tr_content (content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =========================
--- 个人/团队日志
--- =========================
-
-CREATE TABLE IF NOT EXISTS log (
-  log_id      BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id     BIGINT NOT NULL,
-  task_id     BIGINT NULL,
-  title       VARCHAR(255) NOT NULL,
-  content     TEXT,
-  log_date    DATE NOT NULL,
-  view_type   ENUM('Day','Week','Month') NOT NULL,
-  mood        VARCHAR(50),
-  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  KEY idx_log_user (user_id),
-  KEY idx_log_task (task_id),
-  KEY idx_log_date (log_date),
-  KEY idx_log_view_type (view_type),
-  FULLTEXT KEY ftx_log_content_title (title, content)
+-- =========================================================
+-- 日志系统
+-- =========================================================
+CREATE TABLE log (
+                     log_id      BIGINT PRIMARY KEY AUTO_INCREMENT,
+                     user_id     BIGINT NOT NULL,
+                     task_id     BIGINT NULL,
+                     title       VARCHAR(255) NOT NULL,
+                     content     TEXT,
+                     log_date    DATE NOT NULL,
+                     view_type   ENUM('Day','Week','Month') NOT NULL,
+                     mood        VARCHAR(50),
+                     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                     KEY idx_log_user (user_id),
+                     KEY idx_log_task (task_id),
+                     KEY idx_log_date (log_date),
+                     KEY idx_log_view_type (view_type),
+                     FULLTEXT KEY ftx_log_content_title (title, content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS log_keyword (
-  id        BIGINT PRIMARY KEY AUTO_INCREMENT,
-  log_id    BIGINT NOT NULL,
-  keyword   VARCHAR(100) NOT NULL,
-  weight    FLOAT NOT NULL DEFAULT 0,
-  UNIQUE KEY uq_log_keyword (log_id, keyword),
-  KEY idx_lk_log (log_id)
+CREATE TABLE log_keyword (
+                             id        BIGINT PRIMARY KEY AUTO_INCREMENT,
+                             log_id    BIGINT NOT NULL,
+                             keyword   VARCHAR(100) NOT NULL,
+                             weight    FLOAT NOT NULL DEFAULT 0,
+                             UNIQUE KEY uq_log_keyword (log_id, keyword),
+                             KEY idx_lk_log (log_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =========================
+-- =========================================================
 -- 面板展示项
--- =========================
-
-CREATE TABLE IF NOT EXISTS dashboard_item (
-  item_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
-  scope       ENUM('Company','Personal') NOT NULL,
-  category    VARCHAR(100) NOT NULL, -- e.g., "十大事项"
-  title       VARCHAR(255) NOT NULL,
-  ref_type    VARCHAR(50) NOT NULL,  -- Task / Log / Custom
-  ref_id      BIGINT NULL,
-  sort_order  INT NOT NULL DEFAULT 0,
-  updated_by  BIGINT NULL,
-  updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  KEY idx_di_scope_cat (scope, category),
-  KEY idx_di_ref (ref_type, ref_id),
-  KEY idx_di_updated_by (updated_by)
+-- =========================================================
+CREATE TABLE dashboard_item (
+                                item_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                scope       ENUM('Company','Personal') NOT NULL,
+                                category    VARCHAR(100) NOT NULL,
+                                title       VARCHAR(255) NOT NULL,
+                                ref_type    VARCHAR(50) NOT NULL,
+                                ref_id      BIGINT NULL,
+                                sort_order  INT NOT NULL DEFAULT 0,
+                                updated_by  BIGINT NULL,
+                                updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                KEY idx_di_scope_cat (scope, category),
+                                KEY idx_di_ref (ref_type, ref_id),
+                                KEY idx_di_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =========================
--- AI 分析报告 / 指标
--- =========================
-
-CREATE TABLE IF NOT EXISTS ai_analysis (
-  analysis_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
-  title         VARCHAR(255) NOT NULL,
-  generated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  generated_by  BIGINT NULL,           -- 触发者（系统或用户）
-  summary       TEXT,
-  metrics_json  JSON NULL,             -- 指标/趋势数据（JSON）
-  suggestions   TEXT,
-  KEY idx_ai_generated_by (generated_by),
-  KEY idx_ai_generated_at (generated_at)
+-- =========================================================
+-- AI 分析模块
+-- =========================================================
+CREATE TABLE ai_analysis (
+                             analysis_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
+                             title         VARCHAR(255) NOT NULL,
+                             generated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                             generated_by  BIGINT NULL,
+                             summary       TEXT,
+                             metrics_json  JSON NULL,
+                             suggestions   TEXT,
+                             KEY idx_ai_generated_by (generated_by),
+                             KEY idx_ai_generated_at (generated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS ai_analysis_log_map (
-  id           BIGINT PRIMARY KEY AUTO_INCREMENT,
-  analysis_id  BIGINT NOT NULL,
-  log_id       BIGINT NOT NULL,
-  UNIQUE KEY uq_ai_log (analysis_id, log_id),
-  KEY idx_ail_log (log_id),
-  KEY idx_ail_ai (analysis_id)
+CREATE TABLE ai_analysis_log_map (
+                                     id           BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                     analysis_id  BIGINT NOT NULL,
+                                     log_id       BIGINT NOT NULL,
+                                     UNIQUE KEY uq_ai_log (analysis_id, log_id),
+                                     KEY idx_ail_log (log_id),
+                                     KEY idx_ail_ai (analysis_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS ai_analysis_task_map (
-  id           BIGINT PRIMARY KEY AUTO_INCREMENT,
-  analysis_id  BIGINT NOT NULL,
-  task_id      BIGINT NOT NULL,
-  UNIQUE KEY uq_ai_task (analysis_id, task_id),
-  KEY idx_ait_task (task_id),
-  KEY idx_ait_ai (analysis_id)
+CREATE TABLE ai_analysis_task_map (
+                                      id           BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                      analysis_id  BIGINT NOT NULL,
+                                      task_id      BIGINT NOT NULL,
+                                      UNIQUE KEY uq_ai_task (analysis_id, task_id),
+                                      KEY idx_ait_task (task_id),
+                                      KEY idx_ait_ai (analysis_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =========================
--- 附件与评论（多态关联）
--- =========================
-
-CREATE TABLE IF NOT EXISTS attachment (
-  attach_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
-  owner_type   VARCHAR(50) NOT NULL, -- 'Log','Task','Report'
-  owner_id     BIGINT NOT NULL,
-  file_name    VARCHAR(255) NOT NULL,
-  file_url     VARCHAR(1000) NOT NULL,
-  uploaded_by  BIGINT NOT NULL,
-  uploaded_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  KEY idx_att_owner (owner_type, owner_id),
-  KEY idx_att_uploader (uploaded_by)
+-- =========================================================
+-- 附件、评论、通知
+-- =========================================================
+CREATE TABLE attachment (
+                            attach_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
+                            owner_type   VARCHAR(50) NOT NULL,
+                            owner_id     BIGINT NOT NULL,
+                            file_name    VARCHAR(255) NOT NULL,
+                            file_url     VARCHAR(1000) NOT NULL,
+                            uploaded_by  BIGINT NOT NULL,
+                            uploaded_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                            KEY idx_att_owner (owner_type, owner_id),
+                            KEY idx_att_uploader (uploaded_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS comment (
-  comment_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
-  owner_type   VARCHAR(50) NOT NULL, -- 'Log','Task','Report'
-  owner_id     BIGINT NOT NULL,
-  author_id    BIGINT NOT NULL,
-  content      TEXT,
-  created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  KEY idx_cmt_owner (owner_type, owner_id),
-  KEY idx_cmt_author (author_id),
-  FULLTEXT KEY ftx_cmt_content (content)
+CREATE TABLE comment (
+                         comment_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
+                         owner_type   VARCHAR(50) NOT NULL,
+                         owner_id     BIGINT NOT NULL,
+                         author_id    BIGINT NOT NULL,
+                         content      TEXT,
+                         created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                         KEY idx_cmt_owner (owner_type, owner_id),
+                         KEY idx_cmt_author (author_id),
+                         FULLTEXT KEY ftx_cmt_content (content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =========================
--- 通知（可选）
--- =========================
-
-CREATE TABLE IF NOT EXISTS notification (
-  notif_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
-  user_id     BIGINT NOT NULL,
-  type        VARCHAR(50) NOT NULL,
-  title       VARCHAR(255) NOT NULL,
-  body        TEXT,
-  is_read     BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  KEY idx_notif_user (user_id),
-  KEY idx_notif_is_read (is_read),
-  KEY idx_notif_type (type)
+CREATE TABLE notification (
+                              notif_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
+                              user_id     BIGINT NOT NULL,
+                              type        VARCHAR(50) NOT NULL,
+                              title       VARCHAR(255) NOT NULL,
+                              body        TEXT,
+                              is_read     BOOLEAN NOT NULL DEFAULT FALSE,
+                              created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                              KEY idx_notif_user (user_id),
+                              KEY idx_notif_is_read (is_read),
+                              KEY idx_notif_type (type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- =========================
--- 外键约束（分批添加，避免循环依赖）
--- 使用过程 add_fk_if_not_exists 逐条幂等添加
--- =========================
+-- =========================================================
+-- 登录表
+-- =========================================================
+CREATE TABLE login (
+                       login_id   INT AUTO_INCREMENT PRIMARY KEY COMMENT '登录记录ID',
+                       user_id    BIGINT NOT NULL COMMENT '用户ID，对应user表的user_id',
+                       token      VARCHAR(255) NOT NULL COMMENT '登录token',
+                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 部门的父子关系
-CALL add_fk_if_not_exists(
-  'department','fk_dept_parent',
-  'ALTER TABLE department
-     ADD CONSTRAINT fk_dept_parent
-     FOREIGN KEY (parent_dept_id) REFERENCES department(dept_id)
-     ON UPDATE CASCADE ON DELETE SET NULL'
-);
-
--- Team 关联 Dept
-CALL add_fk_if_not_exists(
-  'team','fk_team_dept',
-  'ALTER TABLE team
-     ADD CONSTRAINT fk_team_dept
-     FOREIGN KEY (dept_id) REFERENCES department(dept_id)
-     ON UPDATE CASCADE ON DELETE SET NULL'
-);
-
--- User ↔ Role
-CALL add_fk_if_not_exists(
-  'user','fk_user_role',
-  'ALTER TABLE user
-     ADD CONSTRAINT fk_user_role
-     FOREIGN KEY (role_id) REFERENCES role(role_id)
-     ON UPDATE CASCADE ON DELETE SET NULL'
-);
-
--- User → Team
-CALL add_fk_if_not_exists(
-  'user','fk_user_team',
-  'ALTER TABLE user
-     ADD CONSTRAINT fk_user_team
-     FOREIGN KEY (team_id) REFERENCES team(team_id)
-     ON UPDATE CASCADE ON DELETE SET NULL'
-);
-
--- Team → User（leader）
-CALL add_fk_if_not_exists(
-  'team','fk_team_leader',
-  'ALTER TABLE team
-     ADD CONSTRAINT fk_team_leader
-     FOREIGN KEY (leader_id) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE SET NULL'
-);
-
--- 角色权限
-CALL add_fk_if_not_exists(
-  'role_permission','fk_rp_role',
-  'ALTER TABLE role_permission
-     ADD CONSTRAINT fk_rp_role
-     FOREIGN KEY (role_id) REFERENCES role(role_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
-CALL add_fk_if_not_exists(
-  'role_permission','fk_rp_perm',
-  'ALTER TABLE role_permission
-     ADD CONSTRAINT fk_rp_perm
-     FOREIGN KEY (perm_id) REFERENCES permission(perm_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
-
--- Task 外键
-CALL add_fk_if_not_exists(
-  'task','fk_task_creator',
-  'ALTER TABLE task
-     ADD CONSTRAINT fk_task_creator
-     FOREIGN KEY (creator_id) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE RESTRICT'
-);
-
--- TaskAssignment 外键
-CALL add_fk_if_not_exists(
-  'task_assignment','fk_ta_task',
-  'ALTER TABLE task_assignment
-     ADD CONSTRAINT fk_ta_task
-     FOREIGN KEY (task_id) REFERENCES task(task_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
-CALL add_fk_if_not_exists(
-  'task_assignment','fk_ta_assignee',
-  'ALTER TABLE task_assignment
-     ADD CONSTRAINT fk_ta_assignee
-     FOREIGN KEY (assignee_id) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE RESTRICT'
-);
-CALL add_fk_if_not_exists(
-  'task_assignment','fk_ta_assigned_by',
-  'ALTER TABLE task_assignment
-     ADD CONSTRAINT fk_ta_assigned_by
-     FOREIGN KEY (assigned_by) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE RESTRICT'
-);
-
--- TaskReport 外键
-CALL add_fk_if_not_exists(
-  'task_report','fk_tr_task',
-  'ALTER TABLE task_report
-     ADD CONSTRAINT fk_tr_task
-     FOREIGN KEY (task_id) REFERENCES task(task_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
-CALL add_fk_if_not_exists(
-  'task_report','fk_tr_reporter',
-  'ALTER TABLE task_report
-     ADD CONSTRAINT fk_tr_reporter
-     FOREIGN KEY (reporter_id) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE RESTRICT'
-);
-
--- Log 外键
-CALL add_fk_if_not_exists(
-  'log','fk_log_user',
-  'ALTER TABLE log
-     ADD CONSTRAINT fk_log_user
-     FOREIGN KEY (user_id) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
-CALL add_fk_if_not_exists(
-  'log','fk_log_task',
-  'ALTER TABLE log
-     ADD CONSTRAINT fk_log_task
-     FOREIGN KEY (task_id) REFERENCES task(task_id)
-     ON UPDATE CASCADE ON DELETE SET NULL'
-);
-
--- LogKeyword 外键
-CALL add_fk_if_not_exists(
-  'log_keyword','fk_lk_log',
-  'ALTER TABLE log_keyword
-     ADD CONSTRAINT fk_lk_log
-     FOREIGN KEY (log_id) REFERENCES log(log_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
-
--- DashboardItem.updated_by
-CALL add_fk_if_not_exists(
-  'dashboard_item','fk_di_updated_by',
-  'ALTER TABLE dashboard_item
-     ADD CONSTRAINT fk_di_updated_by
-     FOREIGN KEY (updated_by) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE SET NULL'
-);
-
--- AI 分析触发者
-CALL add_fk_if_not_exists(
-  'ai_analysis','fk_ai_generated_by',
-  'ALTER TABLE ai_analysis
-     ADD CONSTRAINT fk_ai_generated_by
-     FOREIGN KEY (generated_by) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE SET NULL'
-);
-
--- AI 分析映射
-CALL add_fk_if_not_exists(
-  'ai_analysis_log_map','fk_ail_ai',
-  'ALTER TABLE ai_analysis_log_map
-     ADD CONSTRAINT fk_ail_ai
-     FOREIGN KEY (analysis_id) REFERENCES ai_analysis(analysis_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
-CALL add_fk_if_not_exists(
-  'ai_analysis_log_map','fk_ail_log',
-  'ALTER TABLE ai_analysis_log_map
-     ADD CONSTRAINT fk_ail_log
-     FOREIGN KEY (log_id) REFERENCES log(log_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
-
-CALL add_fk_if_not_exists(
-  'ai_analysis_task_map','fk_ait_ai',
-  'ALTER TABLE ai_analysis_task_map
-     ADD CONSTRAINT fk_ait_ai
-     FOREIGN KEY (analysis_id) REFERENCES ai_analysis(analysis_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
-CALL add_fk_if_not_exists(
-  'ai_analysis_task_map','fk_ait_task',
-  'ALTER TABLE ai_analysis_task_map
-     ADD CONSTRAINT fk_ait_task
-     FOREIGN KEY (task_id) REFERENCES task(task_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
-
--- attachment / comment / notification 与 user 的外键
-CALL add_fk_if_not_exists(
-  'attachment','fk_att_uploader',
-  'ALTER TABLE attachment
-     ADD CONSTRAINT fk_att_uploader
-     FOREIGN KEY (uploaded_by) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE RESTRICT'
-);
-
-CALL add_fk_if_not_exists(
-  'comment','fk_cmt_author',
-  'ALTER TABLE comment
-     ADD CONSTRAINT fk_cmt_author
-     FOREIGN KEY (author_id) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE RESTRICT'
-);
-
-CALL add_fk_if_not_exists(
-  'notification','fk_notif_user',
-  'ALTER TABLE notification
-     ADD CONSTRAINT fk_notif_user
-     FOREIGN KEY (user_id) REFERENCES user(user_id)
-     ON UPDATE CASCADE ON DELETE CASCADE'
-);
+-- =========================================================
+-- 外键约束添加
+-- =========================================================
+CALL add_fk_if_not_exists('department','fk_dept_parent','ALTER TABLE department ADD CONSTRAINT fk_dept_parent FOREIGN KEY (parent_dept_id) REFERENCES department(dept_id) ON UPDATE CASCADE ON DELETE SET NULL');
+CALL add_fk_if_not_exists('team','fk_team_dept','ALTER TABLE team ADD CONSTRAINT fk_team_dept FOREIGN KEY (dept_id) REFERENCES department(dept_id) ON UPDATE CASCADE ON DELETE SET NULL');
+CALL add_fk_if_not_exists('user','fk_user_role','ALTER TABLE user ADD CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES role(role_id) ON UPDATE CASCADE ON DELETE SET NULL');
+CALL add_fk_if_not_exists('user','fk_user_team','ALTER TABLE user ADD CONSTRAINT fk_user_team FOREIGN KEY (team_id) REFERENCES team(team_id) ON UPDATE CASCADE ON DELETE SET NULL');
+CALL add_fk_if_not_exists('team','fk_team_leader','ALTER TABLE team ADD CONSTRAINT fk_team_leader FOREIGN KEY (leader_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
+CALL add_fk_if_not_exists('role_permission','fk_rp_role','ALTER TABLE role_permission ADD CONSTRAINT fk_rp_role FOREIGN KEY (role_id) REFERENCES role(role_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('role_permission','fk_rp_perm','ALTER TABLE role_permission ADD CONSTRAINT fk_rp_perm FOREIGN KEY (perm_id) REFERENCES permission(perm_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('task','fk_task_creator','ALTER TABLE task ADD CONSTRAINT fk_task_creator FOREIGN KEY (creator_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
+CALL add_fk_if_not_exists('task_assignment','fk_ta_task','ALTER TABLE task_assignment ADD CONSTRAINT fk_ta_task FOREIGN KEY (task_id) REFERENCES task(task_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('task_assignment','fk_ta_assignee','ALTER TABLE task_assignment ADD CONSTRAINT fk_ta_assignee FOREIGN KEY (assignee_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
+CALL add_fk_if_not_exists('task_assignment','fk_ta_assigned_by','ALTER TABLE task_assignment ADD CONSTRAINT fk_ta_assigned_by FOREIGN KEY (assigned_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
+CALL add_fk_if_not_exists('task_report','fk_tr_task','ALTER TABLE task_report ADD CONSTRAINT fk_tr_task FOREIGN KEY (task_id) REFERENCES task(task_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('task_report','fk_tr_reporter','ALTER TABLE task_report ADD CONSTRAINT fk_tr_reporter FOREIGN KEY (reporter_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
+CALL add_fk_if_not_exists('log','fk_log_user','ALTER TABLE log ADD CONSTRAINT fk_log_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('log','fk_log_task','ALTER TABLE log ADD CONSTRAINT fk_log_task FOREIGN KEY (task_id) REFERENCES task(task_id) ON UPDATE CASCADE ON DELETE SET NULL');
+CALL add_fk_if_not_exists('log_keyword','fk_lk_log','ALTER TABLE log_keyword ADD CONSTRAINT fk_lk_log FOREIGN KEY (log_id) REFERENCES log(log_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('dashboard_item','fk_di_updated_by','ALTER TABLE dashboard_item ADD CONSTRAINT fk_di_updated_by FOREIGN KEY (updated_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
+CALL add_fk_if_not_exists('ai_analysis','fk_ai_generated_by','ALTER TABLE ai_analysis ADD CONSTRAINT fk_ai_generated_by FOREIGN KEY (generated_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
+CALL add_fk_if_not_exists('ai_analysis_log_map','fk_ail_ai','ALTER TABLE ai_analysis_log_map ADD CONSTRAINT fk_ail_ai FOREIGN KEY (analysis_id) REFERENCES ai_analysis(analysis_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('ai_analysis_log_map','fk_ail_log','ALTER TABLE ai_analysis_log_map ADD CONSTRAINT fk_ail_log FOREIGN KEY (log_id) REFERENCES log(log_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('ai_analysis_task_map','fk_ait_ai','ALTER TABLE ai_analysis_task_map ADD CONSTRAINT fk_ait_ai FOREIGN KEY (analysis_id) REFERENCES ai_analysis(analysis_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('ai_analysis_task_map','fk_ait_task','ALTER TABLE ai_analysis_task_map ADD CONSTRAINT fk_ait_task FOREIGN KEY (task_id) REFERENCES task(task_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('attachment','fk_att_uploader','ALTER TABLE attachment ADD CONSTRAINT fk_att_uploader FOREIGN KEY (uploaded_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
+CALL add_fk_if_not_exists('comment','fk_cmt_author','ALTER TABLE comment ADD CONSTRAINT fk_cmt_author FOREIGN KEY (author_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
+CALL add_fk_if_not_exists('notification','fk_notif_user','ALTER TABLE notification ADD CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE CASCADE');
+CALL add_fk_if_not_exists('login','fk_login_user','ALTER TABLE login ADD CONSTRAINT fk_login_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE CASCADE');
 
 SET FOREIGN_KEY_CHECKS = 1;
--- （可选）使用完后若不再需要过程，可删除：
--- DROP PROCEDURE IF EXISTS add_fk_if_not_exists;
+-- （可选）DROP PROCEDURE IF EXISTS add_fk_if_not_exists;
