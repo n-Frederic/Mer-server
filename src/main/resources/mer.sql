@@ -1,8 +1,8 @@
 -- =========================================================
 -- 建议：使用独立 schema
 -- =========================================================
-CREATE DATABASE IF NOT EXISTS work_os DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-USE work_os;
+CREATE DATABASE IF NOT EXISTS mer DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE mer;
 
 -- 统一缺省设置
 SET NAMES utf8mb4;
