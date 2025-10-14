@@ -1,7 +1,7 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.LoginResponseDTO;
 import com.example.demo.service.LoginService;
-import com.example.demo.service.LoginService.LoginResponse;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -14,7 +14,7 @@ public class LoginController {
     }
 
     @PostMapping
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public LoginResponseDTO login(@RequestBody LoginRequest request) {
         return loginService.login(request.getEmail(), request.getPassword());
     }
 
