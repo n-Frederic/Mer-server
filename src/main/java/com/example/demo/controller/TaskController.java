@@ -39,4 +39,13 @@ public class TaskController {
     ) {
         return taskService.getAllTasks(status, priority, page, pageSize);
     }
+
+    // 查看任务详情
+    @GetMapping("/{taskId}")
+    public Map<String, Object> getTaskById(@PathVariable Long taskId) {
+        return taskService.getTaskById(taskId);
+    }
+
+
+
 }
