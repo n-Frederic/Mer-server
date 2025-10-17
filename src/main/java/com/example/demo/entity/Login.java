@@ -20,6 +20,7 @@ public class Login {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+    private LocalDateTime validTo;
 
     // 构造函数
     public Login() {}
@@ -28,6 +29,7 @@ public class Login {
         this.user = user;
         this.token = token;
         this.createdAt = LocalDateTime.now();
+        this.validTo = LocalDateTime.now().plusHours(2);
     }
 
     // Getter & Setter
