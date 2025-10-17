@@ -39,4 +39,8 @@ public class LoginService {
 
         return LoginResponseDTO.success(user.getName(), user.getEmail(), token);
     }
+
+    public Optional<Login> findByToken(String token) {
+        return loginRepository.findByToken(token);
+    }
 }
