@@ -338,7 +338,8 @@ CREATE TABLE login (
                        login_id   INT AUTO_INCREMENT PRIMARY KEY COMMENT '登录记录ID',
                        user_id    BIGINT NOT NULL COMMENT '用户ID，对应user表的user_id',
                        token      VARCHAR(255) NOT NULL COMMENT '登录token',
-                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
+                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                       valid_to  TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '有效时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
