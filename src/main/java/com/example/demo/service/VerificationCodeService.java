@@ -47,6 +47,7 @@ public class VerificationCodeService {
             message.setText("您的验证码是: " + code + "，有效期5分钟。");
             mailSender.send(message);
         } catch (Exception e) {
+            e.printStackTrace();
             throw new EmailServiceUnavailableException();
         }
     }
