@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS user (
     phone       VARCHAR(50) NULL,           -- 手机号
     team_id     INT NULL,                   -- 所在团队ID（外键关联team表）
     role_id     INT NULL,                   -- 角色ID（外键关联role表）
-    gender      ENUM('男', '女', '其他') NULL, -- 性别
+    gender      ENUM('M', 'F') NULL, -- 性别
     birth_date  DATE NULL,                  -- 出生日期
     bio         TEXT NULL,                  -- 个人简介
     avatar_url  VARCHAR(500) NULL,          -- 头像URL
@@ -331,6 +331,14 @@ CREATE TABLE notification (
                               KEY idx_notif_type (type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `personal_task` (
+                                 `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
+                                 `user_id` bigint(20) NOT NULL COMMENT '关联的用户ID（外键，关联user表的id）',
+                                 `personal_tasks` text COMMENT '个人任务列表（JSON格式字符串存储，如["任务1","任务2"]）',
+                                 PRIMARY KEY (`id`),
+                                 KEY `fk_personal_task_user` (`user_id`),
+                                 CONSTRAINT `fk_personal_task_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='个人任务表';
 -- =========================================================
 -- 登录表
 -- =========================================================
