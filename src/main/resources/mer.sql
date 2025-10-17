@@ -331,6 +331,14 @@ CREATE TABLE notification (
                               KEY idx_notif_type (type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE `personal_task` (
+                                 `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
+                                 `user_id` bigint(20) NOT NULL COMMENT '关联的用户ID（外键，关联user表的id）',
+                                 `personal_tasks` text COMMENT '个人任务列表（JSON格式字符串存储，如["任务1","任务2"]）',
+                                 PRIMARY KEY (`id`),
+                                 KEY `fk_personal_task_user` (`user_id`),
+                                 CONSTRAINT `fk_personal_task_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='个人任务表';
 -- =========================================================
 -- 登录表
 -- =========================================================
