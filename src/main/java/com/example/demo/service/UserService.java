@@ -7,6 +7,7 @@ import com.example.demo.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,21 +62,24 @@ public class UserService {
         }
 
         User user = userOpt.get();
-        Map<String, Object> response = Map.of(
-                "ok", true,
-                "user", Map.of(
-                        "user_id", user.getId(),
-                        "name", user.getName(),
-                        "username", user.getUsername(),
-                        "email", user.getEmail(),
-                        "phone", user.getPhone(),
-                        "team", user.getTeam_id(),
-                        "role_id", user.getRole_id(),
-                        "gender", user.getGender(),
-                        "birth_date", user.getBirthday(),
-                        "bio", user.getBio()
-                )
-        );
+//        System.out.println("user=" + user);
+
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("user_id", user.getId() != null ? user.getId() : "");
+        userMap.put("name", user.getName() != null ? user.getName() : "");
+        userMap.put("username", user.getUsername() != null ? user.getUsername() : "");
+        userMap.put("email", user.getEmail() != null ? user.getEmail() : "");
+        userMap.put("phone", user.getPhone() != null ? user.getPhone() : "");
+        userMap.put("team", user.getTeam_id() );
+        userMap.put("role_id", user.getRole_id() );
+        userMap.put("gender", user.getGender() != null ? user.getGender() : "");
+        userMap.put("birth_date", user.getBirthday() != null ? user.getBirthday() : "");
+        userMap.put("bio", user.getBio() != null ? user.getBio() : "");
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("ok", true);
+        response.put("user", userMap);
+
 
         return ResponseEntity.ok(response);
     }
