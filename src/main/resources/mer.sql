@@ -164,7 +164,7 @@ CREATE TABLE IF NOT EXISTS `company_task` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
-CREATE TABLE task (
+CREATE TABLE IF NOT EXISTS task (
                       task_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
                       title       VARCHAR(255) NOT NULL,
                       description TEXT,
@@ -181,7 +181,7 @@ CREATE TABLE task (
                       KEY idx_task_due (due_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE task_assignment (
+CREATE TABLE IF NOT EXISTS task_assignment (
                                  assignment_id BIGINT PRIMARY KEY AUTO_INCREMENT,
                                  task_id       BIGINT NOT NULL,
                                  assignee_id   BIGINT NOT NULL,
@@ -198,7 +198,7 @@ CREATE TABLE task_assignment (
                                  KEY idx_ta_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE task_report (
+CREATE TABLE IF NOT EXISTS task_report (
                              report_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
                              task_id      BIGINT NOT NULL,
                              reporter_id  BIGINT NOT NULL,
@@ -213,7 +213,7 @@ CREATE TABLE task_report (
 -- =========================================================
 -- 日志系统
 -- =========================================================
-CREATE TABLE log (
+CREATE TABLE IF NOT EXISTS log (
                      log_id      BIGINT PRIMARY KEY AUTO_INCREMENT,
                      user_id     BIGINT NOT NULL,
                      task_id     BIGINT NULL,
@@ -231,7 +231,7 @@ CREATE TABLE log (
                      FULLTEXT KEY ftx_log_content_title (title, content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE log_keyword (
+CREATE TABLE IF NOT EXISTS log_keyword (
                              id        BIGINT PRIMARY KEY AUTO_INCREMENT,
                              log_id    BIGINT NOT NULL,
                              keyword   VARCHAR(100) NOT NULL,
@@ -243,7 +243,7 @@ CREATE TABLE log_keyword (
 -- =========================================================
 -- 面板展示项
 -- =========================================================
-CREATE TABLE dashboard_item (
+CREATE TABLE IF NOT EXISTS dashboard_item (
                                 item_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
                                 scope       ENUM('Company','Personal') NOT NULL,
                                 category    VARCHAR(100) NOT NULL,
@@ -261,7 +261,7 @@ CREATE TABLE dashboard_item (
 -- =========================================================
 -- AI 分析模块
 -- =========================================================
-CREATE TABLE ai_analysis (
+CREATE TABLE IF NOT EXISTS ai_analysis (
                              analysis_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
                              title         VARCHAR(255) NOT NULL,
                              generated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -273,7 +273,7 @@ CREATE TABLE ai_analysis (
                              KEY idx_ai_generated_at (generated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE ai_analysis_log_map (
+CREATE TABLE IF NOT EXISTS ai_analysis_log_map (
                                      id           BIGINT PRIMARY KEY AUTO_INCREMENT,
                                      analysis_id  BIGINT NOT NULL,
                                      log_id       BIGINT NOT NULL,
@@ -282,7 +282,7 @@ CREATE TABLE ai_analysis_log_map (
                                      KEY idx_ail_ai (analysis_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE ai_analysis_task_map (
+CREATE TABLE IF NOT EXISTS ai_analysis_task_map (
                                       id           BIGINT PRIMARY KEY AUTO_INCREMENT,
                                       analysis_id  BIGINT NOT NULL,
                                       task_id      BIGINT NOT NULL,
@@ -294,7 +294,7 @@ CREATE TABLE ai_analysis_task_map (
 -- =========================================================
 -- 附件、评论、通知
 -- =========================================================
-CREATE TABLE attachment (
+CREATE TABLE IF NOT EXISTS attachment (
                             attach_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
                             owner_type   VARCHAR(50) NOT NULL,
                             owner_id     BIGINT NOT NULL,
@@ -306,7 +306,7 @@ CREATE TABLE attachment (
                             KEY idx_att_uploader (uploaded_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE comment (
+CREATE TABLE IF NOT EXISTS comment (
                          comment_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
                          owner_type   VARCHAR(50) NOT NULL,
                          owner_id     BIGINT NOT NULL,
@@ -318,7 +318,7 @@ CREATE TABLE comment (
                          FULLTEXT KEY ftx_cmt_content (content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE notification (
+CREATE TABLE IF NOT EXISTS notification (
                               notif_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
                               user_id     BIGINT NOT NULL,
                               type        VARCHAR(50) NOT NULL,
@@ -331,7 +331,7 @@ CREATE TABLE notification (
                               KEY idx_notif_type (type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE `personal_task` (
+CREATE TABLE IF NOT EXISTS `personal_task` (
                                  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
                                  `user_id` bigint(20) NOT NULL COMMENT '关联的用户ID（外键，关联user表的id）',
                                  `personal_tasks` text COMMENT '个人任务列表（JSON格式字符串存储，如["任务1","任务2"]）',
@@ -342,7 +342,7 @@ CREATE TABLE `personal_task` (
 -- =========================================================
 -- 登录表
 -- =========================================================
-CREATE TABLE login (
+CREATE TABLE IF NOT EXISTS login (
                        login_id   INT AUTO_INCREMENT PRIMARY KEY COMMENT '登录记录ID',
                        user_id    BIGINT NOT NULL COMMENT '用户ID，对应user表的user_id',
                        token      VARCHAR(255) NOT NULL COMMENT '登录token',
