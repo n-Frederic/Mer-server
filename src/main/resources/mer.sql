@@ -107,25 +107,63 @@ CREATE TABLE team (
                       KEY idx_team_leader (leader_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE user (
-                      user_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
-                      name        VARCHAR(100) NOT NULL,
-                      username    VARCHAR(100) NOT NULL,
-                      email       VARCHAR(255) NOT NULL,
-                      phone       VARCHAR(50),
-                      team_id     INT NULL,
-                      role_id     INT NULL,
-                      created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                      updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                      UNIQUE KEY uq_user_username (username),
-                      UNIQUE KEY uq_user_email (email),
-                      KEY idx_user_team (team_id),
-                      KEY idx_user_role (role_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS verification_code (
+                                                 id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                                 email VARCHAR(255) NOT NULL,
+    code VARCHAR(10) NOT NULL,
+    created_at DATETIME NOT NULL,
+    KEY idx_vc_email (email)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS user (
+                                    user_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                    name        VARCHAR(100) NOT NULL,
+    email       VARCHAR(255) NOT NULL,
+    password    VARCHAR(255) NOT NULL,
+    username    VARCHAR(100) NULL,          -- 用户名
+    phone       VARCHAR(50) NULL,           -- 手机号
+    team_id     INT NULL,                   -- 所在团队ID（外键关联team表）
+    role_id     INT NULL,                   -- 角色ID（外键关联role表）
+    gender      ENUM('男', '女', '其他') NULL, -- 性别
+    birth_date  DATE NULL,                  -- 出生日期
+    bio         TEXT NULL,                  -- 个人简介
+    avatar_url  VARCHAR(500) NULL,          -- 头像URL
+    status      ENUM('active', 'inactive', 'suspended') NOT NULL DEFAULT 'active', -- 账户状态
+    last_login  DATETIME NULL,              -- 最后登录时间
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_user_email (email),
+    UNIQUE KEY uq_user_username (username),
+    KEY idx_user_team (team_id),
+    KEY idx_user_role (role_id),
+    KEY idx_user_status (status),
+    KEY idx_user_last_login (last_login)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表-完整版';
 -- =========================================================
 -- 任务与派发
 -- =========================================================
+
+
+
+
+CREATE TABLE IF NOT EXISTS `company_task` (
+                                `task_id`   BIGINT NOT NULL AUTO_INCREMENT,
+                                `title`     VARCHAR(255) NOT NULL,
+                                `description` TEXT NULL,
+                                `priority`  VARCHAR(32) NULL,
+                                `status`    VARCHAR(32) NULL,
+                                `startAt`   DATETIME(6) NULL,
+                                `dueAt`     DATETIME(6) NULL,
+                                `createdAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                                `updatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+                                PRIMARY KEY (`task_id`),
+                                KEY `idx_company_task_status` (`status`),
+                                KEY `idx_company_task_priority` (`priority`),
+                                KEY `idx_company_task_dueAt` (`dueAt`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
 CREATE TABLE task (
                       task_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
                       title       VARCHAR(255) NOT NULL,
