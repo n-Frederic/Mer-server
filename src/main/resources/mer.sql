@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS user (
     phone       VARCHAR(50) NULL,           -- 手机号
     team_id     INT NULL,                   -- 所在团队ID（外键关联team表）
     role_id     INT NULL,                   -- 角色ID（外键关联role表）
-    gender      ENUM('男', '女', '其他') NULL, -- 性别
+    gender      ENUM('M', 'F') NULL, -- 性别
     birth_date  DATE NULL,                  -- 出生日期
     bio         TEXT NULL,                  -- 个人简介
     avatar_url  VARCHAR(500) NULL,          -- 头像URL
