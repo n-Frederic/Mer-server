@@ -20,7 +20,9 @@ public class Login {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+    @Column(name = "valid_to")
     private LocalDateTime validTo;
+
 
     // 构造函数
     public Login() {}
@@ -63,5 +65,19 @@ public class Login {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+
+    public LocalDateTime getValidTo() {
+        return validTo;
+    }
+
+    public void setValidTo(LocalDateTime validTo) {
+        this.validTo = validTo;
+    }
+
+    // 判断 Token 是否过期
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(this.validTo);
     }
 }
