@@ -1,12 +1,13 @@
 package com.example.demo.controller;
 
-import com.example.demo.entity.Login;
+import com.example.demo.context.UserContext;
 import com.example.demo.entity.User;
 import com.example.demo.service.LoginService;
 import com.example.demo.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,4 +57,40 @@ public class UserController {
     public ResponseEntity<?> getProfile(@RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
         return userService.getProfile(authorizationHeader);
     }
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, Object>> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // 从 Authorization header 提取 token
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                response.put("ok", false);
+                response.put("message", "缺少 token");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            String token = authHeader.substring(7);
+
+            // 删除 token（失效登录）
+            boolean success = userService.logout(token);
+
+            if (success) {
+                response.put("ok", true);
+                response.put("message", "登出成功");
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("ok", false);
+                response.put("message", "Token 不存在或已失效");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+        } catch (Exception e) {
+            response.put("ok", false);
+            response.put("message", "登出失败: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
 }

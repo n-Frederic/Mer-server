@@ -4,9 +4,12 @@ import com.example.demo.entity.Login;
 import com.example.demo.entity.User;
 import com.example.demo.repository.LoginRepository;
 import com.example.demo.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +40,22 @@ public class UserService {
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
+    @Transactional
+    public boolean logout(String token) {
+        Optional<Login> loginOpt = loginRepository.findByToken(token);
+
+        if (loginOpt.isPresent()) {
+            // 方式1: 直接删除记录
+            loginRepository.delete(loginOpt.get());
+            return true;
+        }
+
+        return false;
+    }
+    /**
+     * 登出 - 标记 token 为过期（如果你想保留记录）
+     */
+
 
     public ResponseEntity<?> getProfile(String authorizationHeader) {
 
@@ -83,4 +102,5 @@ public class UserService {
 
         return ResponseEntity.ok(response);
     }
+
 }

@@ -29,10 +29,10 @@ public class User {
     private String phone;
 
     @Column(name = "team_id")
-    private int team_id;
+    private Integer team_id;
 
     @Column(name = "role_id")
-    private int role_id;
+    private Integer role_id;
 
     @Column(name = "gender")
     private String gender;
