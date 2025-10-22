@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.UserProfileUpdateRequestDTO;
 import com.example.demo.entity.Login;
 import com.example.demo.entity.User;
 import com.example.demo.repository.LoginRepository;
@@ -8,7 +9,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+
 import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -101,6 +104,32 @@ public class UserService {
 
 
         return ResponseEntity.ok(response);
+    }
+
+
+    public boolean updateUserProfile(String name, String username, String email, String phone, String gender, String bio, int team_id, int role_id, LocalDateTime birthday) {
+        Optional<User> optionalUser = userRepository.findByEmail(email);
+
+        if (optionalUser.isEmpty()) {
+            return false;
+        }
+
+        User user = optionalUser.get();
+        user.setName(name);
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPhone(phone);
+        user.setGender(gender);
+        user.setBio(bio);
+        user.setTeam_id(team_id);
+        user.setRole_id(role_id);
+
+        if (birthday != null) {
+            user.setBirthday(birthday);
+        }
+
+        userRepository.save(user);
+        return true;
     }
 
 }
