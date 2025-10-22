@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.context.UserContext;
 import com.example.demo.dto.LogRequestDTO;
 import com.example.demo.dto.LogResponseDTO;
 import com.example.demo.entity.Log;
@@ -30,7 +31,7 @@ public class LogController {
             @RequestHeader(value = "Authorization", required = false) String token
     ) {
         // TODO: 这里可以从 token 解析出 userId（暂时模拟）
-        Long authorId = 1L; // 示例，后续替换成实际登录用户
+        Long authorId = UserContext.getCurrentUserId();
 
         Page<Log> logPage = logService.getLogsByUser(authorId, date, page, pageSize);
 
@@ -68,9 +69,9 @@ public class LogController {
                 return ResponseEntity.status(401).body("Missing or invalid token");
             }
 
-            // 模拟通过 token 找到用户（实际应调用 UserService 或 SecurityContext）
+            Long userId = UserContext.getCurrentUserId();
             User author = new User();
-            author.setId(1L); // 示例用户ID，实际用从token中解析的用户ID
+            author.setId(userId);
 
             LogResponseDTO response = logService.createLog(request, author);
             return ResponseEntity.ok(response);

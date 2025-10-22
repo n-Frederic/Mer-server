@@ -4,6 +4,7 @@ package com.example.demo.controller;
 import com.example.demo.entity.PersonalTask;
 import com.example.demo.service.PersonalTaskService;
 import org.springframework.web.bind.annotation.*;
+import com.example.demo.context.UserContext;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,9 +21,12 @@ public class PersonalTaskController {
     }
 
     // 根据用户ID获取个人任务
-    @GetMapping("/user/{userId}")
-    public Map<String, Object> getPersonalTask(@PathVariable Long userId) {
+    @GetMapping
+    public Map<String, Object> getPersonalTask() {
         try {
+            Long userId = UserContext.getCurrentUserId();
+            System.out.println("user ID is:"+userId);
+
             PersonalTask personalTask = personalTaskService.getPersonalTaskByUserId(userId);
             Map<String, Object> response = new HashMap<>();
             response.put("user_id", userId);
@@ -36,11 +40,11 @@ public class PersonalTaskController {
     }
 
     // 更新指定用户的个人任务
-    @PutMapping("/user/{userId}")
+    @PutMapping
     public Map<String, Object> updatePersonalTask(
-            @PathVariable Long userId,
             @RequestBody Map<String, List<String>> requestBody) {
 
+        Long userId = UserContext.getCurrentUserId();
         Map<String, Object> response = new HashMap<>();
         List<String> personalTasks = requestBody.get("personal_tasks");
 
@@ -62,11 +66,11 @@ public class PersonalTaskController {
     }
 
     // 为指定用户创建个人任务
-    @PostMapping("/user/{userId}")
+    @PostMapping
     public Map<String, Object> createPersonalTask(
-            @PathVariable Long userId,
             @RequestBody Map<String, List<String>> requestBody) {
 
+        Long userId = UserContext.getCurrentUserId();
         Map<String, Object> response = new HashMap<>();
         List<String> personalTasks = requestBody.get("personal_tasks");
 
