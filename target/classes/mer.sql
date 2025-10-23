@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS user (
     created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uq_user_email (email),
-    UNIQUE KEY uq_user_username (username),
+    KEY uq_user_username (username),
     KEY idx_user_team (team_id),
     KEY idx_user_role (role_id),
     KEY idx_user_status (status),

@@ -7,9 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -26,7 +25,7 @@ public class TaskService {
                 priority == null ? "" : priority,
                 PageRequest.of(page - 1, pageSize)
         );
-        return wrapResponse(taskPage, page, pageSize);
+        return wrapResponse2(taskPage, page, pageSize);
     }
 
     public Map<String, Object> getAllTasks(String status, String priority, int page, int pageSize) {
@@ -41,6 +40,33 @@ public class TaskService {
     private Map<String, Object> wrapResponse(Page<Task> taskPage, int page, int pageSize) {
         Map<String, Object> response = new HashMap<>();
         response.put("list", taskPage.getContent());
+        response.put("total", taskPage.getTotalElements());
+        response.put("page", page);
+        response.put("pageSize", pageSize);
+        return response;
+    }
+    private Map<String, Object> wrapResponse2(Page<Task> taskPage, int page, int pageSize) {
+        Map<String, Object> response = new LinkedHashMap<>();  // 改用 LinkedHashMap
+
+        // 转换任务列表
+        List<Map<String, Object>> taskList = taskPage.getContent().stream()
+                .map(task -> {
+                    Map<String, Object> taskMap = new LinkedHashMap<>();  // 改用 LinkedHashMap
+                    taskMap.put("taskId", task.getTaskId());
+                    taskMap.put("title", task.getTitle());
+                    taskMap.put("description", task.getDescription());
+                    taskMap.put("creatorId", task.getCreator().getId());
+                    taskMap.put("priority", task.getPriority());
+                    taskMap.put("status", task.getStatus());
+                    taskMap.put("startAt", task.getStartAt());
+                    taskMap.put("dueAt", task.getDueAt());
+                    taskMap.put("createdAt", task.getCreatedAt());
+                    taskMap.put("updatedAt", task.getUpdatedAt());
+                    return taskMap;
+                })
+                .collect(Collectors.toList());
+
+        response.put("list", taskList);
         response.put("total", taskPage.getTotalElements());
         response.put("page", page);
         response.put("pageSize", pageSize);

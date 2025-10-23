@@ -5,6 +5,8 @@ import com.example.demo.dto.UserProfileUpdateRequestDTO;
 import com.example.demo.entity.User;
 import com.example.demo.service.LoginService;
 import com.example.demo.service.UserService;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,21 +36,87 @@ public class UserController {
     public Optional<User> getUser(@PathVariable Long id) {
         return userService.getUserById(id);
     }
-
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userService.saveUser(user);
-    }
+    public ResponseEntity<?> createUser(@RequestBody User user) {
+        try {
+            userService.saveUser(user);
+            return ResponseEntity.ok(Map.of(
+                    "ok", true,
+                    "message", "用户创建成功"
+            ));
+        } catch (DataIntegrityViolationException e) {
+            String message;
+            String code;
 
+            if (e.getMessage().contains("email")) {
+                message = "邮箱已存在";
+                code = "EMAIL_ALREADY_EXISTS";
+            } else if (e.getMessage().contains("username")) {
+                message = "用户名已存在";
+                code = "USERNAME_ALREADY_EXISTS";
+            } else {
+                message = "数据不合法，违反数据库约束";
+                code = "DATA_INTEGRITY_VIOLATION";
+            }
+
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", true,
+                    "message", message,
+                    "code", code
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", true,
+                    "message", "用户创建失败：" + e.getMessage(),
+                    "code", "INTERNAL_SERVER_ERROR"
+            ));
+        }
+    }
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User userDetails) {
-        return userService.getUserById(id)
-                .map(user -> {
-                    user.setName(userDetails.getName());
-                    user.setEmail(userDetails.getEmail());
-                    return userService.saveUser(user);
-                })
-                .orElseThrow(() -> new RuntimeException("用户未找到"));
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+        try {
+            return userService.getUserById(id)
+                    .map(user -> {
+                        user.setName(userDetails.getName());
+                        user.setEmail(userDetails.getEmail());
+                        userService.saveUser(user);
+                        return ResponseEntity.ok(Map.of(
+                                "ok", true,
+                                "message", "用户更新成功"
+                        ));
+                    })
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                            "error", true,
+                            "message", "用户未找到",
+                            "code", "USER_NOT_FOUND"
+                    )));
+        } catch (DataIntegrityViolationException e) {
+            String message;
+            String code;
+
+            if (e.getMessage().contains("email")) {
+                message = "邮箱已被其他用户使用";
+                code = "EMAIL_ALREADY_EXISTS";
+            } else if (e.getMessage().contains("username")) {
+                message = "用户名已被其他用户使用";
+                code = "USERNAME_ALREADY_EXISTS";
+            } else {
+                message = "数据不合法，违反数据库约束";
+                code = "DATA_INTEGRITY_VIOLATION";
+            }
+
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error", true,
+                    "message", message,
+                    "code", code
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "error", true,
+                    "message", "用户更新失败：" + e.getMessage(),
+                    "code", "INTERNAL_SERVER_ERROR"
+            ));
+        }
     }
 
     @DeleteMapping("/{id}")
