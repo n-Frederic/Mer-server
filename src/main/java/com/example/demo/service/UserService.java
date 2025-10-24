@@ -13,10 +13,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class UserService {
@@ -86,7 +83,7 @@ public class UserService {
         User user = userOpt.get();
 //        System.out.println("user=" + user);
 
-        Map<String, Object> userMap = new HashMap<>();
+        Map<String, Object> userMap = new LinkedHashMap<>();
         userMap.put("user_id", user.getId() != null ? user.getId() : "");
         userMap.put("name", user.getName() != null ? user.getName() : "");
         userMap.put("username", user.getUsername() != null ? user.getUsername() : "");
