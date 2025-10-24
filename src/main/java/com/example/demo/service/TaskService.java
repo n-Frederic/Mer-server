@@ -19,12 +19,12 @@ public class TaskService {
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
-        Page<Task> taskPage = taskRepository.findByCreatorIdAndStatusContainingAndPriorityContaining(
-                userId,
-                status == null ? "" : status,
-                priority == null ? "" : priority,
-                PageRequest.of(page - 1, pageSize)
+        Page<Task> taskPage = taskRepository.findAssignedTasks(
+                userId, PageRequest.of(page - 1, pageSize)
         );
+        System.out.println(userId);
+        System.out.println(taskPage.getContent());
+
         return wrapResponse2(taskPage, page, pageSize);
     }
 
