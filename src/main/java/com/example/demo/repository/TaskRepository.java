@@ -31,4 +31,23 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             nativeQuery = true
     )
     Page<Task> findAssignedTasks(@Param("userId") Long userId, Pageable pageable);
+
+
+
+    @Query(
+            value = """
+        select distinct t.*
+        from task t
+        join task_assignment ta on ta.task_id = t.task_id
+        where ta.assignee_id = :userId or ta.assigned_by = :userId 
+        """,
+            countQuery = """
+        select count(distinct t.task_id)
+        from task t
+        join task_assignment ta on ta.task_id = t.task_id
+        where ta.assignee_id = :userId or ta.assigned_by = :userId 
+        """,
+            nativeQuery = true
+    )
+    Page<Task> findViewTasks(@Param("userId") Long userId, Pageable pageable);
 }

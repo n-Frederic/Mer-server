@@ -1,13 +1,46 @@
 -- ===========================
--- Minimal seed data (MySQL8)
+START TRANSACTION;
+SET FOREIGN_KEY_CHECKS = 0;
+-- 1. 先清空有外键依赖的关联表（避免删除主表数据时触发约束）
+TRUNCATE TABLE ai_analysis_log_map;
+TRUNCATE TABLE ai_analysis_task_map;
+TRUNCATE TABLE role_permission;
+TRUNCATE TABLE task_assignment;
+TRUNCATE TABLE task_report;
+TRUNCATE TABLE log_keyword;
+TRUNCATE TABLE attachment;
+TRUNCATE TABLE comment;
+TRUNCATE TABLE notification;
+TRUNCATE TABLE dashboard_item;
+TRUNCATE TABLE ai_analysis;
+TRUNCATE TABLE log;
+TRUNCATE TABLE task;
+TRUNCATE TABLE company_task;
+TRUNCATE TABLE login;
+TRUNCATE TABLE verification_code;
+
+-- 2. 清空主表（需先处理外键表，再清空主表）
+-- 团队表：先重置leader_id为NULL（避免依赖用户表数据）
+UPDATE team SET leader_id = NULL;
+TRUNCATE TABLE team;
+TRUNCATE TABLE department;
+TRUNCATE TABLE user;
+TRUNCATE TABLE permission;
+TRUNCATE TABLE role;
+SET FOREIGN_KEY_CHECKS = 1;
+COMMIT;
+
+-- ===========================
+-- 第二步：插入原始种子数据（MySQL8）
 -- ===========================
 START TRANSACTION;
-
 -- ---- 角色 & 权限 ----
 INSERT INTO role (role_id, name, description) VALUES
-  (1, 'Admin',   'System administrator'),
-  (2, 'Manager', 'Team manager'),
-  (3, 'Member',  'Regular member')
+  (1, 'CEO',   'CEO of the company' ),
+  (2, 'Manager', 'Department manager'),
+  (3, 'Team Leader',  'Team Leader'),
+  (4, 'Member',  'Regular member'),
+  (5, 'Admin',  'Administrator')
     
 ON DUPLICATE KEY UPDATE name=VALUES(name);
 

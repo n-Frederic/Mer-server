@@ -27,6 +27,15 @@ public class TaskService {
 
         return wrapResponse2(taskPage, page, pageSize);
     }
+    public Map<String, Object> getViewTasks(Long userId, String status, String priority, int page, int pageSize) {
+        Page<Task> taskPage = taskRepository.findViewTasks(
+                userId, PageRequest.of(page - 1, pageSize)
+        );
+        System.out.println(userId);
+        System.out.println(taskPage.getContent());
+
+        return wrapResponse2(taskPage, page, pageSize);
+    }
 
     public Map<String, Object> getAllTasks(String status, String priority, int page, int pageSize) {
         Page<Task> taskPage = taskRepository.findByStatusContainingAndPriorityContaining(
