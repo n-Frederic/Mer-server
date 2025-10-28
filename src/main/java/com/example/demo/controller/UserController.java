@@ -21,11 +21,9 @@ import java.util.Optional;
 @RequestMapping("/user")
 public class UserController {
     private final UserService userService;
-    private final LoginService loginService;
 
-    public UserController(UserService userService, LoginService loginService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.loginService = loginService;
     }
     @GetMapping
     public List<User> getAllUsers() {
