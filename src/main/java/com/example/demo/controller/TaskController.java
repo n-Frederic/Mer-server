@@ -1,8 +1,10 @@
 package com.example.demo.controller;
 
 import com.example.demo.context.UserContext;
+import com.example.demo.dto.TaskCreateDTO;
 import com.example.demo.entity.User;
 import com.example.demo.service.TaskService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -16,6 +18,12 @@ public class TaskController {
         this.taskService = taskService;
     }
 
+    @PostMapping
+    public ResponseEntity<?> createTask(@RequestBody TaskCreateDTO task) {
+        Long userId=UserContext.getCurrentUserId();
+        //分配任务
+        return taskService.createTask(task,userId);
+    }
     // 获取个人任务
     @GetMapping("/personal")
     public Map<String, Object> getPersonalTasks(
@@ -31,7 +39,7 @@ public class TaskController {
         return taskService.getPersonalTasks(userId, status, priority, page, pageSize);
     }
 
-    // 获取个人任务
+    // 获取个人权限内任务
     @GetMapping("/myView")
     public Map<String, Object> getViewTasks(
 //            @RequestParam User creator,

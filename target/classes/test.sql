@@ -109,7 +109,7 @@ VALUES
 
     -- 新增任务：与原有任务形成父子关系
     (3, 'Write release docs', 'Prepare release notes for v1.0', 1003, 'Medium', 'Reported', NOW(), DATE_ADD(NOW(), INTERVAL 5 DAY), 1),
-    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'suspended', NOW(), DATE_ADD(NOW(), INTERVAL 15 DAY), 2),
+    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'Assigned', NOW(), DATE_ADD(NOW(), INTERVAL 15 DAY), 2),
     (5, 'Fix CI cache issue', 'Resolve dependency cache failure', 1002, 'Urgent', 'Reported', NOW(), DATE_ADD(NOW(), INTERVAL 8 DAY), 4),
 
     -- 新增顶级任务（无父任务）
@@ -121,17 +121,17 @@ VALUES
 
 
 INSERT INTO task_assignment
-(assignment_id, task_id, assignee_id, assigned_by, assigned_at, status, progress_pct)
+(assignment_id, task_id, assignee_id, assigned_by, assigned_at, progress_pct)
 VALUES
     -- 原有分配记录
-    (1, 1, 1002, 1001, NOW(), 'Pending', 20),
-    (2, 2, 1003, 1001, NOW(), 'Pending',   0),
+    (1, 1, 1002, 1001, NOW(), 20),
+    (2, 2, 1003, 1001, NOW(),    0),
 
     -- 新增任务的分配记录（对应task_id=3、4、5、6）
-    (3, 3, 1002, 1001, NOW(), 'Pending', 50),  -- 分配给1004处理"编写发布文档"（task_id=3）
-    (4, 4, 1003, 1001, NOW(), 'Pending', 30),  -- 分配给1003处理"测试CI工作流"（task_id=4）
-    (5, 5, 1003, 1001, NOW(), 'Pending', 10),  -- 分配给1003处理"修复CI缓存问题"（task_id=5）
-    (6, 6, 1002, 1001, NOW(), 'Pending', 0)  -- 分配给1005处理"规划v2.0路线图"（task_id=6）
+    (3, 3, 1002, 1001, NOW(), 50),  -- 分配给1004处理"编写发布文档"（task_id=3）
+    (4, 4, 1003, 1001, NOW(),  30),  -- 分配给1003处理"测试CI工作流"（task_id=4）
+    (5, 5, 1003, 1001, NOW(), 10),  -- 分配给1003处理"修复CI缓存问题"（task_id=5）
+    (6, 6, 1002, 1001, NOW(),  0)  -- 分配给1005处理"规划v2.0路线图"（task_id=6）
     ON DUPLICATE KEY UPDATE
                          status=VALUES(status),
                          progress_pct=VALUES(progress_pct),

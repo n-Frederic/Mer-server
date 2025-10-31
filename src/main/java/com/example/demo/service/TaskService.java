@@ -1,21 +1,35 @@
 package com.example.demo.service;
 
+import com.example.demo.dto.TaskCreateDTO;
 import com.example.demo.entity.Task;
+import com.example.demo.entity.TaskAssignment;
 import com.example.demo.entity.User;
+import com.example.demo.repository.TaskAssignmentRepository;
 import com.example.demo.repository.TaskRepository;
+import com.example.demo.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+    private final TaskAssignmentRepository taskAssignmentRepository;
 
-    public TaskService(TaskRepository taskRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository,TaskAssignmentRepository taskAssignmentRepositoryq) {
         this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
+
+        this.taskAssignmentRepository = taskAssignmentRepositoryq;
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
@@ -46,6 +60,81 @@ public class TaskService {
         return wrapResponse(taskPage, page, pageSize);
     }
 
+    public ResponseEntity<?> createTask(TaskCreateDTO task, Long userId) {
+        try {
+            // 1. 权限与合法性校验
+            // 检查用户是否存在（getReferenceById 若不存在会抛 EntityNotFoundException）
+            User creator = userRepository.getReferenceById(userId);
+
+            // 检查必填字段（如 title 不能为空）
+            if (task.getTitle() == null || task.getTitle().trim().isEmpty()) {
+                // 失败响应：缺失必填字段
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("ok", false);
+                errorResponse.put("error", "Missing required field: title");
+                errorResponse.put("code", "VALIDATION_ERROR");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+
+
+
+
+            // 可添加其他校验（如 dueAt 不能早于当前时间等）
+            if (task.getDueAt() != null && task.getDueAt().isBefore(Instant.now())) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("ok", false);
+                errorResponse.put("error", "Due time cannot be earlier than current time");
+                errorResponse.put("code", "VALIDATION_ERROR");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // 2. 构造任务对象
+            Instant now = Instant.now();
+            Task newTask = new Task(
+                    now,                  // updateTime
+                    now,                  // createTime
+                    task.getDueAt(),      // dueAt
+                    now,                  // startAt
+                    "Reported",           // status
+                    task.getPriority(),   // priority
+                    task.getDescription(),// description
+                    task.getTitle(),      // title
+                    creator               // creator
+            );
+
+            // 3. 保存任务
+            Task savedTask = taskRepository.save(newTask);
+            for (int i = 0; i < task.getAssigneeIds().size(); i++) {
+                LocalDateTime assignedAt = LocalDateTime.now();
+                TaskAssignment taskAssignment = new TaskAssignment(savedTask.getTaskId(),task.getAssigneeIds().get(i),userId,assignedAt);
+
+                taskAssignmentRepository.save(taskAssignment);
+            }
+
+            // 4. 成功响应
+            Map<String, Object> successResponse = new HashMap<>();
+            successResponse.put("ok", true);
+            successResponse.put("taskId", savedTask.getTaskId()); // 假设 Task 有 getId() 方法
+            successResponse.put("message", "Task created successfully");
+            return ResponseEntity.ok(successResponse);
+
+        } catch (EntityNotFoundException e) {
+            // 处理用户不存在的异常
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("ok", false);
+            errorResponse.put("error", "User not found with id: " + userId);
+            errorResponse.put("code", "USER_NOT_FOUND");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+        } catch (Exception e) {
+            // 处理其他未知异常
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("ok", false);
+            errorResponse.put("error", "Failed to create task: " + e.getMessage());
+            errorResponse.put("code", "INTERNAL_ERROR");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
     private Map<String, Object> wrapResponse(Page<Task> taskPage, int page, int pageSize) {
         Map<String, Object> response = new HashMap<>();
         response.put("list", taskPage.getContent());
