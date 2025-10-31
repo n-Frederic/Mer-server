@@ -9,7 +9,7 @@ public class Team {
     @Id
     @Column(name = "team_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long teamId;
+    private int teamId;
 
     private String name;
 
@@ -23,11 +23,11 @@ public class Team {
     @JoinColumn(name = "dept_id", referencedColumnName = "dept_id")
     private Department department;
 
-    public Long getTeamId() {
+    public int getTeamId() {
         return teamId;
     }
 
-    public void setTeamId(Long teamId) {
+    public void setTeamId(int teamId) {
         this.teamId = teamId;
     }
 
