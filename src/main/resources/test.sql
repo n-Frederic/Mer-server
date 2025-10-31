@@ -109,7 +109,7 @@ VALUES
 
     -- 新增任务：与原有任务形成父子关系
     (3, 'Write release docs', 'Prepare release notes for v1.0', 1003, 'Medium', 'Reported', NOW(), DATE_ADD(NOW(), INTERVAL 5 DAY), 1),
-    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'suspended', NOW(), DATE_ADD(NOW(), INTERVAL 15 DAY), 2),
+    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'Assigned', NOW(), DATE_ADD(NOW(), INTERVAL 15 DAY), 2),
     (5, 'Fix CI cache issue', 'Resolve dependency cache failure', 1002, 'Urgent', 'Reported', NOW(), DATE_ADD(NOW(), INTERVAL 8 DAY), 4),
 
     -- 新增顶级任务（无父任务）
