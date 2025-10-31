@@ -121,17 +121,17 @@ VALUES
 
 
 INSERT INTO task_assignment
-(assignment_id, task_id, assignee_id, assigned_by, assigned_at, status, progress_pct)
+(assignment_id, task_id, assignee_id, assigned_by, assigned_at, progress_pct)
 VALUES
     -- 原有分配记录
-    (1, 1, 1002, 1001, NOW(), 'Pending', 20),
-    (2, 2, 1003, 1001, NOW(), 'Pending',   0),
+    (1, 1, 1002, 1001, NOW(), 20),
+    (2, 2, 1003, 1001, NOW(),    0),
 
     -- 新增任务的分配记录（对应task_id=3、4、5、6）
-    (3, 3, 1002, 1001, NOW(), 'Pending', 50),  -- 分配给1004处理"编写发布文档"（task_id=3）
-    (4, 4, 1003, 1001, NOW(), 'Pending', 30),  -- 分配给1003处理"测试CI工作流"（task_id=4）
-    (5, 5, 1003, 1001, NOW(), 'Pending', 10),  -- 分配给1003处理"修复CI缓存问题"（task_id=5）
-    (6, 6, 1002, 1001, NOW(), 'Pending', 0)  -- 分配给1005处理"规划v2.0路线图"（task_id=6）
+    (3, 3, 1002, 1001, NOW(), 50),  -- 分配给1004处理"编写发布文档"（task_id=3）
+    (4, 4, 1003, 1001, NOW(),  30),  -- 分配给1003处理"测试CI工作流"（task_id=4）
+    (5, 5, 1003, 1001, NOW(), 10),  -- 分配给1003处理"修复CI缓存问题"（task_id=5）
+    (6, 6, 1002, 1001, NOW(),  0)  -- 分配给1005处理"规划v2.0路线图"（task_id=6）
     ON DUPLICATE KEY UPDATE
                          status=VALUES(status),
                          progress_pct=VALUES(progress_pct),

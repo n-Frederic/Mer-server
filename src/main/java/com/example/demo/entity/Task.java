@@ -26,6 +26,19 @@ public class Task {
 
     public Task() {}
 
+    public Task(Instant updatedAt, Instant createdAt, Instant dueAt, Instant startAt, String status, String priority, String description, String title, User creator) {
+        this.updatedAt = updatedAt;
+        this.createdAt = createdAt;
+        this.dueAt = dueAt;
+        this.startAt = startAt;
+        this.status = status;
+        this.priority = priority;
+        this.description = description;
+        this.title = title;
+        this.creator = creator;
+
+    }
+
     // Getter & Setter
     public Long getTaskId() { return task_id; }
     public void setTaskId(Long taskId) { this.task_id = taskId; }

@@ -175,6 +175,7 @@ CREATE TABLE IF NOT EXISTS task (
                                     parent_task BIGINT NULL,  -- 新增父任务ID列，允许为NULL（表示无父任务）
                                     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+--                                     tags TEXT,
                                     KEY idx_task_creator (creator_id),
                                     KEY idx_task_status (status),
                                     KEY idx_task_priority (priority),
@@ -197,12 +198,12 @@ CREATE TABLE IF NOT EXISTS task_assignment (
                                  accept_at     DATETIME NULL,
                                  finish_at     DATETIME NULL,
                                  progress_pct  INT NOT NULL DEFAULT 0,
-                                 status        ENUM('Pending','Accepted','Rejected','Completed') NOT NULL DEFAULT 'Pending',
+
                                  CHECK (progress_pct BETWEEN 0 AND 100),
                                  KEY idx_ta_task (task_id),
                                  KEY idx_ta_assignee (assignee_id),
-                                 KEY idx_ta_assigned_by (assigned_by),
-                                 KEY idx_ta_status (status)
+                                 KEY idx_ta_assigned_by (assigned_by)
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS task_report (
