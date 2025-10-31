@@ -13,7 +13,6 @@ import jakarta.validation.Valid; // 💥 更改为 jakarta.validation.Valid
  * 认证相关 API Controller
  */
 @RestController
-@RequestMapping("/api")
 public class AuthController {
 
     private final UserService userService;
