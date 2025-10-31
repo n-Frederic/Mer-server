@@ -1,8 +1,8 @@
 -- =========================================================
 -- 建议：使用独立 schema
 -- =========================================================
-CREATE DATABASE IF NOT EXISTS mer2 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-USE mer2;
+CREATE DATABASE IF NOT EXISTS mer DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE mer;
 
 -- 统一缺省设置
 SET NAMES utf8mb4;
@@ -163,23 +163,30 @@ CREATE TABLE IF NOT EXISTS `company_task` (
                                 KEY `idx_company_task_dueAt` (`dueAt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-
 CREATE TABLE IF NOT EXISTS task (
-                      task_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
-                      title       VARCHAR(255) NOT NULL,
-                      description TEXT,
-                      creator_id  BIGINT NOT NULL,
-                      priority    ENUM('Low','Medium','High','Urgent') NOT NULL DEFAULT 'Low',
-                      status      ENUM('Published','Assigned','InProgress','Reported','Completed','Closed') NOT NULL DEFAULT 'Published',
-                      start_at    DATETIME NULL,
-                      due_at      DATETIME NULL,
-                      created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                      updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                      KEY idx_task_creator (creator_id),
-                      KEY idx_task_status (status),
-                      KEY idx_task_priority (priority),
-                      KEY idx_task_due (due_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                                    task_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                    title       VARCHAR(255) NOT NULL,
+                                    description TEXT,
+                                    creator_id  BIGINT NOT NULL,
+                                    priority    ENUM('Low','Medium','High','Urgent') NOT NULL DEFAULT 'Low',
+                                    status      ENUM('Published','Assigned','InProgress','Reported','Completed','Closed') NOT NULL DEFAULT 'Published',
+                                    start_at    DATETIME NULL,
+                                    due_at      DATETIME NULL,
+                                    parent_task BIGINT NULL,  -- 新增父任务ID列，允许为NULL（表示无父任务）
+                                    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                    KEY idx_task_creator (creator_id),
+                                    KEY idx_task_status (status),
+                                    KEY idx_task_priority (priority),
+                                    KEY idx_task_due (due_at),
+                                    KEY idx_task_parent (parent_task),  -- 为父任务ID添加索引，提升查询效率
+                                -- 外键约束：确保parent_task的值必须是当前表中存在的task_id
+                                    CONSTRAINT fk_task_parent
+                                    FOREIGN KEY (parent_task)
+                                    REFERENCES task(task_id)
+                                    ON DELETE SET NULL  -- 父任务被删除时，子任务的parent_task自动设为NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 CREATE TABLE IF NOT EXISTS task_assignment (
                                  assignment_id BIGINT PRIMARY KEY AUTO_INCREMENT,

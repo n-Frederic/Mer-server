@@ -96,24 +96,46 @@ ON DUPLICATE KEY UPDATE token=VALUES(token);
 INSERT INTO company_task
   (task_id, title, description, priority, status, startAt, dueAt)
 VALUES
-  (1, 'KT for new hires', 'Prepare onboarding materials', 'High',   'Open',      NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY)),
-  (2, 'Infra upgrade',    'Upgrade MySQL to 8.4',         'Medium', 'InProgress',NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY))
+  (1, 'KT for new hires', 'Prepare onboarding materials', 'High',   'Reported',      NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY)),
+  (2, 'Infra upgrade',    'Upgrade MySQL to 8.4',         'Medium', 'Reported',NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY))
 ON DUPLICATE KEY UPDATE title=VALUES(title), status=VALUES(status);
 
 INSERT INTO task
-  (task_id, title, description, creator_id, priority, status, start_at, due_at)
+(task_id, title, description, creator_id, priority, status, start_at, due_at, parent_task)
 VALUES
-  (1, 'Release v1.0', 'Cut the first company release', 1001, 'High',   'Published', NOW(), DATE_ADD(NOW(), INTERVAL 10 DAY)),
-  (2, 'Migrate CI',   'Move CI to Github Actions',     1001, 'Medium', 'Assigned',  NOW(), DATE_ADD(NOW(), INTERVAL 20 DAY))
-ON DUPLICATE KEY UPDATE title=VALUES(title), status=VALUES(status);
+    -- 原有任务（补充 parent_task 为 NULL，表示顶级任务）
+    (1, 'Release v1.0', 'Cut the first company release', 1001, 'High',   'Reported', NOW(), DATE_ADD(NOW(), INTERVAL 10 DAY), NULL),
+    (2, 'Migrate CI',   'Move CI to Github Actions',     1001, 'Medium', 'Reported',  NOW(), DATE_ADD(NOW(), INTERVAL 20 DAY), NULL),
+
+    -- 新增任务：与原有任务形成父子关系
+    (3, 'Write release docs', 'Prepare release notes for v1.0', 1003, 'Medium', 'Reported', NOW(), DATE_ADD(NOW(), INTERVAL 5 DAY), 1),
+    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'suspended', NOW(), DATE_ADD(NOW(), INTERVAL 15 DAY), 2),
+    (5, 'Fix CI cache issue', 'Resolve dependency cache failure', 1002, 'Urgent', 'Reported', NOW(), DATE_ADD(NOW(), INTERVAL 8 DAY), 4),
+
+    -- 新增顶级任务（无父任务）
+    (6, 'Plan v2.0 roadmap', 'Define features for next release', 1001, 'Low', 'Reported', NULL, DATE_ADD(NOW(), INTERVAL 30 DAY), NULL)
+    ON DUPLICATE KEY UPDATE
+                         title=VALUES(title),
+                         status=VALUES(status),
+                         parent_task=VALUES(parent_task); -- 新增：若主键冲突，同步更新 parent_task
+
 
 INSERT INTO task_assignment
-  (assignment_id, task_id, assignee_id, assigned_by, assigned_at, status, progress_pct)
+(assignment_id, task_id, assignee_id, assigned_by, assigned_at, status, progress_pct)
 VALUES
-  (1, 1, 1002, 1001, NOW(), 'Accepted', 20),
-  (2, 2, 1003, 1001, NOW(), 'Pending',   0)
-ON DUPLICATE KEY UPDATE status=VALUES(status), progress_pct=VALUES(progress_pct);
+    -- 原有分配记录
+    (1, 1, 1002, 1001, NOW(), 'Pending', 20),
+    (2, 2, 1003, 1001, NOW(), 'Pending',   0),
 
+    -- 新增任务的分配记录（对应task_id=3、4、5、6）
+    (3, 3, 1002, 1001, NOW(), 'Pending', 50),  -- 分配给1004处理"编写发布文档"（task_id=3）
+    (4, 4, 1003, 1001, NOW(), 'Pending', 30),  -- 分配给1003处理"测试CI工作流"（task_id=4）
+    (5, 5, 1003, 1001, NOW(), 'Pending', 10),  -- 分配给1003处理"修复CI缓存问题"（task_id=5）
+    (6, 6, 1002, 1001, NOW(), 'Pending', 0)  -- 分配给1005处理"规划v2.0路线图"（task_id=6）
+    ON DUPLICATE KEY UPDATE
+                         status=VALUES(status),
+                         progress_pct=VALUES(progress_pct),
+                         assignee_id=VALUES(assignee_id);  -- 新增：冲突时同步更新负责人
 INSERT INTO task_report
   (report_id, task_id, reporter_id, content, attachments)
 VALUES
