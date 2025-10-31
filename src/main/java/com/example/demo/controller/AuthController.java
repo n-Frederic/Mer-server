@@ -1,13 +1,15 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.PasswordResetRequestDTO;
+import com.example.demo.dto.ResetErrorResponse;
+import com.example.demo.dto.ResetSuccessResponse;
 import com.example.demo.exception.BusinessException;
 import com.example.demo.service.UserService;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid; // 💥 更改为 jakarta.validation.Valid
+import jakarta.validation.Valid;
 
 /**
  * 认证相关 API Controller
@@ -21,28 +23,6 @@ public class AuthController {
         this.userService = userService;
     }
 
-    // 统一成功响应体
-    public static class SuccessResponse {
-        public boolean ok = true;
-        public String message;
-
-        public SuccessResponse(String message) {
-            this.message = message;
-        }
-    }
-
-    // 统一错误响应体 (与 API 失败返回体结构一致)
-    public static class ErrorResponse {
-        @JsonProperty("error")
-        public boolean isError = true;
-        public String message;
-        public String code;
-
-        public ErrorResponse(String message, String code) {
-            this.message = message;
-            this.code = code;
-        }
-    }
 
 
     /**
@@ -55,13 +35,13 @@ public class AuthController {
             userService.resetPassword(request);
 
             // 成功返回 200 OK
-            SuccessResponse response = new SuccessResponse("密码重置成功");
+            ResetSuccessResponse response = new ResetSuccessResponse("密码重置成功");
             return ResponseEntity.ok(response);
 
         } catch (BusinessException e) {
             // 失败返回 400 Bad Request
             // 无论内部错误码是 USER_NOT_FOUND 还是 INVALID_VERIFICATION_CODE，都按要求返回 INVALID_VERIFICATION_CODE
-            ErrorResponse errorResponse = new ErrorResponse(
+            ResetErrorResponse errorResponse = new ResetErrorResponse(
                     "验证信息错误，修改密码失败",
                     "INVALID_VERIFICATION_CODE"
             );
@@ -69,7 +49,7 @@ public class AuthController {
 
         } catch (Exception e) {
             // 捕获其他未知异常，返回 500
-            ErrorResponse errorResponse = new ErrorResponse(
+            ResetErrorResponse errorResponse = new ResetErrorResponse(
                     "服务器内部错误",
                     "INTERNAL_SERVER_ERROR"
             );
