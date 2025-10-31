@@ -228,7 +228,7 @@ CREATE TABLE IF NOT EXISTS log (
                      title       VARCHAR(255) NOT NULL,
                      content     TEXT,
                      log_date    DATE NOT NULL,
-                     view_type   ENUM('Day','Week','Month') NOT NULL,
+--                      view_type   ENUM('Day','Week','Month') NOT NULL,
                      mood        VARCHAR(50),
                      created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                      updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

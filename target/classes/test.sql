@@ -145,10 +145,10 @@ ON DUPLICATE KEY UPDATE content=VALUES(content);
 
 -- ---- 日志 & 关键词 ----
 INSERT INTO log
-  (log_id, user_id, task_id, title, content, log_date, view_type, mood)
+  (log_id, user_id, task_id, title, content, log_date,  mood)
 VALUES
-  (1, 1002, 1, 'Daily Standup', 'Working on release artifacts.', CURDATE(), 'Day', 'Focus'),
-  (2, 1003, 2, 'Daily Standup', 'Investigating CI cache misses.', CURDATE(), 'Day', 'Optimistic')
+  (1, 1002, 1, 'Daily Standup', 'Working on release artifacts.', CURDATE(), 'Focus'),
+  (2, 1003, 2, 'Daily Standup', 'Investigating CI cache misses.', CURDATE(),  'Optimistic')
 ON DUPLICATE KEY UPDATE content=VALUES(content);
 
 INSERT INTO log_keyword (id, log_id, keyword, weight) VALUES

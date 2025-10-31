@@ -8,5 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface LogRepository extends JpaRepository<Log, Long> {
 
     // 按作者ID查询，并可选日期过滤
-    Page<Log> findByAuthor_IdAndDateContaining(Long authorId, String date, Pageable pageable);
+    Page<Log> findByAuthor_Id(Long authorId, Pageable pageable);
 }
