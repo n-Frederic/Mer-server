@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -173,7 +174,7 @@ public class UserController {
         String bio = request.getBio();
         int team_id = request.getTeam_id();
         int role_id = request.getRole_id();
-        LocalDateTime birthday = request.getBirth_date();
+        LocalDate birthday = request.getBirth_date();
         boolean ok = userService.updateUserProfile(name,username,email,phone,gender,bio,team_id,role_id,birthday);
 
         if (ok) {

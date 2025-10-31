@@ -2,6 +2,7 @@ package com.example.demo.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -38,7 +39,8 @@ public class User {
     private String gender;
 
     @Column(name = "birth_date")
-    private LocalDateTime birthday;
+//    private LocalDateTime birthday;
+    private LocalDate birthday;
 
     @Column(name = "bio")
     private String bio;
@@ -92,11 +94,11 @@ public class User {
         this.gender = gender;
     }
 
-    public LocalDateTime getBirthday() {
+    public LocalDate getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(LocalDateTime birthday) {
+    public void setBirthday(LocalDate birthday) {
         this.birthday = birthday;
     }
 

@@ -1,7 +1,6 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.PasswordResetRequestDTO;
-import com.example.demo.dto.UserProfileUpdateRequestDTO;
 import com.example.demo.entity.Login;
 import com.example.demo.entity.User;
 import com.example.demo.entity.VerificationCode;
@@ -149,7 +148,8 @@ public class UserService {
     }
 
 
-    public boolean updateUserProfile(String name, String username, String email, String phone, String gender, String bio, int team_id, int role_id, LocalDateTime birthday) {
+    public boolean updateUserProfile(String name, String username, String email, String phone, String gender, String bio, int team_id, int role_id, LocalDate birthday) {
+
         Optional<User> optionalUser = userRepository.findByEmail(email);
 
         if (optionalUser.isEmpty()) {

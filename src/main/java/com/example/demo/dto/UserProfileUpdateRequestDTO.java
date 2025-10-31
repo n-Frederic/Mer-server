@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class UserProfileUpdateRequestDTO {
@@ -8,7 +9,7 @@ public class UserProfileUpdateRequestDTO {
     private String email;
     private String phone;
     private String gender;
-    private LocalDateTime birth_date;
+    private LocalDate birth_date;
     private String bio;
     private int team_id;
     private int role_id;
@@ -53,11 +54,11 @@ public class UserProfileUpdateRequestDTO {
         this.gender = gender;
     }
 
-    public LocalDateTime getBirth_date() {
+    public LocalDate getBirth_date() {
         return birth_date;
     }
 
-    public void setBirth_date(LocalDateTime birth_date) {
+    public void setBirth_date(LocalDate birth_date) {
         this.birth_date = birth_date;
     }
 
