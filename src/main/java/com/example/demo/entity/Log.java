@@ -22,6 +22,8 @@ public class Log {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User author;
+    private Long taskId;
+
 
     private Instant createdAt;
     private Instant updatedAt;
@@ -36,6 +38,7 @@ public class Log {
         this.author = author;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
+
     }
 
     // Getter / Setter
@@ -47,6 +50,14 @@ public class Log {
 
     public String getDate() { return date; }
     public void setDate(String date) { this.date = date; }
+
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
+    }
 
     public String getSummary() { return summary; }
     public void setSummary(String summary) { this.summary = summary; }

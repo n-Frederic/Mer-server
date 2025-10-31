@@ -21,10 +21,11 @@ public class LogService {
         this.logRepository = logRepository;
     }
 
-    public Page<Log> getLogsByUser(Long authorId, String date, int page, int pageSize) {
+    public Page<Log> getLogsByUser(Long authorId, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        String dateFilter = (date == null || date.isEmpty()) ? "" : date;
-        return logRepository.findByAuthor_IdAndDateContaining(authorId, dateFilter, pageable);
+
+
+        return logRepository.findByAuthor_Id(authorId, pageable);
     }
 
     @Transactional

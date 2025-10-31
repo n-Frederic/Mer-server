@@ -30,10 +30,10 @@ public class LogController {
             @RequestParam(defaultValue = "9") int pageSize,
             @RequestHeader(value = "Authorization", required = false) String token
     ) {
-        // TODO: 这里可以从 token 解析出 userId（暂时模拟）
+
         Long authorId = UserContext.getCurrentUserId();
 
-        Page<Log> logPage = logService.getLogsByUser(authorId, date, page, pageSize);
+        Page<Log> logPage = logService.getLogsByUser(authorId,page, pageSize);
 
         List<Map<String, Object>> list = logPage.getContent().stream().map(log -> {
             Map<String, Object> m = new HashMap<>();
@@ -43,6 +43,7 @@ public class LogController {
             m.put("summary", log.getSummary());
             m.put("content", log.getContent());
             m.put("authorId", "U-" + log.getAuthor().getId());
+            m.put("taskId",log.getTaskId());
             m.put("authorName", log.getAuthor().getName());
             m.put("authorEmail", log.getAuthor().getEmail());
             m.put("createdAt", log.getCreatedAt());
