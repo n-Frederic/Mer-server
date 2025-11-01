@@ -5,6 +5,7 @@ import com.example.demo.entity.Login;
 import com.example.demo.entity.User;
 import com.example.demo.repository.LoginRepository;
 import com.example.demo.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,10 +16,12 @@ import java.util.UUID;
 public class LoginService {
     private final UserRepository userRepository;
     private final LoginRepository loginRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public LoginService(UserRepository userRepository, LoginRepository loginRepository) {
+    public LoginService(UserRepository userRepository, LoginRepository loginRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.loginRepository = loginRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public LoginResponseDTO login(String email, String password) {
@@ -29,9 +32,10 @@ public class LoginService {
         }
 
         User user = optionalUser.get();
-        if (!user.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             return LoginResponseDTO.error("密码错误", "INVALID_PASSWORD");
         }
+
 
         // 生成 token（示例使用 UUID）
         String token = UUID.randomUUID().toString();
