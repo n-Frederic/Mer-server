@@ -133,7 +133,6 @@ VALUES
     (5, 5, 1003, 1001, NOW(), 10),  -- 分配给1003处理"修复CI缓存问题"（task_id=5）
     (6, 6, 1002, 1001, NOW(),  0)  -- 分配给1005处理"规划v2.0路线图"（task_id=6）
     ON DUPLICATE KEY UPDATE
-                         status=VALUES(status),
                          progress_pct=VALUES(progress_pct),
                          assignee_id=VALUES(assignee_id);  -- 新增：冲突时同步更新负责人
 INSERT INTO task_report
