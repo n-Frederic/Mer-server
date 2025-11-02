@@ -235,7 +235,6 @@ CREATE TABLE IF NOT EXISTS log (
                      KEY idx_log_user (user_id),
                      KEY idx_log_task (task_id),
                      KEY idx_log_date (log_date),
-                     KEY idx_log_view_type (view_type),
                      FULLTEXT KEY ftx_log_content_title (title, content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 

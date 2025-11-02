@@ -134,7 +134,7 @@ public class UserService {
         userMap.put("email", user.getEmail() != null ? user.getEmail() : "");
         userMap.put("phone", user.getPhone() != null ? user.getPhone() : "");
         userMap.put("team", user.getTeam_id() );
-        userMap.put("role_id", user.getRole_id() );
+        userMap.put("role_id", user.getroleId() );
         userMap.put("gender", user.getGender() != null ? user.getGender() : "");
         userMap.put("birth_date", user.getBirthday() != null ? user.getBirthday() : "");
         userMap.put("bio", user.getBio() != null ? user.getBio() : "");
@@ -148,7 +148,7 @@ public class UserService {
     }
 
 
-    public boolean updateUserProfile(String name, String username, String email, String phone, String gender, String bio, int team_id, int role_id, LocalDate birthday) {
+    public boolean updateUserProfile(String name, String username, String email, String phone, String gender, String bio, int team_id, int roleId, LocalDate birthday) {
 
         Optional<User> optionalUser = userRepository.findByEmail(email);
 
@@ -164,7 +164,7 @@ public class UserService {
         user.setGender(gender);
         user.setBio(bio);
         user.setTeam_id(team_id);
-        user.setRole_id(role_id);
+        user.setroleId(roleId);
 
         if (birthday != null) {
             user.setBirthday(birthday);
