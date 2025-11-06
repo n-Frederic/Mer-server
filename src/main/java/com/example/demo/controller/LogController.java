@@ -65,11 +65,6 @@ public class LogController {
             @RequestBody LogRequestDTO request
     ) {
         try {
-            // 解析 token（此处示例，你后续可接入 JWT 校验）
-            if (authorization == null || !authorization.startsWith("Bearer ")) {
-                return ResponseEntity.status(401).body("Missing or invalid token");
-            }
-
             Long userId = UserContext.getCurrentUserId();
             User author = new User();
             author.setId(userId);

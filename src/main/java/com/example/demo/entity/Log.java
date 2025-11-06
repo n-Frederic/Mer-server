@@ -2,6 +2,7 @@ package com.example.demo.entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "log")
@@ -12,8 +13,11 @@ public class Log {
     @Column(name = "log_id")
     private Long id;
 
+    @Column(name = "title")
     private String title;
-    private String date;
+
+    @Column(name = "log_date")
+    private LocalDate date;
     private String summary;
 
     @Column(columnDefinition = "TEXT")
@@ -22,7 +26,15 @@ public class Log {
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User author;
+
+    @Column(name = "task_id")
     private Long taskId;
+
+    @Column(name = "view_type")
+    private String viewType;
+
+    @Column(name = "mood")
+    private String mood;
 
 
     private Instant createdAt;
@@ -30,12 +42,15 @@ public class Log {
 
     public Log() {}
 
-    public Log(String title, String date, String summary, String content, User author) {
+    public Log(String title, LocalDate date, String summary, String content, String mood, String viewType, Long taskId, User author) {
         this.title = title;
         this.date = date;
         this.summary = summary;
         this.content = content;
         this.author = author;
+        this.mood = mood;
+        this.viewType = viewType;
+        this.taskId = taskId;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
 
@@ -48,8 +63,8 @@ public class Log {
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 
-    public String getDate() { return date; }
-    public void setDate(String date) { this.date = date; }
+    public LocalDate getDate() { return date; }
+    public void setDate(LocalDate date) { this.date = date; }
 
     public Long getTaskId() {
         return taskId;
