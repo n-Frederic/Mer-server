@@ -5,12 +5,9 @@ import com.example.demo.dto.LogResponseDTO;
 import com.example.demo.entity.Log;
 import com.example.demo.entity.User;
 import com.example.demo.repository.LogRepository;
-import com.example.demo.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 public class LogService {
@@ -32,9 +29,12 @@ public class LogService {
     public LogResponseDTO createLog(LogRequestDTO request, User author) {
         Log log = new Log(
                 request.getTitle(),
-                request.getDate(),
+                request.getLogDate(),
                 request.getSummary(),
                 request.getContent(),
+                request.getMood(),
+                request.getViewType(),
+                request.getTaskId(),
                 author
         );
 
