@@ -111,35 +111,35 @@ CREATE TABLE team (
 CREATE TABLE IF NOT EXISTS verification_code (
                                                  id BIGINT PRIMARY KEY AUTO_INCREMENT,
                                                  email VARCHAR(255) NOT NULL,
-    code VARCHAR(10) NOT NULL,
-    created_at DATETIME NOT NULL,
-    KEY idx_vc_email (email)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                                                 code VARCHAR(10) NOT NULL,
+                                                 created_at DATETIME NOT NULL,
+                                                 KEY idx_vc_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS user (
                                     user_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
                                     name        VARCHAR(100) NOT NULL,
-    email       VARCHAR(255) NOT NULL,
-    password    VARCHAR(255) NOT NULL,
-    username    VARCHAR(100) NULL,          -- 用户名
-    phone       VARCHAR(50) NULL,           -- 手机号
-    team_id     INT NULL,                   -- 所在团队ID（外键关联team表）
-    role_id     INT NULL,                   -- 角色ID（外键关联role表）
-    gender      ENUM('M', 'F') NULL, -- 性别
-    birth_date  DATE NULL,                  -- 出生日期
-    bio         TEXT NULL,                  -- 个人简介
-    avatar_url  VARCHAR(500) NULL,          -- 头像URL
-    status      ENUM('active', 'inactive', 'suspended') NOT NULL DEFAULT 'active', -- 账户状态
-    last_login  DATETIME NULL,              -- 最后登录时间
-    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uq_user_email (email),
-    KEY uq_user_username (username),
-    KEY idx_user_team (team_id),
-    KEY idx_user_role (role_id),
-    KEY idx_user_status (status),
-    KEY idx_user_last_login (last_login)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表-完整版';
+                                    email       VARCHAR(255) NOT NULL,
+                                    password    VARCHAR(255) NOT NULL,
+                                    username    VARCHAR(100) NULL,          -- 用户名
+                                    phone       VARCHAR(50) NULL,           -- 手机号
+                                    team_id     INT NULL,                   -- 所在团队ID（外键关联team表）
+                                    role_id     INT NULL,                   -- 角色ID（外键关联role表）
+                                    gender      ENUM('M', 'F') NULL, -- 性别
+                                    birth_date  DATE NULL,                  -- 出生日期
+                                    bio         TEXT NULL,                  -- 个人简介
+                                    avatar_url  VARCHAR(500) NULL,          -- 头像URL
+                                    status      ENUM('active', 'inactive', 'suspended') NOT NULL DEFAULT 'active', -- 账户状态
+                                    last_login  DATETIME NULL,              -- 最后登录时间
+                                    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                    UNIQUE KEY uq_user_email (email),
+                                    KEY uq_user_username (username),
+                                    KEY idx_user_team (team_id),
+                                    KEY idx_user_role (role_id),
+                                    KEY idx_user_status (status),
+                                    KEY idx_user_last_login (last_login)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表-完整版';
 -- =========================================================
 -- 任务与派发
 -- =========================================================
@@ -148,19 +148,19 @@ CREATE TABLE IF NOT EXISTS user (
 
 
 CREATE TABLE IF NOT EXISTS `company_task` (
-                                `task_id`   BIGINT NOT NULL AUTO_INCREMENT,
-                                `title`     VARCHAR(255) NOT NULL,
-                                `description` TEXT NULL,
-                                `priority`  VARCHAR(32) NULL,
-                                `status`    VARCHAR(32) NULL,
-                                `startAt`   DATETIME(6) NULL,
-                                `dueAt`     DATETIME(6) NULL,
-                                `createdAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-                                `updatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-                                PRIMARY KEY (`task_id`),
-                                KEY `idx_company_task_status` (`status`),
-                                KEY `idx_company_task_priority` (`priority`),
-                                KEY `idx_company_task_dueAt` (`dueAt`)
+                                              `task_id`   BIGINT NOT NULL AUTO_INCREMENT,
+                                              `title`     VARCHAR(255) NOT NULL,
+                                              `description` TEXT NULL,
+                                              `priority`  VARCHAR(32) NULL,
+                                              `status`    VARCHAR(32) NULL,
+                                              `startAt`   DATETIME(6) NULL,
+                                              `dueAt`     DATETIME(6) NULL,
+                                              `createdAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+                                              `updatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
+                                              PRIMARY KEY (`task_id`),
+                                              KEY `idx_company_task_status` (`status`),
+                                              KEY `idx_company_task_priority` (`priority`),
+                                              KEY `idx_company_task_dueAt` (`dueAt`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS task (
@@ -181,70 +181,72 @@ CREATE TABLE IF NOT EXISTS task (
                                     KEY idx_task_priority (priority),
                                     KEY idx_task_due (due_at),
                                     KEY idx_task_parent (parent_task),  -- 为父任务ID添加索引，提升查询效率
-                                -- 外键约束：确保parent_task的值必须是当前表中存在的task_id
+    -- 外键约束：确保parent_task的值必须是当前表中存在的task_id
                                     CONSTRAINT fk_task_parent
-                                    FOREIGN KEY (parent_task)
-                                    REFERENCES task(task_id)
-                                    ON DELETE SET NULL  -- 父任务被删除时，子任务的parent_task自动设为NULL
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                                        FOREIGN KEY (parent_task)
+                                            REFERENCES task(task_id)
+                                            ON DELETE SET NULL  -- 父任务被删除时，子任务的parent_task自动设为NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 CREATE TABLE IF NOT EXISTS task_assignment (
-                                 assignment_id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                 task_id       BIGINT NOT NULL,
-                                 assignee_id   BIGINT NOT NULL,
-                                 assigned_by   BIGINT NOT NULL,
-                                 assigned_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                 accept_at     DATETIME NULL,
-                                 finish_at     DATETIME NULL,
-                                 progress_pct  INT NOT NULL DEFAULT 0,
+                                               assignment_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                               task_id       BIGINT NOT NULL,
+                                               assignee_id   BIGINT NOT NULL,
+                                               assigned_by   BIGINT NOT NULL,
+                                               assigned_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                               accept_at     DATETIME NULL,
+                                               finish_at     DATETIME NULL,
+                                               progress_pct  INT NOT NULL DEFAULT 0,
 
-                                 CHECK (progress_pct BETWEEN 0 AND 100),
-                                 KEY idx_ta_task (task_id),
-                                 KEY idx_ta_assignee (assignee_id),
-                                 KEY idx_ta_assigned_by (assigned_by)
+                                               CHECK (progress_pct BETWEEN 0 AND 100),
+                                               KEY idx_ta_task (task_id),
+                                               KEY idx_ta_assignee (assignee_id),
+                                               KEY idx_ta_assigned_by (assigned_by)
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS task_report (
-                             report_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
-                             task_id      BIGINT NOT NULL,
-                             reporter_id  BIGINT NOT NULL,
-                             content      TEXT,
-                             attachments  TEXT,
-                             created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                             KEY idx_tr_task (task_id),
-                             KEY idx_tr_reporter (reporter_id),
-                             FULLTEXT KEY ftx_tr_content (content)
+                                           report_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                           task_id      BIGINT NOT NULL,
+                                           reporter_id  BIGINT NOT NULL,
+                                           content      TEXT,
+                                           attachments  TEXT,
+                                           created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                           KEY idx_tr_task (task_id),
+                                           KEY idx_tr_reporter (reporter_id),
+                                           FULLTEXT KEY ftx_tr_content (content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
 -- 日志系统
 -- =========================================================
 CREATE TABLE IF NOT EXISTS log (
-                     log_id      BIGINT PRIMARY KEY AUTO_INCREMENT,
-                     user_id     BIGINT NOT NULL,
-                     task_id     BIGINT NULL,
-                     title       VARCHAR(255) NOT NULL,
-                     content     TEXT,
-                     log_date    DATE NOT NULL,
+                                   log_id      BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                   user_id     BIGINT NOT NULL,
+                                   task_id     BIGINT NULL,
+                                   title       VARCHAR(255) NOT NULL,
+                                   content     TEXT,
+                                   log_date    DATE NOT NULL,
 --                      view_type   ENUM('Day','Week','Month') NOT NULL,
-                     mood        VARCHAR(50),
-                     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                     KEY idx_log_user (user_id),
-                     KEY idx_log_task (task_id),
-                     KEY idx_log_date (log_date),
-                     FULLTEXT KEY ftx_log_content_title (title, content)
+                                   mood        VARCHAR(50),
+                                   tomorrowPlan VARCHAR(255) NULL,
+                                   helpNeeded  VARCHAR(255) NULL,
+                                   created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                   updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                   KEY idx_log_user (user_id),
+                                   KEY idx_log_task (task_id),
+                                   KEY idx_log_date (log_date),
+                                   FULLTEXT KEY ftx_log_content_title (title, content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS log_keyword (
-                             id        BIGINT PRIMARY KEY AUTO_INCREMENT,
-                             log_id    BIGINT NOT NULL,
-                             keyword   VARCHAR(100) NOT NULL,
-                             weight    FLOAT NOT NULL DEFAULT 0,
-                             UNIQUE KEY uq_log_keyword (log_id, keyword),
-                             KEY idx_lk_log (log_id)
+                                           id        BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                           log_id    BIGINT NOT NULL,
+                                           keyword   VARCHAR(100) NOT NULL,
+                                           weight    FLOAT NOT NULL DEFAULT 0,
+                                           UNIQUE KEY uq_log_keyword (log_id, keyword),
+                                           KEY idx_lk_log (log_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
@@ -252,125 +254,125 @@ CREATE TABLE IF NOT EXISTS log_task_map (
                                             log_id  BIGINT NOT NULL,
                                             task_id BIGINT NOT NULL,
                                             PRIMARY KEY (log_id, task_id),
-    KEY idx_ltm_task_id (task_id),
-    CONSTRAINT fk_ltm_log
-    FOREIGN KEY (log_id)  REFERENCES log(log_id)
-    ON DELETE CASCADE
-    ON UPDATE RESTRICT,
-    CONSTRAINT fk_ltm_task
-    FOREIGN KEY (task_id) REFERENCES task(task_id)
-    ON DELETE CASCADE
-    ON UPDATE RESTRICT
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                                            KEY idx_ltm_task_id (task_id),
+                                            CONSTRAINT fk_ltm_log
+                                                FOREIGN KEY (log_id)  REFERENCES log(log_id)
+                                                    ON DELETE CASCADE
+                                                    ON UPDATE RESTRICT,
+                                            CONSTRAINT fk_ltm_task
+                                                FOREIGN KEY (task_id) REFERENCES task(task_id)
+                                                    ON DELETE CASCADE
+                                                    ON UPDATE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================
 -- 面板展示项
 -- =========================================================
 CREATE TABLE IF NOT EXISTS dashboard_item (
-                                item_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                scope       ENUM('Company','Personal') NOT NULL,
-                                category    VARCHAR(100) NOT NULL,
-                                title       VARCHAR(255) NOT NULL,
-                                ref_type    VARCHAR(50) NOT NULL,
-                                ref_id      BIGINT NULL,
-                                sort_order  INT NOT NULL DEFAULT 0,
-                                updated_by  BIGINT NULL,
-                                updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                                KEY idx_di_scope_cat (scope, category),
-                                KEY idx_di_ref (ref_type, ref_id),
-                                KEY idx_di_updated_by (updated_by)
+                                              item_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                              scope       ENUM('Company','Personal') NOT NULL,
+                                              category    VARCHAR(100) NOT NULL,
+                                              title       VARCHAR(255) NOT NULL,
+                                              ref_type    VARCHAR(50) NOT NULL,
+                                              ref_id      BIGINT NULL,
+                                              sort_order  INT NOT NULL DEFAULT 0,
+                                              updated_by  BIGINT NULL,
+                                              updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                              KEY idx_di_scope_cat (scope, category),
+                                              KEY idx_di_ref (ref_type, ref_id),
+                                              KEY idx_di_updated_by (updated_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
 -- AI 分析模块
 -- =========================================================
 CREATE TABLE IF NOT EXISTS ai_analysis (
-                             analysis_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
-                             title         VARCHAR(255) NOT NULL,
-                             generated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                             generated_by  BIGINT NULL,
-                             summary       TEXT,
-                             metrics_json  JSON NULL,
-                             suggestions   TEXT,
-                             KEY idx_ai_generated_by (generated_by),
-                             KEY idx_ai_generated_at (generated_at)
+                                           analysis_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                           title         VARCHAR(255) NOT NULL,
+                                           generated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                           generated_by  BIGINT NULL,
+                                           summary       TEXT,
+                                           metrics_json  JSON NULL,
+                                           suggestions   TEXT,
+                                           KEY idx_ai_generated_by (generated_by),
+                                           KEY idx_ai_generated_at (generated_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS ai_analysis_log_map (
-                                     id           BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                     analysis_id  BIGINT NOT NULL,
-                                     log_id       BIGINT NOT NULL,
-                                     UNIQUE KEY uq_ai_log (analysis_id, log_id),
-                                     KEY idx_ail_log (log_id),
-                                     KEY idx_ail_ai (analysis_id)
+                                                   id           BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                                   analysis_id  BIGINT NOT NULL,
+                                                   log_id       BIGINT NOT NULL,
+                                                   UNIQUE KEY uq_ai_log (analysis_id, log_id),
+                                                   KEY idx_ail_log (log_id),
+                                                   KEY idx_ail_ai (analysis_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS ai_analysis_task_map (
-                                      id           BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                      analysis_id  BIGINT NOT NULL,
-                                      task_id      BIGINT NOT NULL,
-                                      UNIQUE KEY uq_ai_task (analysis_id, task_id),
-                                      KEY idx_ait_task (task_id),
-                                      KEY idx_ait_ai (analysis_id)
+                                                    id           BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                                    analysis_id  BIGINT NOT NULL,
+                                                    task_id      BIGINT NOT NULL,
+                                                    UNIQUE KEY uq_ai_task (analysis_id, task_id),
+                                                    KEY idx_ait_task (task_id),
+                                                    KEY idx_ait_ai (analysis_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
 -- 附件、评论、通知
 -- =========================================================
 CREATE TABLE IF NOT EXISTS attachment (
-                            attach_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
-                            owner_type   VARCHAR(50) NOT NULL,
-                            owner_id     BIGINT NOT NULL,
-                            file_name    VARCHAR(255) NOT NULL,
-                            file_url     VARCHAR(1000) NOT NULL,
-                            uploaded_by  BIGINT NOT NULL,
-                            uploaded_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                            KEY idx_att_owner (owner_type, owner_id),
-                            KEY idx_att_uploader (uploaded_by)
+                                          attach_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                          owner_type   VARCHAR(50) NOT NULL,
+                                          owner_id     BIGINT NOT NULL,
+                                          file_name    VARCHAR(255) NOT NULL,
+                                          file_url     VARCHAR(1000) NOT NULL,
+                                          uploaded_by  BIGINT NOT NULL,
+                                          uploaded_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                          KEY idx_att_owner (owner_type, owner_id),
+                                          KEY idx_att_uploader (uploaded_by)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS comment (
-                         comment_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
-                         owner_type   VARCHAR(50) NOT NULL,
-                         owner_id     BIGINT NOT NULL,
-                         author_id    BIGINT NOT NULL,
-                         content      TEXT,
-                         created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         KEY idx_cmt_owner (owner_type, owner_id),
-                         KEY idx_cmt_author (author_id),
-                         FULLTEXT KEY ftx_cmt_content (content)
+                                       comment_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                       owner_type   VARCHAR(50) NOT NULL,
+                                       owner_id     BIGINT NOT NULL,
+                                       author_id    BIGINT NOT NULL,
+                                       content      TEXT,
+                                       created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                       KEY idx_cmt_owner (owner_type, owner_id),
+                                       KEY idx_cmt_author (author_id),
+                                       FULLTEXT KEY ftx_cmt_content (content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS notification (
-                              notif_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
-                              user_id     BIGINT NOT NULL,
-                              type        VARCHAR(50) NOT NULL,
-                              title       VARCHAR(255) NOT NULL,
-                              body        TEXT,
-                              is_read     BOOLEAN NOT NULL DEFAULT FALSE,
-                              created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                              KEY idx_notif_user (user_id),
-                              KEY idx_notif_is_read (is_read),
-                              KEY idx_notif_type (type)
+                                            notif_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                            user_id     BIGINT NOT NULL,
+                                            type        VARCHAR(50) NOT NULL,
+                                            title       VARCHAR(255) NOT NULL,
+                                            body        TEXT,
+                                            is_read     BOOLEAN NOT NULL DEFAULT FALSE,
+                                            created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                            KEY idx_notif_user (user_id),
+                                            KEY idx_notif_is_read (is_read),
+                                            KEY idx_notif_type (type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS `personal_task` (
-                                 `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
-                                 `user_id` bigint(20) NOT NULL COMMENT '关联的用户ID（外键，关联user表的id）',
-                                 `personal_tasks` text COMMENT '个人任务列表（JSON格式字符串存储，如["任务1","任务2"]）',
-                                 PRIMARY KEY (`id`),
-                                 KEY `fk_personal_task_user` (`user_id`),
-                                 CONSTRAINT `fk_personal_task_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
+                                               `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID，自增',
+                                               `user_id` bigint(20) NOT NULL COMMENT '关联的用户ID（外键，关联user表的id）',
+                                               `personal_tasks` text COMMENT '个人任务列表（JSON格式字符串存储，如["任务1","任务2"]）',
+                                               PRIMARY KEY (`id`),
+                                               KEY `fk_personal_task_user` (`user_id`),
+                                               CONSTRAINT `fk_personal_task_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='个人任务表';
 -- =========================================================
 -- 登录表
 -- =========================================================
 CREATE TABLE IF NOT EXISTS login (
-                       login_id   INT AUTO_INCREMENT PRIMARY KEY COMMENT '登录记录ID',
-                       user_id    BIGINT NOT NULL COMMENT '用户ID，对应user表的user_id',
-                       token      VARCHAR(255) NOT NULL COMMENT '登录token',
-                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-                       valid_to  TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '有效时间'
+                                     login_id   INT AUTO_INCREMENT PRIMARY KEY COMMENT '登录记录ID',
+                                     user_id    BIGINT NOT NULL COMMENT '用户ID，对应user表的user_id',
+                                     token      VARCHAR(255) NOT NULL COMMENT '登录token',
+                                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+                                     valid_to  TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '有效时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
