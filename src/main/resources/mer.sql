@@ -238,21 +238,24 @@ CREATE TABLE IF NOT EXISTS task_report (
 -- 日志系统
 -- =========================================================
 CREATE TABLE IF NOT EXISTS log (
-                     log_id      BIGINT PRIMARY KEY AUTO_INCREMENT,
-                     user_id     BIGINT NOT NULL,
-                     task_id     BIGINT NULL,
-                     title       VARCHAR(255) NOT NULL,
-                     content     TEXT,
-                     log_date    DATE NOT NULL,
---                      view_type   ENUM('Day','Week','Month') NOT NULL,
-                     mood        VARCHAR(50),
-                     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                     KEY idx_log_user (user_id),
-                     KEY idx_log_task (task_id),
-                     KEY idx_log_date (log_date),
-                     FULLTEXT KEY ftx_log_content_title (title, content)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                                   log_id       BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                   user_id      BIGINT NOT NULL,
+                                   task_id      BIGINT NULL,
+                                   title        VARCHAR(255) NOT NULL,
+    todaySummary TEXT,
+    tomorrowPlan TEXT,
+    helpNeeded   TEXT,
+    status       VARCHAR(20),
+    log_date     DATE NOT NULL,
+    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ON UPDATE CURRENT_TIMESTAMP,
+    KEY idx_log_user (user_id),
+    KEY idx_log_task (task_id),
+    KEY idx_log_date (log_date),
+    FULLTEXT KEY ftx_log_content_title (title, todaySummary, tomorrowPlan, helpNeeded)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 CREATE TABLE IF NOT EXISTS log_keyword (
                              id        BIGINT PRIMARY KEY AUTO_INCREMENT,
