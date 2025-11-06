@@ -235,7 +235,6 @@ CREATE TABLE IF NOT EXISTS log (
                      KEY idx_log_user (user_id),
                      KEY idx_log_task (task_id),
                      KEY idx_log_date (log_date),
-                     KEY idx_log_view_type (view_type),
                      FULLTEXT KEY ftx_log_content_title (title, content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -247,6 +246,22 @@ CREATE TABLE IF NOT EXISTS log_keyword (
                              UNIQUE KEY uq_log_keyword (log_id, keyword),
                              KEY idx_lk_log (log_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+CREATE TABLE IF NOT EXISTS log_task_map (
+                                            log_id  BIGINT NOT NULL,
+                                            task_id BIGINT NOT NULL,
+                                            PRIMARY KEY (log_id, task_id),
+    KEY idx_ltm_task_id (task_id),
+    CONSTRAINT fk_ltm_log
+    FOREIGN KEY (log_id)  REFERENCES log(log_id)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT,
+    CONSTRAINT fk_ltm_task
+    FOREIGN KEY (task_id) REFERENCES task(task_id)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =========================================================
 -- 面板展示项

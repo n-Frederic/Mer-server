@@ -10,6 +10,7 @@ import com.example.demo.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -40,6 +41,20 @@ public class TaskService {
         System.out.println(taskPage.getContent());
 
         return wrapResponse2(taskPage, page, pageSize);
+    }
+    public Map<String, Object> getAssignees(Long userId, String status, String priority, int page, int pageSize) {
+
+        User user = userRepository.findById(userId).orElseThrow(EntityNotFoundException::new);
+        Integer role=user.getroleId();
+        // 1. 构建分页参数（注意：JPA 页码从 0 开始，需将前端传入的 page 减 1）
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+
+        // 2. 调用分页查询方法（假设需要查询 roleId > role 参数 且 !=5 的用户）
+
+        Page<User> userPage = userRepository.findByRoleIdGreaterThanAndRoleIdNot(role, 5, pageable);
+
+
+        return wrapResponse1(userPage, page, pageSize);
     }
     public Map<String, Object> getViewTasks(Long userId, String status, String priority, int page, int pageSize) {
         Page<Task> taskPage = taskRepository.findViewTasks(
@@ -139,6 +154,15 @@ public class TaskService {
         Map<String, Object> response = new HashMap<>();
         response.put("list", taskPage.getContent());
         response.put("total", taskPage.getTotalElements());
+        response.put("page", page);
+        response.put("pageSize", pageSize);
+        return response;
+    }
+
+    private Map<String, Object> wrapResponse1(Page<User> userPage, int page, int pageSize) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("list", userPage.getContent());
+        response.put("total", userPage.getTotalElements());
         response.put("page", page);
         response.put("pageSize", pageSize);
         return response;

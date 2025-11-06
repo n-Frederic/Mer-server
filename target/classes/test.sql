@@ -73,9 +73,11 @@ ON DUPLICATE KEY UPDATE name=VALUES(name), dept_id=VALUES(dept_id);
 INSERT INTO user
   (user_id, name, email, password, username, phone, team_id, role_id, gender, status, last_login)
 VALUES
-  (1001, 'Alice Admin',  '1831437770@qq.com',  '111111',  'alice',  '100-0001', 1, 1, 'F', 'active', NOW()),
+  (1001, 'Alice Admin',  '1831437770@qq.com',  '111111',  'alice',  '100-0001', 1, 5, 'F', 'active', NOW()),
   (1002, 'Bob Manager',  'bob@example.com',    '$2a$10$manager','bob',    '100-0002', 1, 2, 'M', 'active', NOW()),
-  (1003, 'Carol Member', 'carol@example.com',  '$2a$10$member', 'carol',  '100-0003', 2, 3, 'F', 'active', NOW())
+  (1003, 'Carol Member', 'carol@example.com',  '$2a$10$member', 'carol',  '100-0003', 2, 4, 'F', 'active', NOW()),
+  (1004, 'Lisa CEO', 'lisa@amd.com',  '$2a$10$ceo', 'lisa',  '101-0003', 1, 1, 'F', 'active', NOW()),
+  (1005, 'Helen Leader', 'helen@example.com',  '$2a$10$ceo', '05hal',  '100-0013', 2, 3, 'F', 'active', NOW())
 ON DUPLICATE KEY UPDATE name=VALUES(name), team_id=VALUES(team_id), role_id=VALUES(role_id);
 
 UPDATE team SET leader_id = 1001 WHERE team_id = 1;
@@ -133,7 +135,6 @@ VALUES
     (5, 5, 1003, 1001, NOW(), 10),  -- 分配给1003处理"修复CI缓存问题"（task_id=5）
     (6, 6, 1002, 1001, NOW(),  0)  -- 分配给1005处理"规划v2.0路线图"（task_id=6）
     ON DUPLICATE KEY UPDATE
-                         status=VALUES(status),
                          progress_pct=VALUES(progress_pct),
                          assignee_id=VALUES(assignee_id);  -- 新增：冲突时同步更新负责人
 INSERT INTO task_report
