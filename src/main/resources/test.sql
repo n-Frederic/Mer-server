@@ -146,28 +146,27 @@ ON DUPLICATE KEY UPDATE content=VALUES(content);
 
 -- ---- 日志 & 关键词 ----
 INSERT INTO log
-(log_id, user_id, task_id, title,
+(log_id, user_id, task_id,
  todaySummary,                tomorrowPlan,                               helpNeeded,                           status,
  log_date)
 VALUES
     -- 旧示例1（把 content -> todaySummary，mood -> status）
-    (1, 1002, 1, 'Daily Standup',
+    (1, 1002, 1,
      'Working on release artifacts.', 'Continue release packaging and smoke test.', NULL, 'Focus',
      CURDATE()),
 
     -- 旧示例2
-    (2, 1003, 2, 'Daily Standup',
+    (2, 1003, 2,
      'Investigating CI cache misses.', 'Re-run pipeline and compare cache keys.', NULL, 'Optimistic',
      CURDATE()),
 
     -- 新增：与截图语义一致的“周报”示例（task_id 可先置 NULL，关联走 log_task_map）
-    (101, 1001, NULL, 'Weekly Report',
+    (101, 1001, NULL,
      'today work...', 'work tomorrow', 'sos', 'passed',
      DATE '2025-09-18')
     ON DUPLICATE KEY UPDATE
                          user_id      = VALUES(user_id),
                          task_id      = VALUES(task_id),
-                         title        = VALUES(title),
                          todaySummary = VALUES(todaySummary),
                          tomorrowPlan = VALUES(tomorrowPlan),
                          helpNeeded   = VALUES(helpNeeded),

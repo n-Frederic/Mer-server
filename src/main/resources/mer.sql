@@ -241,7 +241,7 @@ CREATE TABLE IF NOT EXISTS log (
                                    log_id       BIGINT PRIMARY KEY AUTO_INCREMENT,
                                    user_id      BIGINT NOT NULL,
                                    task_id      BIGINT NULL,
-                                   title        VARCHAR(255) NOT NULL,
+
     todaySummary TEXT,
     tomorrowPlan TEXT,
     helpNeeded   TEXT,
@@ -253,7 +253,7 @@ CREATE TABLE IF NOT EXISTS log (
     KEY idx_log_user (user_id),
     KEY idx_log_task (task_id),
     KEY idx_log_date (log_date),
-    FULLTEXT KEY ftx_log_content_title (title, todaySummary, tomorrowPlan, helpNeeded)
+    FULLTEXT KEY ftx_log_content (todaySummary, tomorrowPlan, helpNeeded)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
