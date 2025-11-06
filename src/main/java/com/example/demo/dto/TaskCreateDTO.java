@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import com.example.demo.entity.Tags;
 import jakarta.validation.constraints.NotBlank;
 
 import java.time.Instant;
@@ -16,10 +17,18 @@ public class TaskCreateDTO {
     private Instant dueAt;
     @NotBlank(message = "优先级不能为空")
     private String priority;
+    private List<String> tags;
     @NotBlank(message = "指派成员不能为空")
     private List<Long> assigneeIds;
 
-//    private String tags;
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+    //    private String tags;
 
     public String getTitle() {
         return title;

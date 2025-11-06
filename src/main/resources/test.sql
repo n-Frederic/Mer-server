@@ -162,7 +162,17 @@ INSERT INTO log_task_map (log_id, task_id) VALUES
                                                (1, 3),
                                                (2, 2),
                                                (2, 4),
-                                               (2, 5);
+                                               (2, 5)
+    ON DUPLICATE KEY UPDATE
+                         log_id = VALUES(log_id);  -- 或者 task_id = VALUES(task_id)
+INSERT INTO tags (task_id, tag) VALUES
+                                    (1, 'release'),
+                                    (1, 'v1.0'),
+                                    (2, 'ci'),
+                                    (4, 'pipeline'),
+                                    (5, 'roadmap')
+    ON DUPLICATE KEY UPDATE
+                         updated_at = updated_at;
 -- ---- 面板项 ----
 INSERT INTO dashboard_item
   (item_id, scope, category, title, ref_type, ref_id, sort_order, updated_by)

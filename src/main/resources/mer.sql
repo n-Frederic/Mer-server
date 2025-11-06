@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS task (
                                     parent_task BIGINT NULL,  -- 新增父任务ID列，允许为NULL（表示无父任务）
                                     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---                                     tags TEXT,
+--                                     tags TEXT,//表
                                     KEY idx_task_creator (creator_id),
                                     KEY idx_task_status (status),
                                     KEY idx_task_priority (priority),
@@ -188,6 +188,22 @@ CREATE TABLE IF NOT EXISTS task (
                                     ON DELETE SET NULL  -- 父任务被删除时，子任务的parent_task自动设为NULL
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS tags (
+                                    tag_id     BIGINT NOT NULL AUTO_INCREMENT,
+                                    task_id    BIGINT NOT NULL,
+                                    tag        VARCHAR(100) NOT NULL,
+
+
+    PRIMARY KEY (tag_id),
+    -- 一个任务下同名标签只保留一条，避免重复
+    UNIQUE KEY uk_task_tag (task_id, tag),
+    -- 常用查询：按任务查标签
+    KEY idx_tags_task (task_id),
+    CONSTRAINT fk_tags_task
+    FOREIGN KEY (task_id) REFERENCES task(task_id)
+    ON DELETE CASCADE
+    ON UPDATE RESTRICT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS task_assignment (
                                  assignment_id BIGINT PRIMARY KEY AUTO_INCREMENT,

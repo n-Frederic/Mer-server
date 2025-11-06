@@ -1,9 +1,11 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.TaskCreateDTO;
+import com.example.demo.entity.Tags;
 import com.example.demo.entity.Task;
 import com.example.demo.entity.TaskAssignment;
 import com.example.demo.entity.User;
+import com.example.demo.repository.TagsRepository;
 import com.example.demo.repository.TaskAssignmentRepository;
 import com.example.demo.repository.TaskRepository;
 import com.example.demo.repository.UserRepository;
@@ -25,12 +27,14 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
     private final TaskAssignmentRepository taskAssignmentRepository;
+    private final TagsRepository tagsRepository;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository,TaskAssignmentRepository taskAssignmentRepositoryq) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository,TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
 
-        this.taskAssignmentRepository = taskAssignmentRepositoryq;
+        this.taskAssignmentRepository = taskAssignmentRepository;
+        this.tagsRepository=tagsRepository;
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
@@ -125,6 +129,12 @@ public class TaskService {
                 TaskAssignment taskAssignment = new TaskAssignment(savedTask.getTaskId(),task.getAssigneeIds().get(i),userId,assignedAt);
 
                 taskAssignmentRepository.save(taskAssignment);
+            }
+
+            for(int i=0;i<task.getTags().size();i++){
+                Tags tags=new Tags(savedTask, task.getTags().get(i));
+                tagsRepository.save(tags);
+
             }
 
             // 4. 成功响应
