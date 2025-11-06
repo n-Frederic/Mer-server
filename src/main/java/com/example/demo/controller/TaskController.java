@@ -25,6 +25,7 @@ public class TaskController {
         return taskService.createTask(task,userId);
     }
     // 获取个人任务
+
     @GetMapping("/personal")
     public Map<String, Object> getPersonalTasks(
 //            @RequestParam User creator,
@@ -52,6 +53,21 @@ public class TaskController {
 
 //        return taskService.getPersonalTasks(creator.getId(), status, priority, page, pageSize);
         return taskService.getViewTasks(userId, status, priority, page, pageSize);
+    }
+
+    //获取可分配员工
+    @GetMapping("/assignees")
+    public Map<String, Object> getAssignees(
+//            @RequestParam User creator,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String priority,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        Long userId = UserContext.getCurrentUserId();
+
+//        return taskService.getPersonalTasks(creator.getId(), status, priority, page, pageSize);
+        return taskService.getAssignees(userId, status, priority, page, pageSize);
     }
 
 

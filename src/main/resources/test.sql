@@ -157,6 +157,12 @@ INSERT INTO log_keyword (id, log_id, keyword, weight) VALUES
   (2, 2, 'ci',      0.8)
 ON DUPLICATE KEY UPDATE weight=VALUES(weight);
 
+INSERT INTO log_task_map (log_id, task_id) VALUES
+                                               (1, 1),
+                                               (1, 3),
+                                               (2, 2),
+                                               (2, 4),
+                                               (2, 5);
 -- ---- 面板项 ----
 INSERT INTO dashboard_item
   (item_id, scope, category, title, ref_type, ref_id, sort_order, updated_by)

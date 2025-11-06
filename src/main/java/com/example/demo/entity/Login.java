@@ -2,6 +2,7 @@ package com.example.demo.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Entity
 @Table(name = "login")
@@ -30,7 +31,7 @@ public class Login {
     public Login(User user, String token) {
         this.user = user;
         this.token = token;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
         this.validTo = LocalDateTime.now().plusHours(2);
     }
 
