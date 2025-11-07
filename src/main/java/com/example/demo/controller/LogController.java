@@ -38,10 +38,8 @@ public class LogController {
         List<Map<String, Object>> list = logPage.getContent().stream().map(log -> {
             Map<String, Object> m = new HashMap<>();
             m.put("id", "J-" + String.format("%03d", log.getId()));
-            m.put("title", log.getTitle());
             m.put("date", log.getDate());
             m.put("summary", log.getSummary());
-            m.put("content", log.getContent());
             m.put("authorId", "U-" + log.getAuthor().getId());
             m.put("taskId",log.getTaskId());
             m.put("authorName", log.getAuthor().getName());
