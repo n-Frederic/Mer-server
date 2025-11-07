@@ -175,7 +175,6 @@ CREATE TABLE IF NOT EXISTS task (
                                     parent_task BIGINT NULL,  -- 新增父任务ID列，允许为NULL（表示无父任务）
                                     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
---                                     tags TEXT,//表
                                     KEY idx_task_creator (creator_id),
                                     KEY idx_task_status (status),
                                     KEY idx_task_priority (priority),
@@ -240,7 +239,6 @@ CREATE TABLE IF NOT EXISTS task_report (
 CREATE TABLE IF NOT EXISTS log (
                                    log_id       BIGINT PRIMARY KEY AUTO_INCREMENT,
                                    user_id      BIGINT NOT NULL,
-                                   task_id      BIGINT NULL,
 
     todaySummary TEXT,
     tomorrowPlan TEXT,
@@ -251,7 +249,6 @@ CREATE TABLE IF NOT EXISTS log (
     updated_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
     ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_log_user (user_id),
-    KEY idx_log_task (task_id),
     KEY idx_log_date (log_date),
     FULLTEXT KEY ftx_log_content (todaySummary, tomorrowPlan, helpNeeded)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -409,7 +406,7 @@ CALL add_fk_if_not_exists('task_assignment','fk_ta_assigned_by','ALTER TABLE tas
 CALL add_fk_if_not_exists('task_report','fk_tr_task','ALTER TABLE task_report ADD CONSTRAINT fk_tr_task FOREIGN KEY (task_id) REFERENCES task(task_id) ON UPDATE CASCADE ON DELETE CASCADE');
 CALL add_fk_if_not_exists('task_report','fk_tr_reporter','ALTER TABLE task_report ADD CONSTRAINT fk_tr_reporter FOREIGN KEY (reporter_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
 CALL add_fk_if_not_exists('log','fk_log_user','ALTER TABLE log ADD CONSTRAINT fk_log_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE CASCADE');
-CALL add_fk_if_not_exists('log','fk_log_task','ALTER TABLE log ADD CONSTRAINT fk_log_task FOREIGN KEY (task_id) REFERENCES task(task_id) ON UPDATE CASCADE ON DELETE SET NULL');
+
 CALL add_fk_if_not_exists('log_keyword','fk_lk_log','ALTER TABLE log_keyword ADD CONSTRAINT fk_lk_log FOREIGN KEY (log_id) REFERENCES log(log_id) ON UPDATE CASCADE ON DELETE CASCADE');
 CALL add_fk_if_not_exists('dashboard_item','fk_di_updated_by','ALTER TABLE dashboard_item ADD CONSTRAINT fk_di_updated_by FOREIGN KEY (updated_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
 CALL add_fk_if_not_exists('ai_analysis','fk_ai_generated_by','ALTER TABLE ai_analysis ADD CONSTRAINT fk_ai_generated_by FOREIGN KEY (generated_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
