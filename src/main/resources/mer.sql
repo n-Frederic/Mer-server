@@ -240,7 +240,7 @@ CREATE TABLE IF NOT EXISTS task_report (
 CREATE TABLE IF NOT EXISTS log (
                                    log_id       BIGINT PRIMARY KEY AUTO_INCREMENT,
                                    user_id      BIGINT NOT NULL,
-                                   task_id      BIGINT NULL,
+                                   task_id      JSON NULL,
 
     todaySummary TEXT,
     tomorrowPlan TEXT,
