@@ -28,12 +28,8 @@ public class LogService {
     @Transactional
     public LogResponseDTO createLog(LogRequestDTO request, User author) {
         Log log = new Log(
-                request.getTitle(),
-                request.getLogDate(),
-                request.getSummary(),
-                request.getContent(),
-                request.getMood(),
-                request.getViewType(),
+                request.getLog_date(),
+                request.getTodaySummary(),
                 request.getTaskId(),
                 author
         );

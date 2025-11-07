@@ -1,50 +1,37 @@
 package com.example.demo.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 public class LogRequestDTO {
-    private String title;
-    private LocalDate LogDate;
-    private String summary;
+    private LocalDate log_date;
+    private String todaySummary;
+    private String tomorrowPlan;
+    private String helpNeeded;
     private String content;
-    private String viewType;
-    private String mood;
-    private Long taskId;
 
-    public String getViewType() {
-        return viewType;
-    }
+    private List<String> taskId;
 
-    public void setViewType(String viewType) {
-        this.viewType = viewType;
-    }
 
-    public String getMood() {
-        return mood;
-    }
 
-    public void setMood(String mood) {
-        this.mood = mood;
-    }
-
-    public Long getTaskId() {
+    public List<String> getTaskId() {
         return taskId;
     }
 
-    public void setTaskId(Long taskId) {
-        this.taskId = taskId;
-    }
+    public LocalDate getLog_date() { return log_date; }
+    public void setLog_date(LocalDate log_date) { this.log_date = log_date; }
 
-    // Getter & Setter
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public LocalDate getLogDate() { return LogDate; }
-    public void setLogDate(LocalDate logDate) { this.LogDate = logDate; }
-
-    public String getSummary() { return summary; }
-    public void setSummary(String summary) { this.summary = summary; }
+    public String getTodaySummary() { return todaySummary; }
+    public void setTodaySummary(String todaySummary) { this.todaySummary = todaySummary; }
 
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
+
+    public String getTomorrowPlan() {
+        return tomorrowPlan;
+    }
+
+    public String getHelpNeeded() {
+        return helpNeeded;
+    }
 }
