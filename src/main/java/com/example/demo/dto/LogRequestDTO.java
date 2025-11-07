@@ -1,50 +1,42 @@
 package com.example.demo.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
+import jakarta.persistence.JoinColumn;
+
 import java.time.LocalDate;
+import java.util.List;
 
 public class LogRequestDTO {
-    private String title;
-    private LocalDate LogDate;
+    @JsonProperty("log_date")
+    private LocalDate logDate;
+
+    @JsonProperty("todaySummary")
     private String summary;
-    private String content;
-    private String viewType;
-    private String mood;
-    private Long taskId;
 
-    public String getViewType() {
-        return viewType;
+    @JsonProperty("tomorrowPlan")
+    private String tomorrowPlan;
+
+    @JsonProperty("helpNeeded")
+    private String helpNeeded;
+
+
+    @JsonProperty("taskId")
+    private List<Long> taskId;
+
+    public LocalDate getLogDate() { return logDate; }
+
+    public String getSummary() { return summary; }
+
+    public String getTomorrowPlan() {
+        return tomorrowPlan;
     }
 
-    public void setViewType(String viewType) {
-        this.viewType = viewType;
+    public String getHelpNeeded() {
+        return helpNeeded;
     }
-
-    public String getMood() {
-        return mood;
-    }
-
-    public void setMood(String mood) {
-        this.mood = mood;
-    }
-
-    public Long getTaskId() {
+    public List<Long> getTaskId() {
         return taskId;
     }
 
-    public void setTaskId(Long taskId) {
-        this.taskId = taskId;
-    }
-
-    // Getter & Setter
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
-
-    public LocalDate getLogDate() { return LogDate; }
-    public void setLogDate(LocalDate logDate) { this.LogDate = logDate; }
-
-    public String getSummary() { return summary; }
-    public void setSummary(String summary) { this.summary = summary; }
-
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
 }
