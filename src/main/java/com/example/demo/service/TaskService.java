@@ -1,14 +1,8 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.TaskCreateDTO;
-import com.example.demo.entity.Tags;
-import com.example.demo.entity.Task;
-import com.example.demo.entity.TaskAssignment;
-import com.example.demo.entity.User;
-import com.example.demo.repository.TagsRepository;
-import com.example.demo.repository.TaskAssignmentRepository;
-import com.example.demo.repository.TaskRepository;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.entity.*;
+import com.example.demo.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +23,8 @@ public class TaskService {
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final TagsRepository tagsRepository;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository,TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository) {
+
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
 
@@ -49,7 +44,7 @@ public class TaskService {
     public Map<String, Object> getAssignees(Long userId, String status, String priority, int page, int pageSize) {
 
         User user = userRepository.findById(userId).orElseThrow(EntityNotFoundException::new);
-        Integer role=user.getroleId();
+        Integer role=user.getRole_id();
         // 1. 构建分页参数（注意：JPA 页码从 0 开始，需将前端传入的 page 减 1）
         Pageable pageable = PageRequest.of(page - 1, pageSize);
 
@@ -244,4 +239,6 @@ public class TaskService {
 
         return result;
     }
+
+
 }

@@ -14,7 +14,9 @@ public class Task {
     @JoinColumn(name = "creator_id", referencedColumnName = "user_id")
     private User creator;
 
+    @Column(name = "title")
     private String title;
+
     private String description;
 
     private String priority;
@@ -64,4 +66,12 @@ public class Task {
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    public Long getTask_id() {
+        return task_id;
+    }
+
+    public void setTask_id(Long task_id) {
+        this.task_id = task_id;
+    }
 }

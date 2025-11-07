@@ -70,4 +70,28 @@ public class Log {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getTomorrowPlan() {
+        return tomorrowPlan;
+    }
+
+    public void setTomorrowPlan(String tomorrowPlan) {
+        this.tomorrowPlan = tomorrowPlan;
+    }
+
+    public String getHelpNeeded() {
+        return helpNeeded;
+    }
+
+    public void setHelpNeeded(String helpNeeded) {
+        this.helpNeeded = helpNeeded;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 }
