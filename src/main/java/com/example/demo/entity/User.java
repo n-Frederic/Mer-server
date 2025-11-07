@@ -33,7 +33,7 @@ public class User {
     private Integer team_id;
 
     @Column(name = "role_id")
-    private Integer roleId;
+    private Integer role_id;
 
     @Column(name = "gender")
     private String gender;
@@ -42,8 +42,14 @@ public class User {
 //    private LocalDateTime birthday;
     private LocalDate birthday;
 
+    @Column(name = "status")
+    private String status;
+
     @Column(name = "bio")
     private String bio;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public User() {}
 
@@ -78,13 +84,6 @@ public class User {
         this.phone = phone;
     }
 
-    public int getroleId() {
-        return roleId;
-    }
-
-    public void setroleId(int roleId) {
-        this.roleId = roleId;
-    }
 
     public String getGender() {
         return gender;
@@ -116,5 +115,33 @@ public class User {
 
     public void setTeam_id(int team_id) {
         this.team_id = team_id;
+    }
+
+    public void setTeam_id(Integer team_id) {
+        this.team_id = team_id;
+    }
+
+    public Integer getRole_id() {
+        return role_id;
+    }
+
+    public void setRole_id(Integer role_id) {
+        this.role_id = role_id;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

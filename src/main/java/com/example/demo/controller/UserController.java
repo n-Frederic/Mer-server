@@ -1,9 +1,8 @@
 package com.example.demo.controller;
 
-import com.example.demo.context.UserContext;
 import com.example.demo.dto.UserProfileUpdateRequestDTO;
+import com.example.demo.dto.UserUpdateDTO;
 import com.example.demo.entity.User;
-import com.example.demo.service.LoginService;
 import com.example.demo.service.UserService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -72,16 +71,47 @@ public class UserController {
         }
     }
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
+    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserUpdateDTO userDetails) {
         try {
             return userService.getUserById(id)
                     .map(user -> {
-                        user.setName(userDetails.getName());
-                        user.setEmail(userDetails.getEmail());
+                        if (userDetails.getName() != null) {
+                            user.setName(userDetails.getName());
+                        }
+                        if (userDetails.getPhone() != null) {
+                            user.setPhone(userDetails.getPhone());
+                        }
+                        if (userDetails.getStatus() != null) {
+                            user.setStatus(userDetails.getStatus());
+                        }
+                        if (userDetails.getTeamId() != null) {
+                            user.setTeam_id(userDetails.getTeamId());
+                        }
+                        if (userDetails.getRoleId() != null) {
+                            user.setRole_id(userDetails.getRoleId());
+                        }
+
+                        user.setUpdatedAt(LocalDateTime.now());
+
+
+                        // 保存
                         userService.saveUser(user);
+
+                        // ✅ 返回你需要的 JSON 结构
                         return ResponseEntity.ok(Map.of(
                                 "ok", true,
-                                "message", "用户更新成功"
+                                "message", "用户信息更新成功",
+                                "user", Map.of(
+                                        "user_id", user.getId(),
+                                        "name", user.getName(),
+                                        "username", user.getUsername(),
+                                        "email", user.getEmail(),
+                                        "phone", user.getPhone(),
+                                        "team_id", user.getTeam_id(),
+                                        "role_id", user.getRole_id(),
+                                        "status", user.getStatus(),
+                                        "updated_at", user.getUpdatedAt()
+                                )
                         ));
                     })
                     .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
