@@ -33,7 +33,7 @@ public class User {
     private Integer team_id;
 
     @Column(name = "role_id")
-    private Integer role_id;
+    private Integer roleId;
 
     @Column(name = "gender")
     private String gender;
@@ -125,11 +125,11 @@ public class User {
     }
 
     public Integer getRole_id() {
-        return role_id;
+        return roleId;
     }
 
     public void setRole_id(Integer role_id) {
-        this.role_id = role_id;
+        this.roleId = role_id;
     }
 
     public String getStatus() {
