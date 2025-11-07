@@ -112,7 +112,7 @@ public class User {
         this.bio = bio;
     }
 
-    public int getTeam_id() {
+    public Integer getTeam_id() {
         return team_id;
     }
 
