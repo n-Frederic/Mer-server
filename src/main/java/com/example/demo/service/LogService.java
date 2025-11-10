@@ -106,9 +106,32 @@ public class LogService {
                 break;
 
             case "member":
-                targetUserIds = userRepository.findByTeamId(currentUser.getTeam_id())
-                        .stream().map(User::getId)
+                if (currentUser.getRole_id() != 3) {
+                    throw new RuntimeException("您没有权限查看团队成员的日志");
+                }
+
+                if (memberIds == null || memberIds.isBlank()) {
+                    throw new RuntimeException("member 模式下必须提供 memberIds");
+                }
+
+                List<Long> requestedIds = Arrays.stream(memberIds.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .map(Long::parseLong)
                         .collect(Collectors.toList());
+
+                List<Long> teamMemberIds = userRepository.findByTeamId(currentUser.getTeam_id())
+                        .stream()
+                        .map(User::getId)
+                        .toList();
+
+                for (Long id : requestedIds) {
+                    if (!teamMemberIds.contains(id)) {
+                        throw new RuntimeException("非法的 memberId: " + id + "（不属于您团队）");
+                    }
+                }
+
+                targetUserIds = requestedIds;
                 break;
 
             case "approval":
