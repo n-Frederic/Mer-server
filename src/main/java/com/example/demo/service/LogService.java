@@ -81,7 +81,7 @@ public class LogService {
 
             taskRepository.findById(taskId).ifPresent(task -> {
                 Map<String, Object> m = new HashMap<>();
-                m.put("task_id", task.getTask_id());
+                m.put("task_id", task.getId());
                 m.put("title", task.getTitle());
                 tasks.add(m);
             });
