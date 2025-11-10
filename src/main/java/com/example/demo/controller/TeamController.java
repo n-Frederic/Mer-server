@@ -2,8 +2,10 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Team;
 import com.example.demo.service.TeamService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -45,6 +47,33 @@ public class TeamController {
                     "ok", false,
                     "message", "查询编号对应团队失败"
             );
+        }
+    }
+
+    @GetMapping("/department/{teamId}")
+    public ResponseEntity<Map<String, Object>> getDepartment(
+            @PathVariable Integer teamId,
+            @RequestHeader(value = "Authorization", required = false) String token
+    ) {
+        Map<String, Object> resp = new HashMap<>();
+
+        try {
+            return teamService.getDepartmentByTeamId(teamId)
+                    .map(dept -> {
+                        resp.put("ok", true);
+                        resp.put("department_name", dept.getName());
+                        return ResponseEntity.ok(resp);
+                    })
+                    .orElseGet(() -> {
+                        resp.put("ok", false);
+                        resp.put("message", "查询团队所属部门失败");
+                        return ResponseEntity.ok(resp);
+                    });
+
+        } catch (Exception e) {
+            resp.put("ok", false);
+            resp.put("message", "查询团队所属部门失败");
+            return ResponseEntity.ok(resp);
         }
     }
 }

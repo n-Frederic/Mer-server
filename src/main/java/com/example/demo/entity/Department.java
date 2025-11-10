@@ -15,4 +15,16 @@ public class Department {
 
     @Column(name = "parent_dept_id")
     private Integer parentDeptId;
+
+    public Integer getDeptId() {
+        return deptId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Integer getParentDeptId() {
+        return parentDeptId;
+    }
 }
