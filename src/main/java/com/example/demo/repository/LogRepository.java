@@ -17,7 +17,7 @@ public interface LogRepository extends JpaRepository<Log, Long> {
     Page<Log> findByAuthorIdIn(List<Long> userIds, Pageable pageable);
 
     // 加时间过滤
-    Page<Log> findByAuthorIdInAndLogDateBetween(
+    Page<Log> findByAuthorIdInAndDateBetween(
             List<Long> userIds,
             LocalDate start,
             LocalDate end,
@@ -25,14 +25,14 @@ public interface LogRepository extends JpaRepository<Log, Long> {
     );
 
     // 加关键词过滤
-    Page<Log> findByAuthorIdInAndContentContainingIgnoreCase(
+    Page<Log> findByAuthorIdInAndSummaryContainingIgnoreCase(
             List<Long> userIds,
             String keyword,
             Pageable pageable
     );
 
     // 全条件（时间 + 关键词）
-    Page<Log> findByAuthorIdInAndLogDateBetweenAndContentContainingIgnoreCase(
+    Page<Log> findByAuthorIdInAndDateBetweenAndSummaryContainingIgnoreCase(
             List<Long> userIds,
             LocalDate start,
             LocalDate end,

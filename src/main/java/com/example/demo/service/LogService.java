@@ -159,17 +159,17 @@ public class LogService {
         boolean useKeyword = keyword != null && !keyword.isBlank();
 
         if (useTime && useKeyword) {
-            return logRepository.findByAuthorIdInAndLogDateBetweenAndContentContainingIgnoreCase(
+            return logRepository.findByAuthorIdInAndDateBetweenAndSummaryContainingIgnoreCase(
                     targetUserIds, start, end, keyword, pageable);
         }
 
         if (useTime) {
-            return logRepository.findByAuthorIdInAndLogDateBetween(
+            return logRepository.findByAuthorIdInAndDateBetween(
                     targetUserIds, start, end, pageable);
         }
 
         if (useKeyword) {
-            return logRepository.findByAuthorIdInAndContentContainingIgnoreCase(
+            return logRepository.findByAuthorIdInAndSummaryContainingIgnoreCase(
                     targetUserIds, keyword, pageable);
         }
 
