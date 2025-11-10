@@ -1,21 +1,22 @@
 package com.example.demo.service;
 
+import com.example.demo.context.UserContext;
 import com.example.demo.dto.LogRequestDTO;
 import com.example.demo.dto.LogResponseDTO;
 import com.example.demo.entity.Log;
 import com.example.demo.entity.Log_Task;
+import com.example.demo.entity.Tags;
 import com.example.demo.entity.User;
-import com.example.demo.repository.LogRepository;
-import com.example.demo.repository.LogTaskRepository;
-import com.example.demo.repository.TaskRepository;
+import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class LogService {
@@ -23,11 +24,15 @@ public class LogService {
     private final LogRepository logRepository;
     private final TaskRepository taskRepository;
     private final LogTaskRepository logTaskRepository;
+    private final UserRepository userRepository;
+    private final TagsRepository tagsRepository;
 
-    public LogService(LogRepository logRepository, TaskRepository taskRepository, LogTaskRepository logTaskRepository) {
+    public LogService(LogRepository logRepository, TaskRepository taskRepository, LogTaskRepository logTaskRepository, UserRepository userRepository, TagsRepository tagsRepository) {
         this.logRepository = logRepository;
         this.taskRepository = taskRepository;
         this.logTaskRepository = logTaskRepository;
+        this.userRepository = userRepository;
+        this.tagsRepository = tagsRepository;
     }
 
     public Page<Log> getLogsByUser(Long authorId, int page, int pageSize) {
@@ -84,4 +89,122 @@ public class LogService {
 
         return tasks;
     }
+
+    public Page<Log> getScopedLogs(String mode, String memberIds, String timeFilter,
+                                   String keyword, int page, int pageSize) {
+
+        Long currentUserId = UserContext.getCurrentUserId();
+        User currentUser = userRepository.findById(currentUserId).orElseThrow();
+
+        // 1. 获取要查询的用户列表 userIds
+        List<Long> targetUserIds;
+
+        switch (mode) {
+
+            case "my":
+                targetUserIds = List.of(currentUserId);
+                break;
+
+            case "member":
+                targetUserIds = userRepository.findByTeamId(currentUser.getTeam_id())
+                        .stream().map(User::getId)
+                        .collect(Collectors.toList());
+                break;
+
+            case "approval":
+                if (currentUser.getRole_id() != 3) {
+                    throw new RuntimeException("无权限查看团队成员日志");
+                }
+
+                targetUserIds = userRepository.findByTeamId(currentUser.getTeam_id())
+                        .stream()
+                        .map(User::getId)
+                        .filter(id -> !id.equals(currentUserId)) // 不包含自己
+                        .collect(Collectors.toList());
+                break;
+
+            default:
+                throw new RuntimeException("错误的 mode 参数");
+        }
+
+        // 2. 时间过滤
+        LocalDate start = null, end = null;
+        LocalDate today = LocalDate.now();
+
+        switch (timeFilter) {
+            case "today":
+                start = today;
+                end = today;
+                break;
+
+            case "this_week":
+                start = today.with(DayOfWeek.MONDAY);
+                end = today.with(DayOfWeek.SUNDAY);
+                break;
+
+            case "this_year":
+                start = today.with(TemporalAdjusters.firstDayOfYear());
+                end = today.with(TemporalAdjusters.lastDayOfYear());
+                break;
+
+            case "all":
+            default:
+                break;
+        }
+
+        PageRequest pageable = PageRequest.of(page - 1, pageSize);
+
+        // 3. 组合筛选逻辑
+        boolean useTime = start != null;
+        boolean useKeyword = keyword != null && !keyword.isBlank();
+
+        if (useTime && useKeyword) {
+            return logRepository.findByAuthorIdInAndLogDateBetweenAndContentContainingIgnoreCase(
+                    targetUserIds, start, end, keyword, pageable);
+        }
+
+        if (useTime) {
+            return logRepository.findByAuthorIdInAndLogDateBetween(
+                    targetUserIds, start, end, pageable);
+        }
+
+        if (useKeyword) {
+            return logRepository.findByAuthorIdInAndContentContainingIgnoreCase(
+                    targetUserIds, keyword, pageable);
+        }
+
+        // 默认情况
+        return logRepository.findByAuthorIdIn(targetUserIds, pageable);
+    }
+
+    public List<Long> getTaskIdsByLogId(Long logId) {
+        List<Log_Task> mappings = logTaskRepository.findById_LogId(logId);
+
+        return mappings.stream()
+                .map(m -> m.getId().getTaskId())
+                .toList();
+    }
+
+    public List<String> getTagsForLog(Long logId) {
+
+        // 查 log → task 映射表
+        List<Long> taskIds = getTaskIdsByLogId(logId);
+
+        // 去重用 Set
+        Set<String> tagSet = new HashSet<>();
+
+        for (Long taskId : taskIds) {
+            List<Tags> tags = tagsRepository.findByTaskId(taskId);
+
+            for (Tags t : tags) {
+                if (t.getTag() != null) {
+                    tagSet.add(t.getTag());
+                }
+            }
+        }
+
+        return new ArrayList<>(tagSet);
+    }
+
+
 }
