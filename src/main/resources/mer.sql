@@ -240,9 +240,9 @@ CREATE TABLE IF NOT EXISTS log (
                                    log_id       BIGINT PRIMARY KEY AUTO_INCREMENT,
                                    user_id      BIGINT NOT NULL,
 
-    todaySummary TEXT,
-    tomorrowPlan TEXT,
-    helpNeeded   TEXT,
+    today_summary TEXT,
+    tomorrow_plan TEXT,
+    help_needed   TEXT,
     status       VARCHAR(20),
     log_date     DATE NOT NULL,
     created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
