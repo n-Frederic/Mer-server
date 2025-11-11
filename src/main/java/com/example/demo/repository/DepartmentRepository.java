@@ -8,4 +8,6 @@ import java.util.Optional;
 
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
+    Optional<Department> getAllByDeptId(Integer deptId);
+    Optional<Department> findByDeptId(Integer deptId);
 }

@@ -12,6 +12,8 @@ public class Tags {
     @ManyToOne
     @JoinColumn(name = "task_id", referencedColumnName = "task_id")
     private Task task;
+
+    @Column(name = "tag")
     String tag;
 
     public Tags() {

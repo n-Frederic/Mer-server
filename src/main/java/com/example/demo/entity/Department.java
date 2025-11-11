@@ -17,20 +17,25 @@ public class Department {
     @Column(name = "parent_dept_id")
     private Integer parentDeptId;
 
+
     public Department() {
     }
+
 
     public Integer getDeptId() {
         return deptId;
     }
 
+
     public void setDeptId(Integer deptId) {
         this.deptId = deptId;
     }
 
+
     public String getName() {
         return name;
     }
+
 
     public void setName(String name) {
         this.name = name;
@@ -43,4 +48,9 @@ public class Department {
     public void setParentDeptId(Integer parentDeptId) {
         this.parentDeptId = parentDeptId;
     }
+
+    public Integer getParentDeptId() {
+        return parentDeptId;
+    }
+
 }

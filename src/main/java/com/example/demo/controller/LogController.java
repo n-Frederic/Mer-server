@@ -4,6 +4,7 @@ import com.example.demo.context.UserContext;
 import com.example.demo.dto.LogRequestDTO;
 import com.example.demo.dto.LogResponseDTO;
 import com.example.demo.entity.Log;
+import com.example.demo.entity.Log_Task;
 import com.example.demo.entity.User;
 import com.example.demo.service.LogService;
 import org.springframework.data.domain.Page;
@@ -27,35 +28,64 @@ public class LogController {
     public Map<String, Object> getUserLogs(
             @RequestParam(required = false) String date,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "9") int pageSize,
-            @RequestHeader(value = "Authorization", required = false) String token
-    ) {
+            @RequestParam(defaultValue = "9") int pageSize)
+    {
 
         Long authorId = UserContext.getCurrentUserId();
 
-        Page<Log> logPage = logService.getLogsByUser(authorId,page, pageSize);
+        // 分页读取日志
+        Page<Log> logPage = logService.getLogsByUser(authorId, page, pageSize);
 
+        // list 内容处理
         List<Map<String, Object>> list = logPage.getContent().stream().map(log -> {
+
+            List<Map<String, Object>> relatedTasks = logService.getTasksByLogId(log.getId());
+
+            // 2. keywords（你以后可接入 NLP 做关键词分析）
+            List<Map<String, Object>> keywords = new ArrayList<>();
+
+            // 3. 主体 log 信息
             Map<String, Object> m = new HashMap<>();
-            m.put("id", "J-" + String.format("%03d", log.getId()));
-            m.put("title", log.getTitle());
-            m.put("date", log.getDate());
-            m.put("summary", log.getSummary());
-            m.put("content", log.getContent());
-            m.put("authorId", "U-" + log.getAuthor().getId());
-            m.put("taskId",log.getTaskId());
-            m.put("authorName", log.getAuthor().getName());
-            m.put("authorEmail", log.getAuthor().getEmail());
-            m.put("createdAt", log.getCreatedAt());
-            m.put("updatedAt", log.getUpdatedAt());
+            m.put("log_id", log.getId());
+            m.put("log_date", log.getDate());
+            m.put("todaySummary", log.getSummary());
+            m.put("tomorrowPlan", log.getTomorrowPlan());
+            m.put("helpNeeded", log.getHelpNeeded());
+            m.put("status", log.getStatus());
+            m.put("created_at", log.getCreatedAt());
+            m.put("updated_at", log.getUpdatedAt());
+
+            // 4. 作者信息
+            Map<String, Object> author = new HashMap<>();
+            author.put("user_id", log.getAuthor().getId());
+            author.put("name", log.getAuthor().getName());
+            author.put("email", log.getAuthor().getEmail());
+            author.put("avatar_url", log.getAuthor().getAvatar_url()); // 如果没有字段可用 null
+            m.put("author_info", author);
+
+            // 5. 关联任务
+            m.put("related_tasks", relatedTasks);
+
+            // 6. 关键词
+            m.put("keywords", keywords);
+
             return m;
         }).collect(Collectors.toList());
 
+        // data 区域
+        Map<String, Object> data = new HashMap<>();
+        data.put("list", list);
+        data.put("total", logPage.getTotalElements());
+        data.put("page", page);
+        data.put("pageSize", pageSize);
+        data.put("hasNext", logPage.hasNext());
+
+        // 最外层返回结构：与前端需求完全一致
         Map<String, Object> response = new HashMap<>();
-        response.put("list", list);
-        response.put("total", logPage.getTotalElements());
-        response.put("page", page);
-        response.put("pageSize", pageSize);
+        response.put("code", 200);
+        response.put("message", "success");
+        response.put("data", data);
+
         return response;
     }
 
@@ -76,6 +106,53 @@ public class LogController {
             // 按你接口约定，失败时返回原请求体
             return ResponseEntity.badRequest().body(request);
         }
+    }
+
+    @GetMapping("/scoped")
+    public Map<String, Object> getScopedLogs(
+            @RequestParam String mode,
+            @RequestParam(required = false) String memberIds,
+            @RequestParam(defaultValue = "all") String timeFilter,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+
+        var logPage = logService.getScopedLogs(mode, memberIds, timeFilter, keyword, page, pageSize);
+
+        List<Map<String, Object>> list = logPage.getContent().stream().map(log -> {
+
+            List<Long> taskIds = logService.getTaskIdsByLogId(log.getId());
+
+            Map<String, Object> m = new HashMap<>();
+            m.put("log_id", log.getId());
+            m.put("user_id", log.getAuthor().getId());
+            m.put("task_id", taskIds);
+            m.put("log_date", log.getDate());
+            m.put("created_at", log.getCreatedAt());
+            m.put("updated_at", log.getUpdatedAt());
+
+            m.put("todaySummary", log.getSummary());
+            m.put("tomorrowPlan", log.getTomorrowPlan());
+            m.put("helpNeeded", log.getHelpNeeded());
+            m.put("status", log.getStatus());
+            m.put("tags", logService.getTagsForLog(log.getId()));
+
+            return m;
+        }).collect(Collectors.toList());
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("list", list);
+        data.put("total", logPage.getTotalElements());
+        data.put("page", page);
+        data.put("pageSize", pageSize);
+        data.put("hasNext", logPage.hasNext());
+
+        return Map.of(
+                "code", 200,
+                "message", "success",
+                "data", data
+        );
     }
 
 }

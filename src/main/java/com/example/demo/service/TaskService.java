@@ -1,14 +1,8 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.TaskCreateDTO;
-import com.example.demo.entity.Tags;
-import com.example.demo.entity.Task;
-import com.example.demo.entity.TaskAssignment;
-import com.example.demo.entity.User;
-import com.example.demo.repository.TagsRepository;
-import com.example.demo.repository.TaskAssignmentRepository;
-import com.example.demo.repository.TaskRepository;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.entity.*;
+import com.example.demo.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +23,8 @@ public class TaskService {
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final TagsRepository tagsRepository;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository,TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository) {
+
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
 
@@ -49,7 +44,7 @@ public class TaskService {
     public Map<String, Object> getAssignees(Long userId, String status, String priority, int page, int pageSize) {
 
         User user = userRepository.findById(userId).orElseThrow(EntityNotFoundException::new);
-        Integer role=user.getroleId();
+        Integer role=user.getRole_id();
         // 1. 构建分页参数（注意：JPA 页码从 0 开始，需将前端传入的 page 减 1）
         Pageable pageable = PageRequest.of(page - 1, pageSize);
 
@@ -126,7 +121,7 @@ public class TaskService {
             Task savedTask = taskRepository.save(newTask);
             for (int i = 0; i < task.getAssigneeIds().size(); i++) {
                 LocalDateTime assignedAt = LocalDateTime.now();
-                TaskAssignment taskAssignment = new TaskAssignment(savedTask.getTaskId(),task.getAssigneeIds().get(i),userId,assignedAt);
+                TaskAssignment taskAssignment = new TaskAssignment(savedTask.getId(),task.getAssigneeIds().get(i),userId,assignedAt);
 
                 taskAssignmentRepository.save(taskAssignment);
             }
@@ -140,7 +135,7 @@ public class TaskService {
             // 4. 成功响应
             Map<String, Object> successResponse = new HashMap<>();
             successResponse.put("ok", true);
-            successResponse.put("taskId", savedTask.getTaskId()); // 假设 Task 有 getId() 方法
+            successResponse.put("taskId", savedTask.getId()); // 假设 Task 有 getId() 方法
             successResponse.put("message", "Task created successfully");
             return ResponseEntity.ok(successResponse);
 
@@ -184,7 +179,7 @@ public class TaskService {
         List<Map<String, Object>> taskList = taskPage.getContent().stream()
                 .map(task -> {
                     Map<String, Object> taskMap = new LinkedHashMap<>();  // 改用 LinkedHashMap
-                    taskMap.put("taskId", task.getTaskId());
+                    taskMap.put("taskId", task.getId());
                     taskMap.put("title", task.getTitle());
                     taskMap.put("description", task.getDescription());
                     taskMap.put("creatorId", task.getCreator().getId());
@@ -220,7 +215,7 @@ public class TaskService {
 
         // 构造返回体
         Map<String, Object> taskData = new HashMap<>();
-        taskData.put("taskId", task.getTaskId());
+        taskData.put("taskId", task.getId());
         taskData.put("title", task.getTitle());
         taskData.put("description", task.getDescription());
         taskData.put("creatorId", task.getCreator().getId());
@@ -244,4 +239,6 @@ public class TaskService {
 
         return result;
     }
+
+
 }
