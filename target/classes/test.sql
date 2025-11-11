@@ -74,7 +74,7 @@ INSERT INTO user
   (user_id, name, email, password, username, phone, team_id, role_id, gender, status, last_login)
 VALUES
   (1001, 'Alice Admin',  '1831437770@qq.com',  '111111',  'alice',  '100-0001', 1, 5, 'F', 'active', NOW()),
-  (1002, 'Bob Manager',  'bob@example.com',    '$2a$10$manager','bob',    '100-0002', 1, 2, 'M', 'active', NOW()),
+  (1002, 'Bob Manager',  'bob@example.com',    '$2a$10$FsaCNkYKalO3.3sdn/X9SOts/37p3TRV5bwm0pt.6OSS7VF34XV6K','bob',    '100-0002', 1, 2, 'M', 'active', NOW()),
   (1003, 'Carol Member', 'carol@example.com',  '$2a$10$member', 'carol',  '100-0003', 2, 4, 'F', 'active', NOW()),
   (1004, 'Lisa CEO', 'lisa@amd.com',  '$2a$10$ceo', 'lisa',  '101-0003', 1, 1, 'F', 'active', NOW()),
   (1005, 'Helen Leader', 'helen@example.com',  '$2a$10$ceo', '05hal',  '100-0013', 2, 3, 'F', 'active', NOW())
@@ -146,27 +146,27 @@ ON DUPLICATE KEY UPDATE content=VALUES(content);
 
 -- ---- 日志 & 关键词 ----
 INSERT INTO log
-(log_id, user_id, task_id,
+(log_id, user_id,
  todaySummary,                tomorrowPlan,                               helpNeeded,                           status,
  log_date)
 VALUES
     -- 旧示例1（把 content -> todaySummary，mood -> status）
-    (1, 1002, 1,
+    (1, 1002,
      'Working on release artifacts.', 'Continue release packaging and smoke test.', NULL, 'Focus',
      CURDATE()),
 
     -- 旧示例2
-    (2, 1003, 2,
+    (2, 1003,
      'Investigating CI cache misses.', 'Re-run pipeline and compare cache keys.', NULL, 'Optimistic',
      CURDATE()),
 
     -- 新增：与截图语义一致的“周报”示例（task_id 可先置 NULL，关联走 log_task_map）
-    (101, 1001, NULL,
+    (101, 1001,
      'today work...', 'work tomorrow', 'sos', 'passed',
      DATE '2025-09-18')
     ON DUPLICATE KEY UPDATE
                          user_id      = VALUES(user_id),
-                         task_id      = VALUES(task_id),
+
                          todaySummary = VALUES(todaySummary),
                          tomorrowPlan = VALUES(tomorrowPlan),
                          helpNeeded   = VALUES(helpNeeded),
