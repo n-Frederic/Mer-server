@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/tasks")
+@RequestMapping("/tasks")
 public class TaskProgressController {
 
     private final TaskProgressService taskProgressService;
