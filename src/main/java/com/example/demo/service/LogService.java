@@ -9,6 +9,7 @@ import com.example.demo.entity.Tags;
 import com.example.demo.entity.User;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
@@ -227,6 +228,21 @@ public class LogService {
         }
 
         return new ArrayList<>(tagSet);
+    }
+
+    @Transactional
+    public void deleteJournal(Long journalId) {
+
+        Log log = logRepository.findById(journalId)
+                .orElseThrow(() -> new NoSuchElementException("日志不存在"));
+
+        try {
+            logTaskRepository.deleteById_LogId(journalId);
+            logRepository.delete(log);
+        } catch (DataIntegrityViolationException e) {
+            // 抛出让 Controller 捕获（比如 log_task_map 外键引用导致无法删除）
+            throw e;
+        }
     }
 
 

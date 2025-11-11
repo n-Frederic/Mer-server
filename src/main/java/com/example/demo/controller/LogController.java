@@ -7,6 +7,7 @@ import com.example.demo.entity.Log;
 import com.example.demo.entity.Log_Task;
 import com.example.demo.entity.User;
 import com.example.demo.service.LogService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -154,5 +155,42 @@ public class LogController {
                 "data", data
         );
     }
+
+    @DeleteMapping("/{journalId}")
+    public ResponseEntity<Map<String, Object>> deleteJournal(
+            @PathVariable Long journalId
+    ) {
+        try {
+            logService.deleteJournal(journalId);
+
+            return ResponseEntity.ok(Map.of(
+                    "ok", true,
+                    "message", "日志删除成功"
+            ));
+
+        } catch (DataIntegrityViolationException e) {
+            // 外键约束导致无法删除
+            return ResponseEntity.status(400).body(Map.of(
+                    "ok", false,
+                    "error", "ConstraintViolation",
+                    "message", "该日志无法删除"
+            ));
+
+        } catch (NoSuchElementException e) {
+            // 日志不存在
+            return ResponseEntity.status(404).body(Map.of(
+                    "ok", false,
+                    "message", "日志不存在"
+            ));
+
+        } catch (Exception e) {
+            // 其他异常
+            return ResponseEntity.status(500).body(Map.of(
+                    "ok", false,
+                    "message", "服务器错误"
+            ));
+        }
+    }
+
 
 }
