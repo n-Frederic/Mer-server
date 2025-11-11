@@ -95,4 +95,31 @@ public class CommentController {
                 "pageSize", pageSize
         );
     }
+
+    @DeleteMapping("/{commentId}")
+    public Map<String, Object> deleteComment(
+            @PathVariable String commentId,
+            @RequestParam String userId
+    ) {
+        try {
+            commentService.deleteComment(commentId, userId);
+
+            return Map.of(
+                    "code", 200,
+                    "message", "评论删除成功",
+                    "data", Map.of("commentId", commentId)
+            );
+
+        } catch (SecurityException e) {
+            return Map.of(
+                    "code", 403,
+                    "message", "无权删除此评论"
+            );
+        } catch (RuntimeException e) {
+            return Map.of(
+                    "code", 404,
+                    "message", "删除评论失败"
+            );
+        }
+    }
 }

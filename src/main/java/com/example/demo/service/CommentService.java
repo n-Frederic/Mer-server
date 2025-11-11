@@ -30,7 +30,7 @@ public class CommentService {
                 .orElseThrow(() -> new RuntimeException("用户不存在"));
 
         // ownerId 需要把 T-001 → 1 / L-001 → 1
-        Long parsedOwnerId = parseOwnerId(req.getOwnerId());
+        Long parsedOwnerId = parseId(req.getOwnerId());
 
         Comment c = new Comment(
                 req.getOwnerType(),
@@ -44,21 +44,41 @@ public class CommentService {
 
     public Page<Comment> getComments(String ownerType, String ownerId, int page, int pageSize) {
 
-        Long parsedOwnerId = parseOwnerId(ownerId);
+        Long parsedOwnerId = parseId(ownerId);
 
         PageRequest pageable = PageRequest.of(page - 1, pageSize, Sort.by("createdAt").descending());
 
         return commentRepository.findByOwnerTypeAndOwnerId(ownerType, parsedOwnerId, pageable);
     }
 
-    private Long parseOwnerId(String ownerId) {
-        try {
-            if (ownerId.contains("-")) {
-                return Long.parseLong(ownerId.split("-")[1]);
-            }
-            return Long.parseLong(ownerId);
-        } catch (Exception e) {
-            throw new RuntimeException("ownerId 格式不正确，应为 T-xxx 或 L-xxx");
+    public void deleteComment(String commentIdStr, String userIdStr) {
+
+        Long commentId = parseId(commentIdStr); // C-001 → 1
+        Long userId = parseId(userIdStr);       // U-1001 → 1001
+
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("NOT_FOUND"));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("NOT_FOUND_USER"));
+
+        // 权限判断：评论作者 or 管理员
+        boolean isAuthor = comment.getAuthor().getId().equals(userId);
+        boolean isAdmin = user.getRole_id() == 1;  // 你系统里的管理员 role_id=1 示例
+
+        if (!isAuthor && !isAdmin) {
+            throw new SecurityException("FORBIDDEN");
         }
+
+        commentRepository.delete(comment);
     }
+
+    private Long parseId(String str) {
+        if (str.contains("-")) {
+            return Long.parseLong(str.split("-")[1]);
+        }
+        return Long.parseLong(str);
+    }
+
+
 }
