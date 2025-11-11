@@ -250,7 +250,7 @@ CREATE TABLE IF NOT EXISTS log (
     ON UPDATE CURRENT_TIMESTAMP,
     KEY idx_log_user (user_id),
     KEY idx_log_date (log_date),
-    FULLTEXT KEY ftx_log_content (todaySummary, tomorrowPlan, helpNeeded)
+    FULLTEXT KEY ftx_log_content (today_summary, tomorrow_plan, help_needed)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 

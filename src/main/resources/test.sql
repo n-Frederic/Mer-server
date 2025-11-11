@@ -147,7 +147,7 @@ ON DUPLICATE KEY UPDATE content=VALUES(content);
 -- ---- 日志 & 关键词 ----
 INSERT INTO log
 (log_id, user_id,
- todaySummary,                tomorrowPlan,                               helpNeeded,                           status,
+ today_summary,                tomorrow_plan,                               help_needed,                           status,
  log_date)
 VALUES
     -- 旧示例1（把 content -> todaySummary，mood -> status）
@@ -167,9 +167,9 @@ VALUES
     ON DUPLICATE KEY UPDATE
                          user_id      = VALUES(user_id),
 
-                         todaySummary = VALUES(todaySummary),
-                         tomorrowPlan = VALUES(tomorrowPlan),
-                         helpNeeded   = VALUES(helpNeeded),
+                         today_summary = VALUES(today_summary),
+                         tomorrow_plan = VALUES(tomorrow_plan),
+                         help_needed   = VALUES(help_needed),
                          status       = VALUES(status),
                          log_date     = VALUES(log_date);
 
