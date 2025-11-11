@@ -16,13 +16,13 @@ public class Log {
     @Column(name = "log_date")
     private LocalDate date;
 
-    @Column(name = "todaySummary")
+    @Column(name = "today_summary")
     private String summary;
 
-    @Column(name = "tomorrowPlan")
+    @Column(name = "tomorrow_plan")
     private String tomorrowPlan;
 
-    @Column(name = "helpNeeded")
+    @Column(name = "help_needed")
     private String helpNeeded;
 
     @Column(name = "status")
