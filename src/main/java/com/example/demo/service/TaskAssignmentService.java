@@ -8,11 +8,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-public class TaskProgressService {
+public class TaskAssignmentService {
 
     private final TaskAssignmentRepository taskAssignmentRepository;
 
-    public TaskProgressService(TaskAssignmentRepository taskAssignmentRepository) {
+    public TaskAssignmentService(TaskAssignmentRepository taskAssignmentRepository) {
         this.taskAssignmentRepository = taskAssignmentRepository;
     }
 
