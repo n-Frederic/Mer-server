@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -76,4 +77,17 @@ public class TeamController {
             return ResponseEntity.ok(resp);
         }
     }
+
+    @GetMapping("/teams")
+    public Map<String, Object> getTeams(
+            @RequestParam(value = "department_id", required = false) Integer deptId
+    ) {
+        List<Map<String, Object>> list = teamService.getTeams(deptId);
+
+        return Map.of(
+                "ok", true,
+                "list", list
+        );
+    }
+
 }
