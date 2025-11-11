@@ -18,6 +18,7 @@ public class Task {
     @Column(name = "title")
     private String title;
 
+    @Column(name="description")
     private String description;
 
     private String priority;
@@ -26,6 +27,10 @@ public class Task {
     private Instant dueAt;
     private Instant createdAt;
     private Instant updatedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_task", referencedColumnName = "task_id")
+    private Task parent_task;
 
     public Task() {}
 
@@ -57,4 +62,44 @@ public class Task {
     public Instant getDueAt() { return dueAt; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setCreator(User creator) {
+        this.creator = creator;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setStartAt(Instant startAt) {
+        this.startAt = startAt;
+    }
+
+    public void setDueAt(Instant dueAt) {
+        this.dueAt = dueAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Task getParent_task() {
+        return parent_task;
+    }
+
+    public void setParent_task(Task parent_task) {
+        this.parent_task = parent_task;
+    }
 }
