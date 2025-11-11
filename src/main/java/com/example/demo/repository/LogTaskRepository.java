@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface LogTaskRepository extends JpaRepository<Log_Task, LogTaskId> {
     List<Log_Task> findById_LogId(Long logId);
+    void deleteById_LogId(Long logId);
 }

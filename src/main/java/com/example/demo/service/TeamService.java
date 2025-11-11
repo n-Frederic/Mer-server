@@ -7,7 +7,11 @@ import com.example.demo.repository.TeamRepository;
 import com.example.demo.service.TeamService;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class TeamService {
@@ -43,4 +47,26 @@ public class TeamService {
 
         return departmentRepository.findByDeptId(deptId);
     }
+
+    public List<Map<String, Object>> getTeams(Integer deptId) {
+
+        List<Team> teams;
+
+        if (deptId != null) {
+            teams = teamRepository.findByDepartment_DeptId(deptId);
+        } else {
+            teams = teamRepository.findAll();
+        }
+
+        return teams.stream()
+                .map(t -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("team_id", t.getTeamId());
+                    map.put("name", t.getName());
+                    map.put("dept_id", t.getDepartment() != null ? t.getDepartment().getDeptId() : null);
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
+
 }
