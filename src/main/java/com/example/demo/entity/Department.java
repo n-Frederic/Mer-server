@@ -41,9 +41,7 @@ public class Department {
         this.name = name;
     }
 
-    public Integer getParentDeptId() {
-        return parentDeptId;
-    }
+ 
 
     public void setParentDeptId(Integer parentDeptId) {
         this.parentDeptId = parentDeptId;
