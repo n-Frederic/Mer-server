@@ -2,6 +2,8 @@ package com.example.demo.controller;
 
 import com.example.demo.context.UserContext;
 import com.example.demo.dto.TaskCreateDTO;
+import com.example.demo.dto.TaskUpdateRequestDTO;
+import com.example.demo.entity.Task;
 import com.example.demo.entity.User;
 import com.example.demo.service.TaskService;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +88,44 @@ public class TaskController {
     @GetMapping("/{taskId}")
     public Map<String, Object> getTaskById(@PathVariable Long taskId) {
         return taskService.getTaskById(taskId);
+    }
+
+    @PutMapping("/{taskId}")
+    public ResponseEntity<?> updateTask(
+            @PathVariable String taskId,
+            @RequestBody TaskUpdateRequestDTO request
+    ) {
+        try {
+            Task updated = taskService.updateTaskInfo(taskId, request);
+
+            return ResponseEntity.ok(
+                    Map.of(
+                            "code", 200,
+                            "message", "任务更新成功",
+                            "data", Map.of(
+                                    "taskId", "T-" + updated.getId(),
+                                    "title", updated.getTitle(),
+                                    "description", updated.getDescription(),
+                                    "priority", updated.getPriority(),
+                                    "status", updated.getStatus(),
+                                    "startAt", updated.getStartAt(),
+                                    "dueAt", updated.getDueAt(),
+                                    "parentTask",
+                                    updated.getParent_task() != null
+                                            ? "T-" + updated.getParent_task().getId()
+                                            : null,
+                                    "updatedAt", updated.getUpdatedAt()
+                            )
+                    )
+            );
+        } catch (Exception e) {
+            return ResponseEntity.status(404).body(
+                    Map.of(
+                            "code", 404,
+                            "message", "更新任务信息失败"
+                    )
+            );
+        }
     }
 
 
