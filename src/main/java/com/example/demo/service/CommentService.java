@@ -6,6 +6,9 @@ import com.example.demo.entity.Comment;
 import com.example.demo.entity.User;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,6 +40,15 @@ public class CommentService {
         );
 
         return commentRepository.save(c);
+    }
+
+    public Page<Comment> getComments(String ownerType, String ownerId, int page, int pageSize) {
+
+        Long parsedOwnerId = parseOwnerId(ownerId);
+
+        PageRequest pageable = PageRequest.of(page - 1, pageSize, Sort.by("createdAt").descending());
+
+        return commentRepository.findByOwnerTypeAndOwnerId(ownerType, parsedOwnerId, pageable);
     }
 
     private Long parseOwnerId(String ownerId) {

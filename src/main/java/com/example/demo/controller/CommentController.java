@@ -3,13 +3,16 @@ package com.example.demo.controller;
 import com.example.demo.dto.CommentCreateRequest;
 import com.example.demo.entity.Comment;
 import com.example.demo.service.CommentService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/comments")
+@RequestMapping("/comments")
 public class CommentController {
 
     private final CommentService commentService;
@@ -54,5 +57,42 @@ public class CommentController {
                             "message", "评论创建失败"
                     ));
         }
+    }
+
+    @GetMapping
+    public Map<String, Object> getComments(
+            @RequestParam String ownerType,
+            @RequestParam String ownerId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+
+        Page<Comment> commentPage = commentService.getComments(ownerType, ownerId, page, pageSize);
+
+        List<Map<String, Object>> list = commentPage.getContent().stream().map(c -> {
+
+            Map<String, Object> authorInfo = Map.of(
+                    "userId", "U-" + c.getAuthor().getId(),
+                    "name", c.getAuthor().getName()
+            );
+
+            return Map.of(
+                    "commentId", "C-" + String.format("%03d", c.getCommentId()),
+                    "ownerType", c.getOwnerType(),
+                    "ownerId", ownerId,
+                    "authorId", "U-" + c.getAuthor().getId(),
+                    "content", c.getContent(),
+                    "createdAt", c.getCreatedAt().toString(),
+                    "authorInfo", authorInfo
+            );
+
+        }).collect(Collectors.toList());
+
+        return Map.of(
+                "list", list,
+                "total", commentPage.getTotalElements(),
+                "page", page,
+                "pageSize", pageSize
+        );
     }
 }
