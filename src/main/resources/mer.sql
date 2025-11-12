@@ -170,6 +170,7 @@ CREATE TABLE IF NOT EXISTS task (
                                     creator_id  BIGINT NOT NULL,
                                     priority    ENUM('Low','Medium','High','Urgent') NOT NULL DEFAULT 'Low',
                                     status      ENUM('Published','Assigned','InProgress','Reported','Completed','Closed') NOT NULL DEFAULT 'Published',
+                                    progress_pct BIGINT CHECK (progress_pct BETWEEN 0 AND 100),
                                     start_at    DATETIME NULL,
                                     due_at      DATETIME NULL,
                                     parent_task BIGINT NULL,  -- 新增父任务ID列，允许为NULL（表示无父任务）

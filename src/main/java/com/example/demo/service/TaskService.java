@@ -103,12 +103,14 @@ public class TaskService {
 
             // 2. 构造任务对象
             Instant now = Instant.now();
+            Long pct= Long.valueOf(0);
             Task newTask = new Task(
                     now,                  // updateTime
                     now,                  // createTime
                     task.getDueAt(),      // dueAt
                     now,                  // startAt
                     "Reported",           // status
+                     pct,                   //pct
                     task.getPriority(),   // priority
                     task.getDescription(),// description
                     task.getTitle(),      // title
@@ -183,6 +185,7 @@ public class TaskService {
                     taskMap.put("creatorId", task.getCreator().getId());
                     taskMap.put("priority", task.getPriority());
                     taskMap.put("status", task.getStatus());
+                    taskMap.put("progress_pct",task.getProgress_pct());
                     taskMap.put("startAt", task.getStartAt());
                     taskMap.put("dueAt", task.getDueAt());
                     taskMap.put("createdAt", task.getCreatedAt());

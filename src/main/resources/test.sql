@@ -7,6 +7,8 @@ TRUNCATE TABLE ai_analysis_task_map;
 TRUNCATE TABLE role_permission;
 TRUNCATE TABLE task_assignment;
 TRUNCATE TABLE task_report;
+TRUNCATE TABLE log_task_map;
+TRUNCATE TABLE tags;
 TRUNCATE TABLE log_keyword;
 TRUNCATE TABLE attachment;
 TRUNCATE TABLE comment;
@@ -103,19 +105,19 @@ VALUES
 ON DUPLICATE KEY UPDATE title=VALUES(title), status=VALUES(status);
 
 INSERT INTO task
-(task_id, title, description, creator_id, priority, status, start_at, due_at, parent_task)
+(task_id, title, description, creator_id, priority, status, progress_pct,start_at, due_at, parent_task)
 VALUES
     -- 原有任务（补充 parent_task 为 NULL，表示顶级任务）
-    (1, 'Release v1.0', 'Cut the first company release', 1001, 'High',   'Reported', NOW(), DATE_ADD(NOW(), INTERVAL 10 DAY), NULL),
-    (2, 'Migrate CI',   'Move CI to Github Actions',     1001, 'Medium', 'Reported',  NOW(), DATE_ADD(NOW(), INTERVAL 20 DAY), NULL),
+    (1, 'Release v1.0', 'Cut the first company release', 1001, 'High',   'Reported',100, NOW(), DATE_ADD(NOW(), INTERVAL 10 DAY), NULL),
+    (2, 'Migrate CI',   'Move CI to Github Actions',     1001, 'Medium', 'Reported', 33, NOW(), DATE_ADD(NOW(), INTERVAL 20 DAY), NULL),
 
     -- 新增任务：与原有任务形成父子关系
-    (3, 'Write release docs', 'Prepare release notes for v1.0', 1003, 'Medium', 'Reported', NOW(), DATE_ADD(NOW(), INTERVAL 5 DAY), 1),
-    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'Assigned', NOW(), DATE_ADD(NOW(), INTERVAL 15 DAY), 2),
-    (5, 'Fix CI cache issue', 'Resolve dependency cache failure', 1002, 'Urgent', 'Reported', NOW(), DATE_ADD(NOW(), INTERVAL 8 DAY), 4),
+    (3, 'Write release docs', 'Prepare release notes for v1.0', 1003, 'Medium', 'Reported',44, NOW(), DATE_ADD(NOW(), INTERVAL 5 DAY), 1),
+    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'Assigned', 55,NOW(), DATE_ADD(NOW(), INTERVAL 15 DAY), 2),
+    (5, 'Fix CI cache issue', 'Resolve dependency cache failure', 1002, 'Urgent', 'Reported', 66,NOW(), DATE_ADD(NOW(), INTERVAL 8 DAY), 4),
 
     -- 新增顶级任务（无父任务）
-    (6, 'Plan v2.0 roadmap', 'Define features for next release', 1001, 'Low', 'Reported', NULL, DATE_ADD(NOW(), INTERVAL 30 DAY), NULL)
+    (6, 'Plan v2.0 roadmap', 'Define features for next release', 1001, 'Low', 'Reported', 77,NULL, DATE_ADD(NOW(), INTERVAL 30 DAY), NULL)
     ON DUPLICATE KEY UPDATE
                          title=VALUES(title),
                          status=VALUES(status),
