@@ -9,5 +9,4 @@ import java.util.Optional;
 
 @Repository
 public interface TaskAssignmentRepository extends JpaRepository<TaskAssignment, Long> {
-    Optional<TaskAssignment> findByTaskIdAndAssigneeId(Long taskId, Long assigneeId);
 }

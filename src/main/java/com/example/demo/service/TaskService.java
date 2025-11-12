@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.TaskCreateDTO;
+import com.example.demo.dto.TaskProgressUpdateDTO;
 import com.example.demo.dto.TaskUpdateRequestDTO;
 import com.example.demo.entity.*;
 import com.example.demo.enums.UserRole;
@@ -312,5 +313,19 @@ public class TaskService {
         }
 
         return task;
+    }
+
+    public void updateTaskProgress(TaskProgressUpdateDTO request) {
+        Long taskId = Long.parseLong(request.getTaskId().replace("T-", ""));
+
+        Long pct = request.getProgressPct();
+        if (pct < 0 || pct > 100) {
+            throw new IllegalArgumentException("进度百分比必须在 0-100 范围内");
+        }
+
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("不存在该任务"));
+
+        task.setProgress_pct(pct);
+        taskRepository.save(task);
     }
 }

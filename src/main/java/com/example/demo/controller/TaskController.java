@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.context.UserContext;
 import com.example.demo.dto.TaskCreateDTO;
+import com.example.demo.dto.TaskProgressUpdateDTO;
 import com.example.demo.dto.TaskUpdateRequestDTO;
 import com.example.demo.entity.Task;
 import com.example.demo.entity.User;
@@ -121,6 +122,38 @@ public class TaskController {
                     Map.of(
                             "code", 404,
                             "message", "更新任务信息失败"
+                    )
+            );
+        }
+    }
+
+    @PutMapping("/{taskId}/progress")
+    public ResponseEntity<Map<String, Object>> updateProgress(
+            @RequestBody TaskProgressUpdateDTO request
+    ) {
+
+        try {
+            taskService.updateTaskProgress(request);
+
+            return ResponseEntity.ok(
+                    Map.of(
+                            "ok", true,
+                            "message", "进度更新成功"
+                    )
+            );
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(
+                    Map.of(
+                            "ok", false,
+                            "message", e.getMessage()
+                    )
+            );
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(
+                    Map.of(
+                            "ok", false,
+                            "message", "服务器内部错误"
                     )
             );
         }

@@ -16,37 +16,4 @@ public class TaskAssignmentController {
     public TaskAssignmentController(TaskAssignmentService taskAssignmentService) {
         this.taskAssignmentService = taskAssignmentService;
     }
-
-    @PutMapping("/{taskId}/progress")
-    public ResponseEntity<Map<String, Object>> updateProgress(
-            @PathVariable Long taskId,
-            @RequestBody TaskProgressUpdateDTO request
-    ) {
-
-        try {
-            taskAssignmentService.updateTaskProgress(taskId, request);
-
-            return ResponseEntity.ok(
-                    Map.of(
-                            "ok", true,
-                            "message", "进度更新成功"
-                    )
-            );
-
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(
-                    Map.of(
-                            "ok", false,
-                            "message", e.getMessage()
-                    )
-            );
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(
-                    Map.of(
-                            "ok", false,
-                            "message", "服务器内部错误"
-                    )
-            );
-        }
-    }
 }

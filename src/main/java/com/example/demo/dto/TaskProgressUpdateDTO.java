@@ -4,17 +4,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class TaskProgressUpdateDTO {
 
-    @JsonProperty("userId")
-    private String userId;
+    @JsonProperty("taskId")
+    private String taskId;
 
     @JsonProperty("progressPct")
-    private Integer progressPct;
+    private Long progressPct;
 
-    public String getUserId() {
-        return userId;
+    public String getTaskId() {
+        return taskId;
     }
 
-    public Integer getProgressPct() {
+    public Long getProgressPct() {
         return progressPct;
     }
 }
