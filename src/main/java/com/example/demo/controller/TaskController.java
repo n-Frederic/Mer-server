@@ -59,17 +59,15 @@ public class TaskController {
 
     //获取可分配员工
     @GetMapping("/assignees")
-    public Map<String, Object> getAssignees(
-//            @RequestParam User creator,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String priority,
+    public Map<String, Object> getAssignableUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, name = "department_id") Long departmentId,
+            @RequestParam(required = false, name = "team_id") Long teamId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize
     ) {
         Long userId = UserContext.getCurrentUserId();
-
-//        return taskService.getPersonalTasks(creator.getId(), status, priority, page, pageSize);
-        return taskService.getAssignees(userId, status, priority, page, pageSize);
+        return taskService.getAssignees(userId, keyword, departmentId, teamId, page, pageSize);
     }
 
 

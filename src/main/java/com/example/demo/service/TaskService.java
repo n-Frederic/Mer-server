@@ -3,7 +3,9 @@ package com.example.demo.service;
 import com.example.demo.dto.TaskCreateDTO;
 import com.example.demo.dto.TaskUpdateRequestDTO;
 import com.example.demo.entity.*;
+import com.example.demo.enums.UserRole;
 import com.example.demo.repository.*;
+import com.example.demo.utils.ResponseUtils;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -43,20 +45,49 @@ public class TaskService {
 
         return wrapResponse2(taskPage, page, pageSize);
     }
-    public Map<String, Object> getAssignees(Long userId, String status, String priority, int page, int pageSize) {
+    public Map<String, Object> getAssignees(
+            Long currentUserId,
+            String keyword,
+            Long departmentId,
+            Long teamId,
+            int page,
+            int pageSize) {
 
-        User user = userRepository.findById(userId).orElseThrow(EntityNotFoundException::new);
-        Integer role=user.getRole_id();
-        // 1. 构建分页参数（注意：JPA 页码从 0 开始，需将前端传入的 page 减 1）
+        // 查当前用户信息
+        User currentUser = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("当前用户不存在"));
+
+        Integer currentRole = currentUser.getRole_id();
+        Integer targetRole = UserRole.getAssignableRoleId(currentRole);
+
+        if (targetRole == null) {
+            return ResponseUtils.wrapResponse(false, "该角色无权限派发任务");
+        }
+
+        // 分页参数
         Pageable pageable = PageRequest.of(page - 1, pageSize);
 
-        // 2. 调用分页查询方法（假设需要查询 roleId > role 参数 且 !=5 的用户）
+        // 查询可派发用户
+        Page<User> userPage = userRepository.searchAssignableUsers(
+                targetRole,
+                keyword,
+                departmentId,
+                teamId,
+                pageable
+        );
 
-        Page<User> userPage = userRepository.findByRoleIdGreaterThanAndRoleIdNot(role, 5, pageable);
+        // 结果封装
+        Map<String, Object> data = Map.of(
+                "list", userPage.getContent(),
+                "total", userPage.getTotalElements(),
+                "page", page,
+                "pageSize", pageSize,
+                "totalPages", userPage.getTotalPages()
+        );
 
-
-        return wrapResponse1(userPage, page, pageSize);
+        return ResponseUtils.wrapResponse(true, data);
     }
+
     public Map<String, Object> getViewTasks(Long userId, String status, String priority, int page, int pageSize) {
         Page<Task> taskPage = taskRepository.findViewTasks(
                 userId, PageRequest.of(page - 1, pageSize)
