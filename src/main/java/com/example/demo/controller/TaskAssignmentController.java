@@ -1,20 +1,20 @@
 package com.example.demo.controller;
 
 import com.example.demo.dto.TaskProgressUpdateDTO;
-import com.example.demo.service.TaskProgressService;
+import com.example.demo.service.TaskAssignmentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/tasks")
-public class TaskProgressController {
+@RequestMapping("/tasks")
+public class TaskAssignmentController {
 
-    private final TaskProgressService taskProgressService;
+    private final TaskAssignmentService taskAssignmentService;
 
-    public TaskProgressController(TaskProgressService taskProgressService) {
-        this.taskProgressService = taskProgressService;
+    public TaskAssignmentController(TaskAssignmentService taskAssignmentService) {
+        this.taskAssignmentService = taskAssignmentService;
     }
 
     @PutMapping("/{taskId}/progress")
@@ -24,7 +24,7 @@ public class TaskProgressController {
     ) {
 
         try {
-            taskProgressService.updateTaskProgress(taskId, request);
+            taskAssignmentService.updateTaskProgress(taskId, request);
 
             return ResponseEntity.ok(
                     Map.of(

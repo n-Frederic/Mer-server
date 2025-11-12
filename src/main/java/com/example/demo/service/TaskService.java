@@ -1,9 +1,11 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.TaskCreateDTO;
+import com.example.demo.dto.TaskUpdateRequestDTO;
 import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -239,5 +241,45 @@ public class TaskService {
         return result;
     }
 
+    @Transactional
+    public Task updateTaskInfo(String taskIdStr, TaskUpdateRequestDTO dto) {
 
+        Long taskId = Long.parseLong(taskIdStr.replace("T-", ""));
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new RuntimeException("任务不存在"));
+
+        // 1. 更新字段
+        task.setTitle(dto.getTitle());
+        task.setDescription(dto.getDescription());
+        task.setPriority(dto.getPriority());
+        task.setStatus(dto.getStatus());
+        task.setStartAt(dto.getStartAt());
+        task.setDueAt(dto.getDueAt());
+        task.setUpdatedAt(Instant.now());
+
+        // 2. parentTask 处理
+        if (dto.getParentTask() != null && !dto.getParentTask().isBlank()) {
+            Long parentId = Long.parseLong(dto.getParentTask().replace("T-", ""));
+            Task parent = taskRepository.findById(parentId)
+                    .orElseThrow(() -> new RuntimeException("父任务不存在"));
+            // 先假定你 task 表里有 parentTask 字段，需要在 Task 实体中手动加
+            task.setParent_task(parent);
+        }
+
+        // 保存任务更新
+        taskRepository.save(task);
+
+        // 3. 删除旧标签
+        tagsRepository.deleteByTask_Id(taskId);
+
+        // 4. 插入新标签
+        if (dto.getTags() != null) {
+            for (String tag : dto.getTags()) {
+                Tags newTag = new Tags(task, tag);
+                tagsRepository.save(newTag);
+            }
+        }
+
+        return task;
+    }
 }
