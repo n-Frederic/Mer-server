@@ -23,10 +23,19 @@ public class Task {
 
     private String priority;
     private String status;
+    private Long progress_pct;
     private Instant startAt;
     private Instant dueAt;
     private Instant createdAt;
     private Instant updatedAt;
+
+    public Long getProgress_pct() {
+        return progress_pct;
+    }
+
+    public void setProgress_pct(Long progress_pct) {
+        this.progress_pct = progress_pct;
+    }
 
     @ManyToOne
     @JoinColumn(name = "parent_task", referencedColumnName = "task_id")
@@ -34,12 +43,13 @@ public class Task {
 
     public Task() {}
 
-    public Task(Instant updatedAt, Instant createdAt, Instant dueAt, Instant startAt, String status, String priority, String description, String title, User creator) {
+    public Task(Instant updatedAt, Instant createdAt, Instant dueAt, Instant startAt, String status,Long progress_pct, String priority, String description, String title, User creator) {
         this.updatedAt = updatedAt;
         this.createdAt = createdAt;
         this.dueAt = dueAt;
         this.startAt = startAt;
         this.status = status;
+        this.progress_pct = progress_pct;
         this.priority = priority;
         this.description = description;
         this.title = title;
