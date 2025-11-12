@@ -29,11 +29,13 @@ public class User {
     @Column(name = "phone")
     private String phone;
 
-    @Column(name = "team_id")
-    private Integer teamId;
+    @ManyToOne
+    @JoinColumn(name = "team_id", referencedColumnName = "team_id")
+    private Team team;
 
-    @Column(name = "role_id")
-    private Integer roleId;
+    @OneToOne
+    @JoinColumn(name = "role_id", referencedColumnName = "role_id")
+    private Role role;
 
     @Column(name = "gender")
     private String gender;
@@ -53,6 +55,12 @@ public class User {
 
     @Column(name = "avatar_url")
     private String avatar_url;
+
+    @Column(name = "created_at")
+    private LocalDateTime created_at;
+
+    @Column(name = "last_login")
+    private LocalDateTime last_login;
 
     public User() {}
 
@@ -113,23 +121,31 @@ public class User {
     }
 
     public Integer getTeam_id() {
-        return teamId;
+        return this.team.getTeamId();
     }
 
     public void setTeam_id(int team_id) {
-        this.teamId = team_id;
+        this.team.setTeamId(team_id);
+    }
+
+    public Team getTeam() {
+        return this.team;
     }
 
     public void setTeam_id(Integer team_id) {
-        this.teamId = team_id;
+        this.team.setTeamId(team_id);
     }
 
     public Integer getRole_id() {
-        return roleId;
+        return role.getRole_id();
     }
 
     public void setRole_id(Integer role_id) {
-        this.roleId = role_id;
+        this.role.setRole_id(role_id);
+    }
+
+    public Role getRole() {
+        return this.role;
     }
 
     public String getStatus() {
@@ -154,5 +170,21 @@ public class User {
 
     public void setAvatar_url(String avatar_url) {
         this.avatar_url = avatar_url;
+    }
+
+    public LocalDateTime getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(LocalDateTime created_at) {
+        this.created_at = created_at;
+    }
+
+    public LocalDateTime getLast_login() {
+        return last_login;
+    }
+
+    public void setLast_login(LocalDateTime last_login) {
+        this.last_login = last_login;
     }
 }

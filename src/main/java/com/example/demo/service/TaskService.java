@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.dto.TaskCreateDTO;
 import com.example.demo.dto.TaskProgressUpdateDTO;
 import com.example.demo.dto.TaskUpdateRequestDTO;
+import com.example.demo.dto.UserResponseDTO;
 import com.example.demo.entity.*;
 import com.example.demo.enums.UserRole;
 import com.example.demo.repository.*;
@@ -79,7 +80,21 @@ public class TaskService {
 
         // 结果封装
         Map<String, Object> data = Map.of(
-                "list", userPage.getContent(),
+                "list", userPage.getContent().stream()
+                        .map(user -> new UserResponseDTO(
+                                user.getId(),
+                                user.getName(),
+                                user.getUsername(),
+                                user.getEmail(),
+                                user.getPhone(),
+                                user.getStatus(),
+                                user.getCreated_at(),
+                                user.getLast_login(),
+                                new UserResponseDTO.RoleDTO(user.getRole_id(), user.getRole().getName()),
+                                new UserResponseDTO.TeamDTO(user.getTeam_id(), user.getTeam().getName())
+                        ))
+                        .toList(),
+
                 "total", userPage.getTotalElements(),
                 "page", page,
                 "pageSize", pageSize,
