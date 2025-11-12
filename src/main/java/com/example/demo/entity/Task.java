@@ -1,5 +1,6 @@
 package com.example.demo.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -39,6 +40,7 @@ public class Task {
 
     @ManyToOne
     @JoinColumn(name = "parent_task", referencedColumnName = "task_id")
+    @JsonIgnore
     private Task parent_task;
 
     public Task() {}
