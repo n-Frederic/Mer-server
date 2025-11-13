@@ -139,11 +139,12 @@ VALUES
     ON DUPLICATE KEY UPDATE
                          progress_pct=VALUES(progress_pct),
                          assignee_id=VALUES(assignee_id);  -- 新增：冲突时同步更新负责人
+
 INSERT INTO task_report
-  (report_id, task_id, reporter_id, content, attachments)
+  (report_id, task_id, reporter_id, content,address, attachments,created_at)
 VALUES
-  (1, 1, 1002, 'Initialized repo, set up pipelines.', 'README.md;pipeline.yml'),
-  (2, 1, 1002, 'Fixed failing tests, coverage 82%.',  'coverage.txt')
+  (1, 1, 1002, 'Initialized repo, set up pipelines.','street', 'README.md;pipeline.yml','2024-10-26 14:20:18'),
+  (2, 1, 1002, 'Fixed failing tests, coverage 82%.','street1' , 'coverage.txt','2025-10-26 14:20:18')
 ON DUPLICATE KEY UPDATE content=VALUES(content);
 
 -- ---- 日志 & 关键词 ----
