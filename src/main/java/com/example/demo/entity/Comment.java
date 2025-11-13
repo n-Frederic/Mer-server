@@ -45,4 +45,28 @@ public class Comment {
     public User getAuthor() { return author; }
     public String getContent() { return content; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+
+    public void setCommentId(Long commentId) {
+        this.commentId = commentId;
+    }
+
+    public void setOwnerType(String ownerType) {
+        this.ownerType = ownerType;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public void setAuthor(User author) {
+        this.author = author;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }
