@@ -73,7 +73,7 @@ public class TaskService {
                 priority == null ? "" : priority,
                 PageRequest.of(page - 1, pageSize)
         );
-        return wrapResponse(taskPage, page, pageSize);
+        return wrapResponse2(taskPage, page, pageSize);
     }
 
     public ResponseEntity<?> createTask(TaskCreateDTO task, Long userId) {
