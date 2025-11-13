@@ -4,6 +4,7 @@ import com.example.demo.context.UserContext;
 import com.example.demo.dto.CommentCreateRequest;
 import com.example.demo.entity.Comment;
 import com.example.demo.entity.User;
+import com.example.demo.enums.UserRole;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.UserRepository;
 import org.springframework.data.domain.Page;
@@ -62,9 +63,8 @@ public class CommentService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("NOT_FOUND_USER"));
 
-        // 权限判断：评论作者 or 管理员
         boolean isAuthor = comment.getAuthor().getId().equals(userId);
-        boolean isAdmin = user.getRole_id() == 1;  // 你系统里的管理员 role_id=1 示例
+        boolean isAdmin = user.getRole_id() == UserRole.ADMIN.getId();
 
         if (!isAuthor && !isAdmin) {
             throw new SecurityException("FORBIDDEN");
