@@ -22,11 +22,14 @@ public class TeamController {
     @GetMapping("/{teamId}")
     public Map<String, Object> getTeamName(
             @PathVariable Long teamId,
-            @RequestHeader("Authorization") String authHeader
     ) {
         try {
-            // Token 去掉 Bearer 前缀（但不验证内容）
-            String token = authHeader.replace("Bearer ", "").trim();
+            if(teamId == 0) {
+                return Map.of(
+                        "ok", true,
+                        "team_name", "无团队"
+                );
+            }
 
             // 查询团队
             Team team = teamService.getTeamById(teamId);
