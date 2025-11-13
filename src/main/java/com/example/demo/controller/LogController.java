@@ -192,5 +192,10 @@ public class LogController {
         }
     }
 
+    @GetMapping("/{logId}")
+    public ResponseEntity<Map<String, Object>> getJournalDetail(@PathVariable Long logId) {
+        return ResponseEntity.ok(logService.getJournalDetail(logId));
+    }
+
 
 }

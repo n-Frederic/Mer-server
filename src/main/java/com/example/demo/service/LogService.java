@@ -245,5 +245,50 @@ public class LogService {
         }
     }
 
+    public Map<String, Object> getJournalDetail(Long logId) {
+        Log log = logRepository.findById(logId)
+                .orElseThrow(() -> new RuntimeException("日志未找到或无权访问"));
+
+        User author = userRepository.findById(log.getAuthor().getId()).orElse(null);
+        Map<String, Object> authorInfo = Map.of(
+                "user_id", author.getId(),
+                "name", author.getName(),
+                "email", author.getEmail()
+//                "avatar_url", author.getAvatarUrl()
+        );
+
+        List<Map<String, Object>> relatedTasks = logTaskRepository.findById_LogId(logId).stream()
+                .map(m -> new HashMap<String, Object>() {{
+                    put("task_id", m.getTask().getId());
+                    put("title", m.getTask().getTitle());
+                }})
+                .collect(Collectors.toList());
+
+        List<Long> taskIds = logTaskRepository.findById_LogId(logId).stream()
+                .map(m -> m.getId().getTaskId())
+                .toList();
+
+        Set<String> tags = taskIds.stream()
+                .flatMap(taskId -> tagsRepository.findByTaskId(taskId).stream())
+                .map(Tags::getTag)
+                .collect(Collectors.toSet());
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("log_id", log.getId());
+        data.put("user_id", log.getAuthor().getId());
+        data.put("log_date", log.getDate());
+        data.put("status", log.getStatus());
+        data.put("created_at", log.getCreatedAt());
+        data.put("updated_at", log.getUpdatedAt());
+        data.put("todaySummary", log.getSummary());
+        data.put("tomorrowPlan", log.getTomorrowPlan());
+        data.put("helpNeeded", log.getHelpNeeded());
+        data.put("author_info", authorInfo);
+        data.put("related_tasks", relatedTasks);
+        data.put("tags", tags);
+
+        return Map.of("code", 200, "message", "success", "data", data);
+    }
+
 
 }
