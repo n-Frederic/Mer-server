@@ -150,4 +150,47 @@ class CommentServiceTest {
         
         verify(commentRepository, times(1)).delete(mockComment);
     }
+
+    // 测试6：删除时评论不存在
+    @Test
+    void deleteComment_CommentNotFound_ShouldThrowException() {
+        when(commentRepository.findById(1L)).thenReturn(Optional.empty());
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> commentService.deleteComment("C-001", "U-5"));
+        assertEquals("NOT_FOUND", ex.getMessage());
+    }
+
+    // 测试7：删除时用户不存在
+    @Test
+    void deleteComment_UserNotFound_ShouldThrowException() {
+        when(commentRepository.findById(1L)).thenReturn(Optional.of(mockComment));
+        when(userRepository.findById(1001L)).thenReturn(Optional.empty());
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> commentService.deleteComment("C-001", "U-1001"));
+        assertEquals("NOT_FOUND_USER", ex.getMessage());
+    }
+
+
+    // 测试8：parseId带前缀
+    @Test
+    void parseId_WithPrefix_ShouldReturnNumeric() throws Exception {
+        var method = CommentService.class.getDeclaredMethod("parseId", String.class);
+        method.setAccessible(true);
+        Long result = (Long) method.invoke(commentService, "T-123");
+        assertEquals(123L, result);
+    }
+
+    // 测试9：parseId无前缀
+    @Test
+    void parseId_WithoutPrefix_ShouldReturnDirect() throws Exception {
+        var method = CommentService.class.getDeclaredMethod("parseId", String.class);
+        method.setAccessible(true);
+        Long result = (Long) method.invoke(commentService, "456");
+        assertEquals(456L, result);
+    }
+
+
+
+
 }

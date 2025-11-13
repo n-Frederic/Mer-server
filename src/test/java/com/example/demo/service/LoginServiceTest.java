@@ -14,31 +14,39 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * LoginService单元测试
+ * ✅ LoginService 单元测试
+ *
+ * 测试目标：
+ * - 登录成功返回正确信息
+ * - 用户不存在时返回错误
+ * - 密码错误时返回错误
+ * - 验证 PasswordEncoder 调用
+ * - 验证调用顺序
  */
 @ExtendWith(MockitoExtension.class)
 class LoginServiceTest {
 
     @Mock
     private UserRepository userRepository;
-    
+
     @Mock
     private LoginRepository loginRepository;
-    
+
     @Mock
     private PasswordEncoder passwordEncoder;
-    
+
     @InjectMocks
     private LoginService loginService;
-    
+
     private User mockUser;
-    
+
     @BeforeEach
     void setUp() {
         mockUser = new User();
@@ -47,97 +55,117 @@ class LoginServiceTest {
         mockUser.setEmail("zhangsan@test.com");
         mockUser.setPassword("$2a$10$encodedPassword");
     }
-    
+
     /**
-     * 测试1：登录成功
+     * ✅ 测试1：登录成功
      */
     @Test
     void login_Success_ShouldReturnTokenAndUser() {
-        when(userRepository.findByEmail("zhangsan@test.com"))
-            .thenReturn(Optional.of(mockUser));
+        when(userRepository.findByEmail("zhangsan@test.com")).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
-        when(loginRepository.save(any(Login.class))).thenAnswer(invocation -> {
-            return invocation.getArgument(0);
-        });
-        
+        when(loginRepository.save(any(Login.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
         LoginResponseDTO result = loginService.login("zhangsan@test.com", "password123");
-        
-        assertNotNull(result, "返回结果不应为null");
-        assertFalse(result.isError(), "登录应该成功");
-        assertNotNull(result.getToken(), "应返回token");
+
+        assertNotNull(result);
+        assertFalse(result.isError(), "登录应成功");
+        assertNotNull(result.getToken(), "应生成token");
         assertNotNull(result.getUser(), "应返回用户信息");
         assertEquals("张三", result.getUser().getName());
-        
+
         verify(loginRepository, times(1)).save(any(Login.class));
     }
-    
+
     /**
-     * 测试2：登录失败用户不存在
+     * ✅ 测试2：用户不存在
      */
     @Test
     void login_UserNotFound_ShouldReturnError() {
-        when(userRepository.findByEmail("notexist@test.com"))
-            .thenReturn(Optional.empty());
-        
+        when(userRepository.findByEmail("notexist@test.com")).thenReturn(Optional.empty());
+
         LoginResponseDTO result = loginService.login("notexist@test.com", "password");
-        
+
         assertTrue(result.isError(), "应返回错误");
         assertEquals("USER_NOT_FOUND", result.getCode());
-        assertNull(result.getToken(), "不应返回token");
-        
+        assertNull(result.getToken());
+
         verify(loginRepository, never()).save(any());
+        verify(passwordEncoder, never()).matches(anyString(), anyString());
     }
-    
+
     /**
-     * 测试3：登录失败密码错误
+     * ✅ 测试3：密码错误
      */
     @Test
     void login_WrongPassword_ShouldReturnError() {
-        when(userRepository.findByEmail("zhangsan@test.com"))
-            .thenReturn(Optional.of(mockUser));
+        when(userRepository.findByEmail("zhangsan@test.com")).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
-        
+
         LoginResponseDTO result = loginService.login("zhangsan@test.com", "wrongpassword");
-        
-        assertTrue(result.isError(), "应返回错误");
+
+        assertTrue(result.isError());
         assertEquals("INVALID_PASSWORD", result.getCode());
-        
+        assertNull(result.getToken());
+
         verify(loginRepository, never()).save(any());
     }
-    
+
     /**
-     * 测试4：验证密码编码器被正确调用
+     * ✅ 测试4：验证密码编码器调用
      */
     @Test
     void login_ShouldUsePasswordEncoder() {
-        when(userRepository.findByEmail("zhangsan@test.com"))
-            .thenReturn(Optional.of(mockUser));
+        when(userRepository.findByEmail("zhangsan@test.com")).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArgument(0));
-        
+
         loginService.login("zhangsan@test.com", "password123");
-        
-        // 验证密码编码器被调用
-        verify(passwordEncoder, times(1))
-            .matches(eq("password123"), eq("$2a$10$encodedPassword"));
+
+        verify(passwordEncoder, times(1)).matches(eq("password123"), eq("$2a$10$encodedPassword"));
     }
-    
+
     /**
-     * 测试5：验证Repository方法调用顺序
+     * ✅ 测试5：验证 Repository 调用顺序
      */
     @Test
     void login_ShouldCallRepositoriesInCorrectOrder() {
-        when(userRepository.findByEmail(anyString()))
-            .thenReturn(Optional.of(mockUser));
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArgument(0));
-        
+
         loginService.login("zhangsan@test.com", "password");
-        
-        // 验证调用顺序：先查用户，后保存登录记录
+
         var inOrder = inOrder(userRepository, loginRepository);
         inOrder.verify(userRepository).findByEmail(anyString());
         inOrder.verify(loginRepository).save(any(Login.class));
     }
-}
 
+    /**
+     * ✅ 测试6：边界情况 - 空邮箱或密码
+     */
+    @Test
+    void login_EmptyEmailOrPassword_ShouldReturnError() {
+        // 空邮箱
+        LoginResponseDTO result1 = loginService.login("", "password");
+        assertTrue(result1.isError());
+
+        // 空密码
+        LoginResponseDTO result2 = loginService.login("zhangsan@test.com", "");
+        assertTrue(result2.isError());
+    }
+
+    /**
+     * ✅ 测试7：token 生成唯一性
+     */
+    @Test
+    void login_ShouldGenerateDifferentTokensForDifferentLogins() {
+        when(userRepository.findByEmail("zhangsan@test.com")).thenReturn(Optional.of(mockUser));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArgument(0));
+
+        LoginResponseDTO result1 = loginService.login("zhangsan@test.com", "password123");
+        LoginResponseDTO result2 = loginService.login("zhangsan@test.com", "password123");
+
+        assertNotEquals(result1.getToken(), result2.getToken(), "两次登录应生成不同token");
+    }
+}
