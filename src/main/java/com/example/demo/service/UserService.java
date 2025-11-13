@@ -2,6 +2,7 @@ package com.example.demo.service;
 
 import com.example.demo.dto.PasswordResetRequestDTO;
 import com.example.demo.entity.Login;
+import com.example.demo.entity.Task;
 import com.example.demo.entity.User;
 import com.example.demo.entity.VerificationCode;
 import com.example.demo.exception.BusinessException;
@@ -10,6 +11,7 @@ import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.VerificationCodeRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.time.LocalDate;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
