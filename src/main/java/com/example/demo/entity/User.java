@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-
 public class User {
 
     @Id
@@ -115,12 +114,20 @@ public class User {
 
     public Integer getTeam_id() { return this.team.getTeamId(); }
     public void setTeam_id(int team_id) {
-        if(this.team == null) {
-            this.team = new Team();
-        }
-        this.team.setTeamId(team_id); }
+        this.team.setTeamId(team_id);
+    }
     public Team getTeam() { return this.team; }
-    public void setTeam_id(Integer team_id) { this.team.setTeamId(team_id); }
+    public void setTeam_id(Integer team_id) {
+        if (team_id != null) {
+            if (this.team == null) {
+                this.team = new Team();
+            }
+            this.team.setTeamId(team_id);
+        } else {
+            // 如果 team_id 为 null，可以将 team 设为 null
+            this.team = null;
+        }
+    }
 
     public Integer getRole_id() {
         if(this.role != null) {
@@ -132,7 +139,13 @@ public class User {
             this.role.setRoleId(role_id);
         }
     }
+
+
     public Role getRole() { return this.role; }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
@@ -148,4 +161,7 @@ public class User {
 
     public LocalDateTime getLast_login() { return last_login; }
     public void setLast_login(LocalDateTime last_login) { this.last_login = last_login; }
+
+    public void setTeam(Team team) {this.team = team;
+    }
 }
