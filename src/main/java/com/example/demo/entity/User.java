@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+
 public class User {
 
     @Id
@@ -113,7 +114,11 @@ public class User {
     public void setBio(String bio) { this.bio = bio; }
 
     public Integer getTeam_id() { return this.team.getTeamId(); }
-    public void setTeam_id(int team_id) { this.team.setTeamId(team_id); }
+    public void setTeam_id(int team_id) {
+        if(this.team == null) {
+            this.team = new Team();
+        }
+        this.team.setTeamId(team_id); }
     public Team getTeam() { return this.team; }
     public void setTeam_id(Integer team_id) { this.team.setTeamId(team_id); }
 

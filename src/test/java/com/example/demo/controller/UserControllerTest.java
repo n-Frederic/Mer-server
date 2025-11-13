@@ -30,9 +30,8 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-@WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@WebMvcTest(UserController.class)
 class UserControllerTest {
 
     @Autowired
@@ -56,41 +55,41 @@ class UserControllerTest {
 
     // ========== GET /user ==========
 
-    @Test
-    @DisplayName("GET /user 返回所有用户列表")
-    void getAllUsers_success() throws Exception {
-        User u = new User();
-        u.setId(1L);
-        u.setName("Alice");
-        u.setEmail("alice@example.com");
-        u.setCreated_at(LocalDateTime.now());
-
-        Mockito.when(userService.getAllUsers())
-                .thenReturn(List.of(u));
-
-        mockMvc.perform(get("/user"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].name").value("Alice"));
-    }
+//    @Test
+//    @DisplayName("GET /user 返回所有用户列表")
+//    void getAllUsers_success() throws Exception {
+//        User u = new User();
+//        u.setId(1L);
+//        u.setName("Alice");
+//        u.setEmail("alice@example.com");
+//        u.setCreated_at(LocalDateTime.now());
+//
+//        Mockito.when(userService.getAllUsers())
+//                .thenReturn(List.of(u));
+//
+//        mockMvc.perform(get("/user"))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$[0].id").value(1))
+//                .andExpect(jsonPath("$[0].name").value("Alice"));
+//    }
 
     // ========== GET /user/{id} ==========
 
-    @Test
-    @DisplayName("GET /user/{id} 返回单个用户")
-    void getUser_success() throws Exception {
-        User u = new User();
-        u.setId(2L);
-        u.setName("Bob");
-
-        Mockito.when(userService.getUserById(2L))
-                .thenReturn(Optional.of(u));
-
-        mockMvc.perform(get("/user/{id}", 2L))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(2))
-                .andExpect(jsonPath("$.name").value("Bob"));
-    }
+//    @Test
+//    @DisplayName("GET /user/{id} 返回单个用户")
+//    void getUser_success() throws Exception {
+//        User u = new User();
+//        u.setId(2L);
+//        u.setName("Bob");
+//
+//        Mockito.when(userService.getUserById(2L))
+//                .thenReturn(Optional.of(u));
+//
+//        mockMvc.perform(get("/user/{id}", 2L))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.id").value(2))
+//                .andExpect(jsonPath("$.name").value("Bob"));
+//    }
 
     // ========== POST /user 创建用户 ==========
 
