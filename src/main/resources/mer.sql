@@ -227,6 +227,7 @@ CREATE TABLE IF NOT EXISTS task_report (
                              task_id      BIGINT NOT NULL,
                              reporter_id  BIGINT NOT NULL,
                              content      TEXT,
+                             address      TEXT,
                              attachments  TEXT,
                              created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                              KEY idx_tr_task (task_id),
