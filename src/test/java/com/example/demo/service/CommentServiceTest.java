@@ -139,7 +139,7 @@ class CommentServiceTest {
     void deleteComment_ByAdmin_ShouldDeleteSuccessfully() {
         User admin = new User();
         admin.setId(5L);
-        admin.setRole_id(1); //roleId=1 CEO 管理员
+        admin.setRole_id(5); //roleId=5 管理员
         
         when(commentRepository.findById(1L)).thenReturn(Optional.of(mockComment));
         when(userRepository.findById(5L)).thenReturn(Optional.of(admin));
