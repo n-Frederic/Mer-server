@@ -10,6 +10,7 @@ import com.example.demo.service.TaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -96,28 +97,31 @@ public class TaskController {
     ) {
         try {
             Task updated = taskService.updateTaskInfo(taskId, request);
+            Map<String, Object> dataMap = new HashMap<>();
+            dataMap.put("taskId", "T-" + updated.getId());
+            dataMap.put("title", updated.getTitle());
+            dataMap.put("description", updated.getDescription());
+            dataMap.put("priority", updated.getPriority());
+            dataMap.put("status", updated.getStatus());
+            dataMap.put("startAt", updated.getStartAt());
+            dataMap.put("dueAt", updated.getDueAt()); // 允许 null
+            dataMap.put("parentTask",
+                    updated.getParent_task() != null
+                            ? "T-" + updated.getParent_task().getId()
+                            : null); // 允许 null
+            dataMap.put("updatedAt", updated.getUpdatedAt()); // 允许 null
 
-            return ResponseEntity.ok(
-                    Map.of(
-                            "code", 200,
-                            "message", "任务更新成功",
-                            "data", Map.of(
-                                    "taskId", "T-" + updated.getId(),
-                                    "title", updated.getTitle(),
-                                    "description", updated.getDescription(),
-                                    "priority", updated.getPriority(),
-                                    "status", updated.getStatus(),
-                                    "startAt", updated.getStartAt(),
-                                    "dueAt", updated.getDueAt(),
-                                    "parentTask",
-                                    updated.getParent_task() != null
-                                            ? "T-" + updated.getParent_task().getId()
-                                            : null,
-                                    "updatedAt", updated.getUpdatedAt()
-                            )
-                    )
-            );
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("code", 200);
+            responseMap.put("message", "任务更新成功");
+            responseMap.put("data", dataMap);
+
+            return ResponseEntity.ok(responseMap);
         } catch (Exception e) {
+            System.err.println("--- Task Update Exception START ---");
+            e.printStackTrace();
+            System.err.println("--- Task Update Exception END ---");
+
             return ResponseEntity.status(404).body(
                     Map.of(
                             "code", 404,
