@@ -110,7 +110,9 @@ public class User {
     }
 
     public Integer getTeam_id() {
-        return this.team.getTeamId();
+        if(this.team != null) {
+            return this.team.getTeamId();
+        } else return 0;
     }
 
     public void setTeam_id(int team_id) {
