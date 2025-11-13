@@ -121,7 +121,7 @@ public class LogService {
                         .map(Long::parseLong)
                         .collect(Collectors.toList());
 
-                List<Long> teamMemberIds = userRepository.findByTeamId(currentUser.getTeam_id())
+                List<Long> teamMemberIds = userRepository.findByTeam_TeamId(currentUser.getTeam_id())
                         .stream()
                         .map(User::getId)
                         .toList();
@@ -140,7 +140,7 @@ public class LogService {
                     throw new RuntimeException("无权限查看团队成员日志");
                 }
 
-                targetUserIds = userRepository.findByTeamId(currentUser.getTeam_id())
+                targetUserIds = userRepository.findByTeam_TeamId(currentUser.getTeam_id())
                         .stream()
                         .map(User::getId)
                         .filter(id -> !id.equals(currentUserId)) // 不包含自己
@@ -243,6 +243,51 @@ public class LogService {
             // 抛出让 Controller 捕获（比如 log_task_map 外键引用导致无法删除）
             throw e;
         }
+    }
+
+    public Map<String, Object> getJournalDetail(Long logId) {
+        Log log = logRepository.findById(logId)
+                .orElseThrow(() -> new RuntimeException("日志未找到或无权访问"));
+
+        User author = userRepository.findById(log.getAuthor().getId()).orElse(null);
+        Map<String, Object> authorInfo = Map.of(
+                "user_id", author.getId(),
+                "name", author.getName(),
+                "email", author.getEmail()
+//                "avatar_url", author.getAvatarUrl()
+        );
+
+        List<Map<String, Object>> relatedTasks = logTaskRepository.findById_LogId(logId).stream()
+                .map(m -> new HashMap<String, Object>() {{
+                    put("task_id", m.getTask().getId());
+                    put("title", m.getTask().getTitle());
+                }})
+                .collect(Collectors.toList());
+
+        List<Long> taskIds = logTaskRepository.findById_LogId(logId).stream()
+                .map(m -> m.getId().getTaskId())
+                .toList();
+
+        Set<String> tags = taskIds.stream()
+                .flatMap(taskId -> tagsRepository.findByTaskId(taskId).stream())
+                .map(Tags::getTag)
+                .collect(Collectors.toSet());
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("log_id", log.getId());
+        data.put("user_id", log.getAuthor().getId());
+        data.put("log_date", log.getDate());
+        data.put("status", log.getStatus());
+        data.put("created_at", log.getCreatedAt());
+        data.put("updated_at", log.getUpdatedAt());
+        data.put("todaySummary", log.getSummary());
+        data.put("tomorrowPlan", log.getTomorrowPlan());
+        data.put("helpNeeded", log.getHelpNeeded());
+        data.put("author_info", authorInfo);
+        data.put("related_tasks", relatedTasks);
+        data.put("tags", tags);
+
+        return Map.of("code", 200, "message", "success", "data", data);
     }
 
 

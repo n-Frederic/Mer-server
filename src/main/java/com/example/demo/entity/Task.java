@@ -30,6 +30,7 @@ public class Task {
     private Instant createdAt;
     private Instant updatedAt;
 
+
     public Long getProgress_pct() {
         return progress_pct;
     }
@@ -114,4 +115,6 @@ public class Task {
     public void setParent_task(Task parent_task) {
         this.parent_task = parent_task;
     }
+
+
 }
