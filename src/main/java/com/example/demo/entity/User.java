@@ -1,6 +1,7 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -8,24 +9,30 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "user")
 public class User {
+    @Setter
     @Id
     @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
 
+    @Setter
     @Column(name = "name", nullable = false)
     private String name;
 
+    @Setter
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
+    @Setter
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Setter
     @Column(name = "username")
     private String username;
 
+    @Setter
     @Column(name = "phone")
     private String phone;
 
@@ -37,9 +44,11 @@ public class User {
     @JoinColumn(name = "role_id", referencedColumnName = "role_id")
     private Role role;
 
+    @Setter
     @Column(name = "gender")
     private String gender;
 
+    @Setter
     @Column(name = "birth_date")
 //    private LocalDateTime birthday;
     private LocalDate birthday;
@@ -47,6 +56,7 @@ public class User {
     @Column(name = "status")
     private String status;
 
+    @Setter
     @Column(name = "bio")
     private String bio;
 
@@ -71,28 +81,19 @@ public class User {
     }
 
     public Long getId() { return id; }
-    public void setId(Long id) { this.id = id;}
+
     public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+
     public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
 
     public String getUsername() {
         return username;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public String getPhone() {
         return phone;
-    }
-
-    public void setPhone(String phone) {
-        this.phone = phone;
     }
 
 
@@ -100,24 +101,12 @@ public class User {
         return gender;
     }
 
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
     public LocalDate getBirthday() {
         return birthday;
     }
 
-    public void setBirthday(LocalDate birthday) {
-        this.birthday = birthday;
-    }
-
     public String getBio() {
         return bio;
-    }
-
-    public void setBio(String bio) {
-        this.bio = bio;
     }
 
     public Integer getTeam_id() {
