@@ -117,8 +117,16 @@ public class User {
     public Team getTeam() { return this.team; }
     public void setTeam_id(Integer team_id) { this.team.setTeamId(team_id); }
 
-    public Integer getRole_id() { return role.getRoleId(); }
-    public void setRole_id(Integer role_id) { this.role.setRoleId(role_id); }
+    public Integer getRole_id() {
+        if(this.role != null) {
+            return role.getRoleId();
+        } else return -1;
+    }
+    public void setRole_id(Integer role_id) {
+        if(this.role != null) {
+            this.role.setRoleId(role_id);
+        }
+    }
     public Role getRole() { return this.role; }
 
     public String getStatus() { return status; }
