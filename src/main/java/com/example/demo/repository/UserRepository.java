@@ -12,19 +12,19 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
-//    Page<User> findByRoleIdGreaterThanAndRoleIdNot(Integer minRoleId, Integer excludeRoleId, Pageable pageable);
+    Page<User> findByRole_RoleIdGreaterThanAndRole_RoleIdNot(Integer minRoleId, Integer excludeRoleId, Pageable pageable);
 
     // 找到同 team 的所有成员
     List<User> findByTeam_TeamId(Integer teamId);
 
     // 找到 team 的 leader
-//    List<User> findByTeamIdAndRoleId(Long teamId, Integer roleId);
+    List<User> findByTeam_TeamIdAndRole_RoleId(Long teamId, Integer roleId);
 
     @Query("""
         SELECT u
         FROM User u
         JOIN Team t ON u.team.teamId = t.teamId
-        WHERE (:roleId IS NULL OR u.role.role_id = :roleId)
+        WHERE (:roleId IS NULL OR u.role.roleId = :roleId)
           AND (:keyword IS NULL OR u.name LIKE %:keyword% OR u.email LIKE %:keyword%)
           AND (:departmentId IS NULL OR t.department.deptId = :departmentId)
           AND (:teamId IS NULL OR u.team.teamId = :teamId)
