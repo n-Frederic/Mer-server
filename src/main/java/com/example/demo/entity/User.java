@@ -137,11 +137,11 @@ public class User {
     }
 
     public Integer getRole_id() {
-        return role.getRole_id();
+        return role.getRoleId();
     }
 
     public void setRole_id(Integer role_id) {
-        this.role.setRole_id(role_id);
+        this.role.setRoleId(role_id);
     }
 
     public Role getRole() {
