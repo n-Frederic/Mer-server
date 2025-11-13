@@ -112,10 +112,28 @@ public class User {
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
 
-    public Integer getTeam_id() { return this.team.getTeamId(); }
-    public void setTeam_id(int team_id) { this.team.setTeamId(team_id); }
+    public Integer getTeam_id() {
+        return this.team != null ? this.team.getTeamId() : null;
+    }
+
+    public void setTeam_id(int team_id) {
+        if (this.team == null) {
+            this.team = new Team();
+        }
+        this.team.setTeamId(team_id);
+    }
     public Team getTeam() { return this.team; }
-    public void setTeam_id(Integer team_id) { this.team.setTeamId(team_id); }
+    public void setTeam_id(Integer team_id) {
+        if (team_id != null) {
+            if (this.team == null) {
+                this.team = new Team();
+            }
+            this.team.setTeamId(team_id);
+        } else {
+            // 如果 team_id 为 null，可以将 team 设为 null
+            this.team = null;
+        }
+    }
 
     public Integer getRole_id() {
         if(this.role != null) {
@@ -127,7 +145,13 @@ public class User {
             this.role.setRoleId(role_id);
         }
     }
+
+
     public Role getRole() { return this.role; }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
