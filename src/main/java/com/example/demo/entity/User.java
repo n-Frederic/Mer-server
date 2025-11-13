@@ -112,14 +112,8 @@ public class User {
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
 
-    public Integer getTeam_id() {
-        return this.team != null ? this.team.getTeamId() : null;
-    }
-
+    public Integer getTeam_id() { return this.team.getTeamId(); }
     public void setTeam_id(int team_id) {
-        if (this.team == null) {
-            this.team = new Team();
-        }
         this.team.setTeamId(team_id);
     }
     public Team getTeam() { return this.team; }
@@ -167,4 +161,7 @@ public class User {
 
     public LocalDateTime getLast_login() { return last_login; }
     public void setLast_login(LocalDateTime last_login) { this.last_login = last_login; }
+
+    public void setTeam(Team team) {this.team = team;
+    }
 }

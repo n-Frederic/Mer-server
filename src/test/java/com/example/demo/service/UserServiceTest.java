@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.User;
+import com.example.demo.entity.Team;
 import com.example.demo.repository.LoginRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.VerificationCodeRepository;
@@ -51,6 +52,7 @@ class UserServiceTest {
         mockUser.setUsername("zhangsan");
         mockUser.setEmail("zhangsan@test.com");
         mockUser.setPhone("13800000000");
+        mockUser.setTeam(new Team());
         mockUser.setTeam_id(1);
         mockUser.setRole_id(4);
         mockUser.setStatus("active");
