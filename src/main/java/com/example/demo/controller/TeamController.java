@@ -21,7 +21,7 @@ public class TeamController {
 
     @GetMapping("/{teamId}")
     public Map<String, Object> getTeamName(
-            @PathVariable Long teamId,
+            @PathVariable Long teamId
     ) {
         try {
             if(teamId == 0) {
