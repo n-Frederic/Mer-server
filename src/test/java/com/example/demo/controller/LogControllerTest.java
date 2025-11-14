@@ -60,8 +60,60 @@ class LogControllerTest {
 
     // ========== GET /journals/scoped ==========
 
+//    @Test
+//    @DisplayName("GET /journals/scoped 返回分页日志列表")
+//    void getScopedLogs_success() throws Exception {
+        // 准备一个假的 Log + Page<Log>
+//        Log log = Mockito.mock(Log.class);
+//        Mockito.when(log.getId()).thenReturn(1L);
+//        Mockito.when(log.getDate()).thenReturn(LocalDate.of(2025, 1, 1));
+//        Mockito.when(log.getCreatedAt()).thenReturn(Instant.parse("2025-01-01T00:00:00Z"));
+//        Mockito.when(log.getUpdatedAt()).thenReturn(Instant.parse("2025-01-01T10:00:00Z"));
+//        Mockito.when(log.getSummary()).thenReturn("today");
+//        Mockito.when(log.getTomorrowPlan()).thenReturn("tomorrow");
+//        Mockito.when(log.getHelpNeeded()).thenReturn("help");
+//        Mockito.when(log.getStatus()).thenReturn("NORMAL");
+//
+//        User author = Mockito.mock(User.class);
+//        Mockito.when(author.getId()).thenReturn(1001L);
+//        Mockito.when(log.getAuthor()).thenReturn(author);
+//
+//        Page<Log> page = new PageImpl<>(
+//                List.of(log),
+//                PageRequest.of(0, 10),
+//                1
+//        );
+//
+//        Mockito.when(logService.getScopedLogs(
+//                        eq("my"),
+//                        isNull(),
+//                        eq("all"),
+//                        isNull(),
+//                        eq(1),
+//                        eq(10)))
+//                .thenReturn(page);
+//
+//        Mockito.when(logService.getTaskIdsByLogId(1L))
+//                .thenReturn(List.of(11L, 22L));
+//
+//        Mockito.when(logService.getTagsForLog(1L))
+//                .thenReturn(List.of("tag1", "tag2"));
+//
+//        mockMvc.perform(get("/journals/scoped")
+//                        .param("mode", "my")
+//                        .param("page", "1")
+//                        .param("pageSize", "10"))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.list[0].log_id").value(1))
+//                .andExpect(jsonPath("$.list[0].user_id").value(1001))
+//                .andExpect(jsonPath("$.list[0].tags[0]").value("tag1"))
+//                .andExpect(jsonPath("$.page").value(1))
+//                .andExpect(jsonPath("$.pageSize").value(10))
+//                .andExpect(jsonPath("$.total").value(1));
+//    }
+
     @Test
-    @DisplayName("GET /journals/scoped 返回分页日志列表")
+    @DisplayName("GET /journals/scoped 返回默认分页日志列表")
     void getScopedLogs_success() throws Exception {
         // 准备一个假的 Log + Page<Log>
         Log log = Mockito.mock(Log.class);
@@ -80,17 +132,18 @@ class LogControllerTest {
 
         Page<Log> page = new PageImpl<>(
                 List.of(log),
-                PageRequest.of(0, 10),
+                PageRequest.of(0, 10), // 默认第一页，每页10条
                 1
         );
 
+        // 使用默认分页参数：page=1, pageSize=10
         Mockito.when(logService.getScopedLogs(
                         eq("my"),
                         isNull(),
                         eq("all"),
                         isNull(),
-                        eq(1),
-                        eq(10)))
+                        eq(1),  // 默认第一页
+                        eq(10))) // 默认每页10条
                 .thenReturn(page);
 
         Mockito.when(logService.getTaskIdsByLogId(1L))
@@ -99,17 +152,23 @@ class LogControllerTest {
         Mockito.when(logService.getTagsForLog(1L))
                 .thenReturn(List.of("tag1", "tag2"));
 
+        // 只传递mode参数，不传递page和pageSize
         mockMvc.perform(get("/journals/scoped")
-                        .param("mode", "my")
-                        .param("page", "1")
-                        .param("pageSize", "10"))
+                        .param("mode", "my"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.list[0].log_id").value(1))
-                .andExpect(jsonPath("$.list[0].user_id").value(1001))
-                .andExpect(jsonPath("$.list[0].tags[0]").value("tag1"))
-                .andExpect(jsonPath("$.page").value(1))
-                .andExpect(jsonPath("$.pageSize").value(10))
-                .andExpect(jsonPath("$.total").value(1));
+                .andExpect(jsonPath("$.message").value("success"))
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.list[0].log_id").value(1))  // 修正路径：$.data.list[0].log_id
+                .andExpect(jsonPath("$.data.list[0].user_id").value(1001))
+                .andExpect(jsonPath("$.data.list[0].todaySummary").value("today"))
+                .andExpect(jsonPath("$.data.list[0].tomorrowPlan").value("tomorrow"))
+                .andExpect(jsonPath("$.data.list[0].helpNeeded").value("help"))
+                .andExpect(jsonPath("$.data.list[0].status").value("NORMAL"))
+                .andExpect(jsonPath("$.data.list[0].tags[0]").value("tag1"))
+                .andExpect(jsonPath("$.data.list[0].task_id[0]").value(11))
+                .andExpect(jsonPath("$.data.page").value(1))
+                .andExpect(jsonPath("$.data.pageSize").value(10))
+                .andExpect(jsonPath("$.data.total").value(1));
     }
 
     // ========== DELETE /journals/{journalId} ==========
