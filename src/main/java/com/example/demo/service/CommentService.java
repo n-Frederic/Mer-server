@@ -64,7 +64,7 @@ public class CommentService {
                 .orElseThrow(() -> new RuntimeException("NOT_FOUND_USER"));
 
         boolean isAuthor = comment.getAuthor().getId().equals(userId);
-        boolean isAdmin = user.getRole_id() == UserRole.ADMIN.getId();
+        boolean isAdmin = user.getRoleId() == UserRole.ADMIN.getId();
 
         if (!isAuthor && !isAdmin) {
             throw new SecurityException("FORBIDDEN");

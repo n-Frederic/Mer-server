@@ -90,7 +90,7 @@ public class UserController {
                             user.setTeamId(userDetails.getTeamId());
                         }
                         if (userDetails.getRoleId() != null) {
-                            user.setRole_id(userDetails.getRoleId());
+                            user.setRoleId(userDetails.getRoleId());
                         }
 
                         user.setUpdatedAt(LocalDateTime.now());
@@ -110,7 +110,7 @@ public class UserController {
                                         "email", user.getEmail(),
                                         "phone", user.getPhone(),
                                         "team_id", user.getTeamId(),
-                                        "role_id", user.getRole_id(),
+                                        "role_id", user.getRoleId(),
                                         "status", user.getStatus(),
                                         "updated_at", user.getUpdatedAt()
                                 )

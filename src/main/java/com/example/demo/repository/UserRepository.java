@@ -24,7 +24,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         SELECT u
         FROM User u
         JOIN Team t ON u.teamId = t.teamId
-        WHERE (:roleId IS NULL OR u.role.roleId = :roleId)
+        WHERE (:roleId IS NULL OR u.roleId = :roleId)
           AND (:keyword IS NULL OR u.name LIKE %:keyword% OR u.email LIKE %:keyword%)
           AND (:departmentId IS NULL OR t.department.deptId = :departmentId)
           AND (:teamId IS NULL OR u.teamId= :teamId)

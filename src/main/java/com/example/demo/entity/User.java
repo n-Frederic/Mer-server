@@ -16,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,11 +63,11 @@ public class User {
     @JsonIgnoreProperties(value = {"leader", "users", "members"}, allowSetters = true)
     private Integer teamId;
 
-    @OneToOne
+
     @JoinColumn(name = "role_id", referencedColumnName = "role_id")
     // 同理：防止 Role 里指回用户集合等字段造成环
     @JsonIgnoreProperties(value = {"users", "permissions", "menus"}, allowSetters = true)
-    private Role role;
+    private Integer roleId;
 
     public Integer getTeamId() {
         return teamId;
@@ -131,24 +132,12 @@ public class User {
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
 
-
-
-    public Integer getRole_id() {
-        if(this.role != null) {
-            return role.getRoleId();
-        } else return -1;
-    }
-    public void setRole_id(Integer role_id) {
-        if(this.role != null) {
-            this.role.setRoleId(role_id);
-        }
+    public Integer getRoleId() {
+        return roleId;
     }
 
-
-    public Role getRole() { return this.role; }
-
-    public void setRole(Role role) {
-        this.role = role;
+    public void setRoleId(Integer roleId) {
+        this.roleId = roleId;
     }
 
     public String getStatus() { return status; }

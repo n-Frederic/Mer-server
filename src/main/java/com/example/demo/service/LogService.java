@@ -107,7 +107,7 @@ public class LogService {
                 break;
 
             case "member":
-                if (currentUser.getRole_id() != 3) {
+                if (currentUser.getRoleId() != 3) {
                     throw new RuntimeException("您没有权限查看团队成员的日志");
                 }
 
@@ -136,7 +136,7 @@ public class LogService {
                 break;
 
             case "approval":
-                if (currentUser.getRole_id() != 3) {
+                if (currentUser.getRoleId() != 3) {
                     throw new RuntimeException("无权限查看团队成员日志");
                 }
 
