@@ -29,15 +29,18 @@ public class TaskService {
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final TagsRepository tagsRepository;
     private final TaskReportRepository taskReportRepository;
+    private final TeamRepository teamRepository;
+    private final RoleRepository roleRepository;
 
-
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TaskReportRepository taskReportRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository,RoleRepository roleRepository, TaskReportRepository taskReportRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
 
         this.taskAssignmentRepository = taskAssignmentRepository;
         this.tagsRepository=tagsRepository;
         this.taskReportRepository = taskReportRepository;
+        this.teamRepository = teamRepository;
+        this.roleRepository = roleRepository;
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
@@ -62,7 +65,7 @@ public class TaskService {
         User currentUser = userRepository.findById(currentUserId)
                 .orElseThrow(() -> new RuntimeException("当前用户不存在"));
 
-        Integer currentRole = currentUser.getRole_id();
+        Integer currentRole = currentUser.getRoleId();
         Integer targetRole = UserRole.getAssignableRoleId(currentRole);
 
         if (targetRole == null) {
@@ -93,8 +96,8 @@ public class TaskService {
                                 user.getStatus(),
                                 user.getCreated_at(),
                                 user.getLast_login(),
-                                new UserResponseDTO.RoleDTO(user.getRole_id(), user.getRole().getName()),
-                                new UserResponseDTO.TeamDTO(user.getTeam_id(), user.getTeam().getName())
+                                new UserResponseDTO.RoleDTO(user.getRoleId(), roleRepository.findByRoleId(user.getRoleId()).getName()),
+                                new UserResponseDTO.TeamDTO(user.getTeamId(), teamRepository.findByTeamId(user.getTeamId()).getName())
                         ))
                         .toList(),
 

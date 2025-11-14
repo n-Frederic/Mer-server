@@ -1,8 +1,12 @@
 package com.example.demo.entity;
 
+import com.example.demo.repository.TeamRepository;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 
 // ==== 新增：Jackson 注解 ====
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -12,6 +16,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.FluentQuery;
 
 @Entity
 @Table(name = "user")
@@ -19,6 +29,8 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+
+
 public class User {
 
     @Id
@@ -45,17 +57,25 @@ public class User {
     @Column(name = "phone")
     private String phone;
 
-    @ManyToOne
+//    @ManyToOne
     @JoinColumn(name = "team_id", referencedColumnName = "team_id")
     // 打断可能的环（例如 Team.leader / Team.users 等），保留 set 功能
     @JsonIgnoreProperties(value = {"leader", "users", "members"}, allowSetters = true)
-    private Team team;
+    private Integer teamId;
 
-    @OneToOne
+
     @JoinColumn(name = "role_id", referencedColumnName = "role_id")
     // 同理：防止 Role 里指回用户集合等字段造成环
     @JsonIgnoreProperties(value = {"users", "permissions", "menus"}, allowSetters = true)
-    private Role role;
+    private Integer roleId;
+
+    public Integer getTeamId() {
+        return teamId;
+    }
+
+    public void setTeamId(Integer teamId) {
+        this.teamId = teamId;
+    }
 
     @Column(name = "gender")
     private String gender;
@@ -112,39 +132,12 @@ public class User {
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
 
-    public Integer getTeam_id() { return this.team.getTeamId(); }
-    public void setTeam_id(int team_id) {
-        this.team.setTeamId(team_id);
-    }
-    public Team getTeam() { return this.team; }
-    public void setTeam_id(Integer team_id) {
-        if (team_id != null) {
-            if (this.team == null) {
-                this.team = new Team();
-            }
-            this.team.setTeamId(team_id);
-        } else {
-            // 如果 team_id 为 null，可以将 team 设为 null
-            this.team = null;
-        }
+    public Integer getRoleId() {
+        return roleId;
     }
 
-    public Integer getRole_id() {
-        if(this.role != null) {
-            return role.getRoleId();
-        } else return -1;
-    }
-    public void setRole_id(Integer role_id) {
-        if(this.role != null) {
-            this.role.setRoleId(role_id);
-        }
-    }
-
-
-    public Role getRole() { return this.role; }
-
-    public void setRole(Role role) {
-        this.role = role;
+    public void setRoleId(Integer roleId) {
+        this.roleId = roleId;
     }
 
     public String getStatus() { return status; }
@@ -162,6 +155,5 @@ public class User {
     public LocalDateTime getLast_login() { return last_login; }
     public void setLast_login(LocalDateTime last_login) { this.last_login = last_login; }
 
-    public void setTeam(Team team) {this.team = team;
-    }
+
 }

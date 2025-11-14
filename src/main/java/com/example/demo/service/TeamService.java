@@ -31,12 +31,13 @@ public class TeamService {
 
     public Optional<Department> getDepartmentByTeamId(Integer teamId) {
         // 先取 Team
-        Optional<Team> teamOpt = teamRepository.findByTeamId(teamId);
-        if (teamOpt.isEmpty()) {
-            return Optional.empty();
-        }
+        Team team = teamRepository.findByTeamId(teamId);
+//        if (teamOpt.isEmpty()) {
+//            return Optional.empty();
+//        }
+//
+//        Team team = teamOpt.get();
 
-        Team team = teamOpt.get();
 
         if (team.getDepartment() == null) {
             return Optional.empty();

@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface TeamRepository extends JpaRepository<Team, Long> {
     Optional<Team> findByLeader_Id(Long leaderId);
-    Optional<Team> findByTeamId(Integer teamId);
+    Team findByTeamId(Integer teamId);
     List<Team> findByDepartment_DeptId(Integer deptId);
 }
