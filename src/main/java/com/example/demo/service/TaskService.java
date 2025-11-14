@@ -1,9 +1,6 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.TaskCreateDTO;
-import com.example.demo.dto.TaskProgressUpdateDTO;
-import com.example.demo.dto.TaskUpdateRequestDTO;
-import com.example.demo.dto.UserResponseDTO;
+import com.example.demo.dto.*;
 import com.example.demo.entity.*;
 import com.example.demo.enums.UserRole;
 import com.example.demo.repository.*;
@@ -31,8 +28,9 @@ public class TaskService {
     private final TaskReportRepository taskReportRepository;
     private final TeamRepository teamRepository;
     private final RoleRepository roleRepository;
+    private final LogRepository logRepository;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository,RoleRepository roleRepository, TaskReportRepository taskReportRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
 
@@ -41,6 +39,7 @@ public class TaskService {
         this.taskReportRepository = taskReportRepository;
         this.teamRepository = teamRepository;
         this.roleRepository = roleRepository;
+        this.logRepository = logRepository;
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
@@ -267,7 +266,7 @@ public class TaskService {
 
         Task task = optionalTask.get();
 
-        // 构造返回体
+        // ======== task 基础信息 ========
         Map<String, Object> taskData = new HashMap<>();
         taskData.put("taskId", task.getId());
         taskData.put("title", task.getTitle());
@@ -280,7 +279,10 @@ public class TaskService {
         taskData.put("createdAt", task.getCreatedAt());
         taskData.put("updatedAt", task.getUpdatedAt());
 
-        // 嵌套 creator 信息
+        // ======== progress_pct（如果 Task 里有 progress 字段） ========
+        taskData.put("progress_pct", task.getProgress_pct());
+
+        // ======== creator 嵌套对象 ========
         User creator = task.getCreator();
         Map<String, Object> creatorData = new HashMap<>();
         creatorData.put("userId", creator.getId());
@@ -288,11 +290,25 @@ public class TaskService {
         creatorData.put("email", creator.getEmail());
         taskData.put("creator", creatorData);
 
+        // ======== 查询 related_logs ========
+        List<RelatedLogDTO> logs = logRepository.findLogsByTaskId(taskId);
+
+        List<Map<String, Object>> relatedLogs = new ArrayList<>();
+        for (RelatedLogDTO log : logs) {
+            Map<String, Object> logData = new HashMap<>();
+            logData.put("log_id", log.getLogId());
+            logData.put("title", log.getTodaySummary());
+            relatedLogs.add(logData);
+        }
+
+        taskData.put("related_logs", relatedLogs);
+
         result.put("ok", true);
         result.put("task", taskData);
 
         return result;
     }
+
 
     @Transactional
     public Task updateTaskInfo(String taskIdStr, TaskUpdateRequestDTO dto) {

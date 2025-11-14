@@ -1,9 +1,12 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.RelatedLogDTO;
 import com.example.demo.entity.Log;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -39,4 +42,13 @@ public interface LogRepository extends JpaRepository<Log, Long> {
             String keyword,
             Pageable pageable
     );
+
+    @Query("""
+        SELECT l.id AS logId,
+               l.summary AS todaySummary
+        FROM Log l
+        JOIN Log_Task m ON l.id = m.task.id
+        WHERE m.task.id = :taskId
+    """)
+    List<RelatedLogDTO> findLogsByTaskId(@Param("taskId") Long taskId);
 }
