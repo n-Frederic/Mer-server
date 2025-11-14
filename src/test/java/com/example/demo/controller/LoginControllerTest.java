@@ -3,6 +3,11 @@ package com.example.demo.controller;
 import com.example.demo.dto.LoginResponseDTO;
 import com.example.demo.interceptor.AuthInterceptor;
 import com.example.demo.service.LoginService;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(LoginController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Feature("用户认证")
+@Story("用户登录功能")
 class LoginControllerTest {
 
     @Autowired
@@ -44,6 +51,8 @@ class LoginControllerTest {
 
     @Test
     @DisplayName("POST /login 应该调用 LoginService.login(email, password) 并返回 200")
+    @Description("测试用户使用正确的邮箱和密码登录成功的场景，验证服务方法调用和返回状态")
+    @Severity(SeverityLevel.CRITICAL)
     void login_success() throws Exception {
         // 准备一个成功的响应 DTO（使用 LoginResponseDTO 的静态工厂）
         LoginResponseDTO responseDTO =

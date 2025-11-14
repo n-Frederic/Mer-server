@@ -6,6 +6,11 @@ import com.example.demo.entity.User;
 import com.example.demo.interceptor.AuthInterceptor;
 import com.example.demo.service.LoginService;
 import com.example.demo.service.UserService;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +37,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(UserController.class)
+@Feature("用户管理")
+@Story("用户的增删查改功能")
 class UserControllerTest {
 
     @Autowired
@@ -95,6 +102,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("POST /user 创建用户成功，返回 ok=true")
+    @Description("测试创建新用户的成功场景，验证返回的成功状态和消息")
+    @Severity(SeverityLevel.CRITICAL)
     void createUser_success() throws Exception {
         User saved = new User();
         saved.setId(10L);
@@ -121,6 +130,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("POST /user 邮箱重复触发 DataIntegrityViolationException，返回 400/错误信息")
+    @Description("测试创建用户时邮箱重复的场景，验证返回的数据完整性约束错误")
+    @Severity(SeverityLevel.CRITICAL)
     void createUser_emailConflict() throws Exception {
         Mockito.when(userService.saveUser(any(User.class)))
                 .thenThrow(new DataIntegrityViolationException("email"));
@@ -179,6 +190,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("PUT /user/{id} 用户不存在，返回 404")
+    @Description("测试更新不存在的用户时返回404错误的场景")
+    @Severity(SeverityLevel.CRITICAL)
     void updateUser_notFound() throws Exception {
         Mockito.when(userService.getUserById(999L))
                 .thenReturn(Optional.empty());
@@ -200,6 +213,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("DELETE /user/{id} 调用 userService.deleteUser")
+    @Description("测试删除用户的功能，验证服务方法调用")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteUser_success() throws Exception {
         doNothing().when(userService).deleteUser(5L);
 
@@ -211,6 +226,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("GET /user/profile 透传 UserService.getProfile 响应")
+    @Description("测试获取用户资料的功能，验证返回的资料信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getProfile_success() throws Exception {
         Map<String, Object> body = Map.of("ok", true, "name", "ProfileUser");
         ResponseEntity<?> resp = ResponseEntity.ok(body);
@@ -231,6 +248,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("POST /user/logout 缺少 token，返回 400")
+    @Description("测试登出时缺少token参数的场景，验证返回的400错误")
+    @Severity(SeverityLevel.CRITICAL)
     void logout_missingToken() throws Exception {
         mockMvc.perform(post("/user/logout"))
                 .andExpect(status().isBadRequest())
@@ -240,6 +259,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("POST /user/logout 成功登出")
+    @Description("测试用户成功登出的场景，验证返回的成功消息")
+    @Severity(SeverityLevel.CRITICAL)
     void logout_success() throws Exception {
         Mockito.when(userService.logout("token-xyz"))
                 .thenReturn(true);
@@ -253,6 +274,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("POST /user/logout token 不存在或已失效")
+    @Description("测试使用无效token登出的场景，验证返回的错误消息")
+    @Severity(SeverityLevel.CRITICAL)
     void logout_invalidToken() throws Exception {
         Mockito.when(userService.logout("dead-token"))
                 .thenReturn(false);
@@ -268,6 +291,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("PUT /user/profile 更新个人信息成功")
+    @Description("测试更新个人资料成功的场景，验证返回的成功消息")
+    @Severity(SeverityLevel.CRITICAL)
     void updateProfile_success() throws Exception {
         Mockito.when(userService.updateUserProfile(
                         anyString(), anyString(), anyString(),
@@ -299,6 +324,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("PUT /user/profile 更新失败，返回 400")
+    @Description("测试更新个人资料失败的场景，验证返回的400错误")
+    @Severity(SeverityLevel.CRITICAL)
     void updateProfile_fail() throws Exception {
         Mockito.when(userService.updateUserProfile(
                         anyString(), anyString(), anyString(),

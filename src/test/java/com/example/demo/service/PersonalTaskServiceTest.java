@@ -2,7 +2,13 @@ package com.example.demo.service;
 
 import com.example.demo.entity.PersonalTask;
 import com.example.demo.repository.PersonalTaskRepository;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +25,8 @@ import static org.mockito.Mockito.*;
  * PersonalTaskService 单元测试
  */
 @ExtendWith(MockitoExtension.class)
+@Feature("个人任务服务")
+@Story("个人任务业务逻辑处理")
 class PersonalTaskServiceTest {
 
     @Mock
@@ -37,9 +45,12 @@ class PersonalTaskServiceTest {
     }
 
     /**
-     * ✅ 测试1：根据用户ID获取个人任务（存在）
+     * 测试1：根据用户ID获取个人任务（存在）
      */
     @Test
+    @DisplayName("根据用户ID获取个人任务（存在）")
+    @Description("测试获取存在的用户个人任务，验证返回的任务信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getPersonalTaskByUserId_ShouldReturnTask_WhenExists() {
         when(personalTaskRepository.findByUserId(1001L))
                 .thenReturn(Optional.of(mockPersonalTask));
@@ -53,9 +64,12 @@ class PersonalTaskServiceTest {
     }
 
     /**
-     * ✅ 测试2：根据用户ID获取个人任务（不存在）
+     * 测试2：根据用户ID获取个人任务（不存在）
      */
     @Test
+    @DisplayName("根据用户ID获取个人任务（不存在）")
+    @Description("测试获取不存在的用户个人任务，验证抛出异常")
+    @Severity(SeverityLevel.CRITICAL)
     void getPersonalTaskByUserId_ShouldThrowException_WhenNotFound() {
         when(personalTaskRepository.findByUserId(999L))
                 .thenReturn(Optional.empty());
@@ -68,9 +82,12 @@ class PersonalTaskServiceTest {
     }
 
     /**
-     * ✅ 测试3：更新或创建任务（已有任务则更新）
+     * 测试3：更新或创建任务（已有任务则更新）
      */
     @Test
+    @DisplayName("更新或创建任务（已有任务则更新）")
+    @Description("测试更新已存在的个人任务，验证任务更新成功")
+    @Severity(SeverityLevel.CRITICAL)
     void updatePersonalTask_ShouldUpdateExisting_WhenTaskExists() {
         when(personalTaskRepository.findByUserId(1001L))
                 .thenReturn(Optional.of(mockPersonalTask));
@@ -84,9 +101,12 @@ class PersonalTaskServiceTest {
     }
 
     /**
-     * ✅ 测试4：更新或创建任务（不存在则新建）
+     * 测试4：更新或创建任务（不存在则新建）
      */
     @Test
+    @DisplayName("更新或创建任务（不存在则新建）")
+    @Description("测试更新不存在的个人任务时创建新任务，验证任务创建成功")
+    @Severity(SeverityLevel.CRITICAL)
     void updatePersonalTask_ShouldCreateNew_WhenTaskNotExists() {
         when(personalTaskRepository.findByUserId(1002L)).thenReturn(Optional.empty());
         when(personalTaskRepository.save(any())).thenReturn(mockPersonalTask);
@@ -99,9 +119,12 @@ class PersonalTaskServiceTest {
     }
 
     /**
-     * ✅ 测试5：创建任务（正常创建）
+     * 测试5：创建任务（正常创建）
      */
     @Test
+    @DisplayName("创建任务（正常创建）")
+    @Description("测试创建新的个人任务，验证任务保存成功")
+    @Severity(SeverityLevel.CRITICAL)
     void createPersonalTask_ShouldSave_WhenNotExists() {
         when(personalTaskRepository.findByUserId(1003L)).thenReturn(Optional.empty());
         when(personalTaskRepository.save(any())).thenReturn(mockPersonalTask);
@@ -114,9 +137,12 @@ class PersonalTaskServiceTest {
     }
 
     /**
-     * ✅ 测试6：创建任务（用户已有任务应抛异常）
+     * 测试6：创建任务（用户已有任务应抛异常）
      */
     @Test
+    @DisplayName("创建任务（用户已有任务应抛异常）")
+    @Description("测试为已有任务的用户创建任务，验证抛出异常")
+    @Severity(SeverityLevel.CRITICAL)
     void createPersonalTask_ShouldThrowException_WhenAlreadyExists() {
         when(personalTaskRepository.findByUserId(1001L)).thenReturn(Optional.of(mockPersonalTask));
 
@@ -126,9 +152,12 @@ class PersonalTaskServiceTest {
     }
 
     /**
-     * ✅ 测试7：getOrCreate（存在则直接返回）
+     * 测试7：getOrCreate（存在则直接返回）
      */
     @Test
+    @DisplayName("getOrCreate（存在则直接返回）")
+    @Description("测试获取或创建个人任务时任务已存在的情况，验证直接返回现有任务")
+    @Severity(SeverityLevel.CRITICAL)
     void getOrCreatePersonalTask_ShouldReturnExisting_WhenExists() {
         when(personalTaskRepository.findByUserId(1001L)).thenReturn(Optional.of(mockPersonalTask));
 
@@ -138,9 +167,12 @@ class PersonalTaskServiceTest {
     }
 
     /**
-     * ✅ 测试8：getOrCreate（不存在则创建）
+     * 测试8：getOrCreate（不存在则创建）
      */
     @Test
+    @DisplayName("getOrCreate（不存在则创建）")
+    @Description("测试获取或创建个人任务时任务不存在的情况，验证创建新任务")
+    @Severity(SeverityLevel.CRITICAL)
     void getOrCreatePersonalTask_ShouldCreate_WhenNotExists() {
         when(personalTaskRepository.findByUserId(2001L)).thenReturn(Optional.empty());
         when(personalTaskRepository.save(any())).thenReturn(mockPersonalTask);

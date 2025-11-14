@@ -4,7 +4,13 @@ import com.example.demo.entity.VerificationCode;
 import com.example.demo.exception.EmailServiceUnavailableException;
 import com.example.demo.exception.InvalidEmailException;
 import com.example.demo.repository.VerificationCodeRepository;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +30,8 @@ import static org.mockito.Mockito.*;
  * VerificationCodeService 单元测试
  */
 @ExtendWith(MockitoExtension.class)
+@Feature("验证码服务")
+@Story("验证码业务逻辑处理")
 class VerificationCodeServiceTest {
 
     @Mock
@@ -46,6 +54,9 @@ class VerificationCodeServiceTest {
      * 测试1：正常发送验证码
      */
     @Test
+    @DisplayName("正常发送验证码")
+    @Description("测试正常发送验证码的功能，验证验证码保存和邮件发送")
+    @Severity(SeverityLevel.CRITICAL)
     void sendVerificationCode_ShouldSaveAndSendEmail() {
         // 模拟 Repository 保存
         when(verificationCodeRepository.save(any(VerificationCode.class)))
@@ -67,6 +78,9 @@ class VerificationCodeServiceTest {
      * 测试2：无效邮箱应抛出 InvalidEmailException
      */
     @Test
+    @DisplayName("无效邮箱应抛出 InvalidEmailException")
+    @Description("测试使用无效邮箱发送验证码，验证抛出邮箱格式异常")
+    @Severity(SeverityLevel.CRITICAL)
     void sendVerificationCode_InvalidEmail_ShouldThrowException() {
         assertThrows(InvalidEmailException.class,
                 () -> verificationCodeService.sendVerificationCode("invalid-email"));
@@ -77,6 +91,9 @@ class VerificationCodeServiceTest {
      * 测试3：邮件发送失败应抛出 EmailServiceUnavailableException
      */
     @Test
+    @DisplayName("邮件发送失败应抛出 EmailServiceUnavailableException")
+    @Description("测试邮件服务不可用时发送验证码，验证抛出邮件服务异常")
+    @Severity(SeverityLevel.CRITICAL)
     void sendVerificationCode_EmailSendFails_ShouldThrowException() {
         when(verificationCodeRepository.save(any(VerificationCode.class)))
                 .thenReturn(mockCode);
@@ -91,6 +108,9 @@ class VerificationCodeServiceTest {
      * 测试4：验证码保存与查询
      */
     @Test
+    @DisplayName("验证码保存与查询")
+    @Description("测试验证码的保存和查询功能，验证操作正确")
+    @Severity(SeverityLevel.CRITICAL)
     void saveAndFindVerificationCode_ShouldWork() {
         when(verificationCodeRepository.save(any(VerificationCode.class)))
                 .thenReturn(mockCode);
@@ -110,6 +130,9 @@ class VerificationCodeServiceTest {
      * 测试5：验证码格式为6位数字
      */
     @Test
+    @DisplayName("验证码格式为6位数字")
+    @Description("测试生成的验证码格式，验证为6位数字")
+    @Severity(SeverityLevel.NORMAL)
     void generateVerificationCode_ShouldBeSixDigits() {
         String code = String.format("%06d", 123);
         assertTrue(code.matches("\\d{6}"));

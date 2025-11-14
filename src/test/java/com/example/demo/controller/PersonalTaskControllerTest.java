@@ -5,6 +5,11 @@ import com.example.demo.entity.PersonalTask;
 import com.example.demo.interceptor.AuthInterceptor;
 import com.example.demo.service.LoginService;
 import com.example.demo.service.PersonalTaskService;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +33,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(PersonalTaskController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Feature("个人任务管理")
+@Story("个人任务的增删查改功能")
 class PersonalTaskControllerTest {
 
     @Autowired
@@ -50,6 +57,8 @@ class PersonalTaskControllerTest {
 
     @Test
     @DisplayName("GET /personal-task 返回当前用户的个人任务")
+    @Description("测试获取当前用户的个人任务列表功能，验证返回的任务数据和用户ID")
+    @Severity(SeverityLevel.CRITICAL)
     void getPersonalTask_success() throws Exception {
         Long userId = 1001L;
         List<String> tasks = List.of("Task A", "Task B");
@@ -73,6 +82,8 @@ class PersonalTaskControllerTest {
 
     @Test
     @DisplayName("PUT /personal-task 更新当前用户的个人任务")
+    @Description("测试更新当前用户的个人任务功能，验证任务更新成功和返回的消息")
+    @Severity(SeverityLevel.CRITICAL)
     void updatePersonalTask_success() throws Exception {
         Long userId = 1001L;
         List<String> tasks = List.of("New Task 1", "New Task 2");
@@ -104,6 +115,8 @@ class PersonalTaskControllerTest {
 
     @Test
     @DisplayName("POST /personal-task 创建当前用户的个人任务")
+    @Description("测试为当前用户创建个人任务功能，验证任务创建成功和返回的消息")
+    @Severity(SeverityLevel.CRITICAL)
     void createPersonalTask_success() throws Exception {
         Long userId = 1001L;
         List<String> tasks = List.of("Task X", "Task Y");

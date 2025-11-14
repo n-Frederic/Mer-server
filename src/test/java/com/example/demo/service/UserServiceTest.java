@@ -5,7 +5,13 @@ import com.example.demo.entity.Team;
 import com.example.demo.repository.LoginRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.VerificationCodeRepository;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,9 +28,11 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * ✅ UserService 单元测试类
+ * UserService 单元测试类
  */
 @ExtendWith(MockitoExtension.class)
+@Feature("用户服务")
+@Story("用户业务逻辑处理")
 class UserServiceTest {
 
     @Mock
@@ -60,9 +68,12 @@ class UserServiceTest {
     }
 
     /**
-     * ✅ 测试1：获取所有用户成功
+     * 测试1：获取所有用户成功
      */
     @Test
+    @DisplayName("获取所有用户成功")
+    @Description("测试获取所有用户列表的功能，验证返回的用户数据")
+    @Severity(SeverityLevel.CRITICAL)
     void getAllUsers_Success_ShouldReturnUserList() {
         List<User> users = Arrays.asList(mockUser);
         when(userRepository.findAll()).thenReturn(users);
@@ -76,9 +87,12 @@ class UserServiceTest {
     }
 
     /**
-     * ✅ 测试2：根据ID获取用户（存在）
+     * 测试2：根据ID获取用户（存在）
      */
     @Test
+    @DisplayName("根据ID获取用户（存在）")
+    @Description("测试根据ID获取存在的用户，验证返回的用户信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getUserById_UserExists_ShouldReturnUser() {
         when(userRepository.findById(1001L)).thenReturn(Optional.of(mockUser));
 
@@ -91,9 +105,12 @@ class UserServiceTest {
     }
 
     /**
-     * ✅ 测试3：根据ID获取用户（不存在）
+     * 测试3：根据ID获取用户（不存在）
      */
     @Test
+    @DisplayName("根据ID获取用户（不存在）")
+    @Description("测试根据ID获取不存在的用户，验证返回空结果")
+    @Severity(SeverityLevel.CRITICAL)
     void getUserById_UserNotFound_ShouldReturnEmpty() {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
@@ -104,9 +121,12 @@ class UserServiceTest {
     }
 
     /**
-     * ✅ 测试4：保存用户时密码被加密
+     * 测试4：保存用户时密码被加密
      */
     @Test
+    @DisplayName("保存用户时密码被加密")
+    @Description("测试保存用户时密码被正确加密，验证密码编码器被调用")
+    @Severity(SeverityLevel.CRITICAL)
     void saveUser_Success_ShouldReturnSavedUser() {
         when(passwordEncoder.encode(anyString())).thenReturn("$2a$10$encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(mockUser);
@@ -124,9 +144,12 @@ class UserServiceTest {
     }
 
     /**
-     * ✅ 测试5：删除用户
+     * 测试5：删除用户
      */
     @Test
+    @DisplayName("删除用户")
+    @Description("测试删除用户的功能，验证Repository的deleteById方法被调用")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteUser_ShouldInvokeRepositoryDelete() {
         doNothing().when(userRepository).deleteById(1001L);
 
@@ -136,9 +159,12 @@ class UserServiceTest {
     }
 
     /**
-     * ✅ 测试6：更新用户资料成功
+     * 测试6：更新用户资料成功
      */
     @Test
+    @DisplayName("更新用户资料成功")
+    @Description("测试更新用户资料成功的场景，验证字段更新和保存方法调用")
+    @Severity(SeverityLevel.CRITICAL)
     void updateUserProfile_Success_ShouldUpdateFields() {
         when(userRepository.findByEmail("zhangsan@test.com")).thenReturn(Optional.of(mockUser));
         when(userRepository.save(any(User.class))).thenReturn(mockUser);
@@ -156,9 +182,12 @@ class UserServiceTest {
     }
 
     /**
-     * ✅ 测试7：更新用户资料失败（用户不存在）
+     * 测试7：更新用户资料失败（用户不存在）
      */
     @Test
+    @DisplayName("更新用户资料失败（用户不存在）")
+    @Description("测试更新不存在用户的资料，验证返回false且不调用保存方法")
+    @Severity(SeverityLevel.CRITICAL)
     void updateUserProfile_UserNotFound_ShouldReturnFalse() {
         when(userRepository.findByEmail("notfound@test.com")).thenReturn(Optional.empty());
 

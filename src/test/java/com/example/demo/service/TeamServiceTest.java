@@ -4,7 +4,13 @@ import com.example.demo.entity.Department;
 import com.example.demo.entity.Team;
 import com.example.demo.repository.DepartmentRepository;
 import com.example.demo.repository.TeamRepository;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,6 +27,8 @@ import static org.mockito.Mockito.*;
  * TeamService单元测试
  */
 @ExtendWith(MockitoExtension.class)
+@Feature("团队服务")
+@Story("团队业务逻辑处理")
 class TeamServiceTest {
 
     @Mock
@@ -51,6 +59,9 @@ class TeamServiceTest {
      * 测试1：根据ID获取团队成功
      */
     @Test
+    @DisplayName("根据ID获取团队成功")
+    @Description("测试根据ID获取存在的团队，验证返回的团队信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getTeamById_TeamExists_ShouldReturnTeam() {
         when(teamRepository.findById(1L)).thenReturn(Optional.of(mockTeam));
         
@@ -67,6 +78,9 @@ class TeamServiceTest {
      * 测试2：根据ID获取团队团队不存在
      */
     @Test
+    @DisplayName("根据ID获取团队团队不存在")
+    @Description("测试根据ID获取不存在的团队，验证返回null")
+    @Severity(SeverityLevel.CRITICAL)
     void getTeamById_TeamNotFound_ShouldReturnNull() {
         when(teamRepository.findById(999L)).thenReturn(Optional.empty());
         
@@ -81,6 +95,9 @@ class TeamServiceTest {
      * 测试3：根据团队ID获取部门成功
      */
     @Test
+    @DisplayName("根据团队ID获取部门成功")
+    @Description("测试根据团队ID获取所属部门，验证返回正确的部门信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getDepartmentByTeamId_Success_ShouldReturnDepartment() {
         when(teamRepository.findByTeamId(1)).thenReturn(Optional.of(mockTeam));
         when(departmentRepository.findByDeptId(1))
@@ -99,6 +116,9 @@ class TeamServiceTest {
      * 测试4：根据团队ID获取部门团队不存在
      */
     @Test
+    @DisplayName("根据团队ID获取部门团队不存在")
+    @Description("测试根据不存在的团队ID获取部门，验证返回空结果")
+    @Severity(SeverityLevel.CRITICAL)
     void getDepartmentByTeamId_TeamNotFound_ShouldReturnEmpty() {
         when(teamRepository.findByTeamId(999)).thenReturn(Optional.empty());
         
@@ -114,6 +134,9 @@ class TeamServiceTest {
      * 测试5：部门为null的情况
      */
     @Test
+    @DisplayName("部门为null的情况")
+    @Description("测试团队部门为null的情况，验证返回空结果")
+    @Severity(SeverityLevel.CRITICAL)
     void getDepartmentByTeamId_DepartmentNull_ShouldReturnEmpty() {
         Team teamWithoutDept = new Team();
         teamWithoutDept.setTeamId(1);

@@ -7,6 +7,11 @@ import com.example.demo.entity.Task;
 import com.example.demo.interceptor.AuthInterceptor;
 import com.example.demo.service.LoginService;
 import com.example.demo.service.TaskService;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(TaskController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Feature("任务管理")
+@Story("任务的增删查改功能")
 class TaskControllerTest {
 
     @Autowired
@@ -60,6 +67,8 @@ class TaskControllerTest {
 
     @Test
     @DisplayName("POST /tasks 创建任务成功，返回 ok=true 和 taskId")
+    @Description("测试创建新任务的功能，验证返回的成功状态和任务ID")
+    @Severity(SeverityLevel.CRITICAL)
     void createTask_success() throws Exception {
         ResponseEntity<?> responseEntity =
                 ResponseEntity.ok(Map.of("ok", true, "taskId", 123L));
@@ -86,6 +95,8 @@ class TaskControllerTest {
 
     @Test
     @DisplayName("GET /tasks/personal 返回分页个人任务列表")
+    @Description("测试获取个人任务列表的功能，验证分页参数和返回数据")
+    @Severity(SeverityLevel.CRITICAL)
     void getPersonalTasks() throws Exception {
         Mockito.when(taskService.getPersonalTasks(
                         any(), any(), any(), anyInt(), anyInt()))
@@ -111,6 +122,8 @@ class TaskControllerTest {
 
     @Test
     @DisplayName("GET /tasks/myView 返回个人视图任务列表")
+    @Description("测试获取个人视图任务列表的功能，验证分页参数和返回数据")
+    @Severity(SeverityLevel.CRITICAL)
     void getViewTasks() throws Exception {
         Mockito.when(taskService.getViewTasks(
                         any(), any(), any(), anyInt(), anyInt()))
@@ -136,6 +149,8 @@ class TaskControllerTest {
 
     @Test
     @DisplayName("GET /tasks/assignees 返回可分配员工列表")
+    @Description("测试获取可分配员工列表的功能，验证筛选条件和返回数据")
+    @Severity(SeverityLevel.CRITICAL)
     void getAssignableUsers() throws Exception {
         Mockito.when(taskService.getAssignees(
                         any(), any(), any(), any(), anyInt(), anyInt()))
@@ -163,6 +178,8 @@ class TaskControllerTest {
 
     @Test
     @DisplayName("GET /tasks/all 返回所有任务")
+    @Description("测试获取所有任务列表的功能，验证筛选条件和分页参数")
+    @Severity(SeverityLevel.CRITICAL)
     void getAllTasks() throws Exception {
         Mockito.when(taskService.getAllTasks(any(), any(), anyInt(), anyInt()))
                 .thenReturn(
@@ -189,6 +206,8 @@ class TaskControllerTest {
 
     @Test
     @DisplayName("GET /tasks/{taskId} 返回任务详情")
+    @Description("测试获取任务详情的功能，验证返回的任务信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getTaskById() throws Exception {
         Mockito.when(taskService.getTaskById(1L))
                 .thenReturn(
@@ -211,6 +230,8 @@ class TaskControllerTest {
 
     @Test
     @DisplayName("PUT /tasks/{taskId} 更新任务成功，返回 code=200")
+    @Description("测试更新任务信息成功的场景，验证返回的成功状态和更新后的数据")
+    @Severity(SeverityLevel.CRITICAL)
     void updateTask_success() throws Exception {
         Task task = Mockito.mock(Task.class);
         Mockito.when(task.getId()).thenReturn(1L);
@@ -249,6 +270,8 @@ class TaskControllerTest {
 
     @Test
     @DisplayName("PUT /tasks/{taskId} 更新任务失败，返回 404 和错误信息")
+    @Description("测试更新不存在的任务时返回404错误的场景")
+    @Severity(SeverityLevel.CRITICAL)
     void updateTask_notFound() throws Exception {
         Mockito.when(taskService.updateTaskInfo(eq("T-999"), any(TaskUpdateRequestDTO.class)))
                 .thenThrow(new RuntimeException("任务不存在"));
@@ -271,6 +294,8 @@ class TaskControllerTest {
 
     @Test
     @DisplayName("PUT /tasks/{taskId}/progress 进度更新成功")
+    @Description("测试更新任务进度成功的场景，验证返回的成功消息")
+    @Severity(SeverityLevel.CRITICAL)
     void updateProgress_success() throws Exception {
         doNothing().when(taskService).updateTaskProgress(any(TaskProgressUpdateDTO.class));
 
@@ -293,6 +318,8 @@ class TaskControllerTest {
 
     @Test
     @DisplayName("PUT /tasks/{taskId}/progress 进度非法时返回 400")
+    @Description("测试使用非法进度值更新任务时返回400错误的场景")
+    @Severity(SeverityLevel.CRITICAL)
     void updateProgress_invalid() throws Exception {
         doThrow(new IllegalArgumentException("进度百分比必须在 0-100 范围内"))
                 .when(taskService).updateTaskProgress(any(TaskProgressUpdateDTO.class));

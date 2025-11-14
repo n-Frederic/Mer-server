@@ -3,6 +3,11 @@ package com.example.demo.controller;
 import com.example.demo.interceptor.AuthInterceptor;
 import com.example.demo.service.LoginService;
 import com.example.demo.service.TaskAssignmentService;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,6 +22,8 @@ import static org.mockito.ArgumentMatchers.any;
 
 @WebMvcTest(TaskAssignmentController.class)
 @AutoConfigureMockMvc(addFilters = false)  // 一样关掉 Spring Security 过滤器
+@Feature("任务分配管理")
+@Story("任务分配功能")
 class TaskAssignmentControllerTest {
 
     @Autowired
@@ -40,6 +47,8 @@ class TaskAssignmentControllerTest {
 
     @Test
     @DisplayName("TaskAssignmentController 能正常加载（目前尚无具体接口）")
+    @Description("测试TaskAssignmentController能够正常加载和初始化，验证依赖注入正确")
+    @Severity(SeverityLevel.NORMAL)
     void contextLoads() {
         // 这里什么都不用写，只要测试类能跑通说明：
         // - Controller 构造注入没问题

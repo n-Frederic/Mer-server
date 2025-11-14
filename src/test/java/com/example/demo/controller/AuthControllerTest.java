@@ -6,7 +6,14 @@ import com.example.demo.dto.ResetSuccessResponse;
 import com.example.demo.exception.BusinessException;
 import com.example.demo.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
+import io.qameta.allure.Step;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -21,6 +28,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Feature("认证管理")
+@Story("密码重置功能")
 class AuthControllerTest {
 
     private MockMvc mockMvc;
@@ -41,6 +50,9 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("密码重置成功")
+    @Description("测试用户使用正确的邮箱、验证码和新密码重置密码的场景")
+    @Severity(SeverityLevel.CRITICAL)
     void resetPassword_Success() throws Exception {
         // 模拟正常调用
         doNothing().when(userService).resetPassword(any(PasswordResetRequestDTO.class));
@@ -62,6 +74,9 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("密码重置失败-业务异常")
+    @Description("测试用户使用无效验证码重置密码时抛出业务异常的场景")
+    @Severity(SeverityLevel.CRITICAL)
     void resetPassword_WithBusinessException() throws Exception {
         // 模拟验证码无效的情况
         doThrow(new BusinessException("验证信息错误，修改密码失败", "INVALID_VERIFICATION_CODE"))
@@ -85,6 +100,9 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("密码重置失败-服务器错误")
+    @Description("测试服务器内部错误导致密码重置失败的场景")
+    @Severity(SeverityLevel.CRITICAL)
     void resetPassword_WithServerError() throws Exception {
         // 模拟数据库错误
         doThrow(new RuntimeException("数据库错误"))

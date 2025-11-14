@@ -6,6 +6,11 @@ import com.example.demo.entity.User;
 import com.example.demo.interceptor.AuthInterceptor;
 import com.example.demo.service.LogService;
 import com.example.demo.service.LoginService;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,6 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(LogController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Feature("日志管理")
+@Story("日志的增删查功能")
 class LogControllerTest {
 
     @Autowired
@@ -114,6 +121,8 @@ class LogControllerTest {
 
     @Test
     @DisplayName("GET /journals/scoped 返回默认分页日志列表")
+    @Description("测试获取分页日志列表的功能，验证返回的日志数据、分页信息和关联的任务、标签")
+    @Severity(SeverityLevel.CRITICAL)
     void getScopedLogs_success() throws Exception {
         // 准备一个假的 Log + Page<Log>
         Log log = Mockito.mock(Log.class);
@@ -175,6 +184,8 @@ class LogControllerTest {
 
     @Test
     @DisplayName("DELETE /journals/{journalId} 日志删除成功")
+    @Description("测试成功删除日志的功能，验证返回的成功消息")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteJournal_success() throws Exception {
         doNothing().when(logService).deleteJournal(1L);
 
@@ -186,6 +197,8 @@ class LogControllerTest {
 
     @Test
     @DisplayName("DELETE /journals/{journalId} 外键约束导致无法删除，返回 400")
+    @Description("测试因外键约束无法删除日志的场景，验证返回的约束违反错误")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteJournal_constraintViolation() throws Exception {
         doThrow(new DataIntegrityViolationException("fk"))
                 .when(logService).deleteJournal(1L);
@@ -198,6 +211,8 @@ class LogControllerTest {
 
     @Test
     @DisplayName("DELETE /journals/{journalId} 日志不存在，返回 404")
+    @Description("测试删除不存在的日志的场景，验证返回的404错误")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteJournal_notFound() throws Exception {
         doThrow(new NoSuchElementException("not found"))
                 .when(logService).deleteJournal(1L);
@@ -212,6 +227,8 @@ class LogControllerTest {
 
     @Test
     @DisplayName("GET /journals/{logId} 返回日志详情 Map")
+    @Description("测试获取日志详情的功能，验证返回的日志详细信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getJournalDetail_success() throws Exception {
         Mockito.when(logService.getJournalDetail(1L))
                 .thenReturn(

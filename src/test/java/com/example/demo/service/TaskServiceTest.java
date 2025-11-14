@@ -6,7 +6,13 @@ import com.example.demo.repository.TaskRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.TaskAssignmentRepository;
 import com.example.demo.repository.TagsRepository;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,6 +37,8 @@ import static org.mockito.Mockito.*;
  * TaskService单元测试
  */
 @ExtendWith(MockitoExtension.class)
+@Feature("任务服务")
+@Story("任务业务逻辑处理")
 class TaskServiceTest {
 
     @Mock
@@ -68,6 +76,9 @@ class TaskServiceTest {
      * 测试1：获取所有任务成功
      */
     @Test
+    @DisplayName("获取所有任务成功")
+    @Description("测试获取所有任务列表的功能，验证返回的任务总数和列表数据")
+    @Severity(SeverityLevel.CRITICAL)
     void getAllTasks_Success_ShouldReturnTaskList() {
         // 准备：模拟Repository返回数据
         List<Task> tasks = Arrays.asList(mockTask);
@@ -100,6 +111,9 @@ class TaskServiceTest {
      * 测试2：带过滤条件获取任务
      */
     @Test
+    @DisplayName("带过滤条件获取任务")
+    @Description("测试根据状态和优先级过滤任务的功能，验证过滤条件正确应用")
+    @Severity(SeverityLevel.CRITICAL)
     void getAllTasks_WithFilters_ShouldFilterCorrectly() {
         List<Task> tasks = Arrays.asList(mockTask);
         Page<Task> taskPage = new PageImpl<>(tasks);
@@ -120,6 +134,9 @@ class TaskServiceTest {
      * 测试3：获取任务详任务存在情况
      */
     @Test
+    @DisplayName("获取任务详情-任务存在情况")
+    @Description("测试获取存在的任务详情，验证返回的任务信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getTaskById_TaskExists_ShouldReturnTaskDetails() {
         when(taskRepository.findById(1L)).thenReturn(Optional.of(mockTask));
         
@@ -136,6 +153,9 @@ class TaskServiceTest {
      * 测试4：获取任务详情任务不存在情况
      */
     @Test
+    @DisplayName("获取任务详情-任务不存在情况")
+    @Description("测试获取不存在的任务详情，验证返回的错误信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getTaskById_TaskNotFound_ShouldReturnErrorResponse() {
         when(taskRepository.findById(999L)).thenReturn(Optional.empty());
         
@@ -153,6 +173,9 @@ class TaskServiceTest {
      * 测试5：分页功能验证
      */
     @Test
+    @DisplayName("分页功能验证")
+    @Description("测试任务列表的分页功能，验证分页参数正确应用")
+    @Severity(SeverityLevel.CRITICAL)
     void getAllTasks_Pagination_ShouldReturnCorrectPage() {
         List<Task> tasks = Arrays.asList(mockTask);
         Page<Task> taskPage = new PageImpl<>(tasks, PageRequest.of(1, 5), 10);

@@ -4,6 +4,11 @@ import com.example.demo.entity.CompanyTask;
 import com.example.demo.interceptor.AuthInterceptor;
 import com.example.demo.service.CompanyTaskService;
 import com.example.demo.service.LoginService;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,6 +28,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CompanyTaskController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Feature("公司任务管理")
+@Story("公司任务的增删查改功能")
 class CompanyTaskControllerTest {
 
     @Autowired
@@ -45,6 +52,8 @@ class CompanyTaskControllerTest {
 
     @Test
     @DisplayName("GET /company-tasks 返回全部公司任务和 total")
+    @Description("测试获取所有公司任务列表的功能，验证返回的任务总数和列表数据")
+    @Severity(SeverityLevel.CRITICAL)
     void getAllCompanyTasks_success() throws Exception {
         CompanyTask t1 = Mockito.mock(CompanyTask.class);
         CompanyTask t2 = Mockito.mock(CompanyTask.class);
@@ -60,6 +69,8 @@ class CompanyTaskControllerTest {
 
     @Test
     @DisplayName("GET /company-tasks/by-priority 根据优先级获取任务")
+    @Description("测试根据优先级筛选公司任务的功能，验证返回的任务数量和优先级信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getTasksByPriority_success() throws Exception {
         Mockito.when(companyTaskService.getTasksByPriority("高"))
                 .thenReturn(List.of("Task A", "Task B"));
@@ -74,6 +85,8 @@ class CompanyTaskControllerTest {
 
     @Test
     @DisplayName("GET /company-tasks/by-status 根据状态获取任务")
+    @Description("测试根据状态筛选公司任务的功能，验证返回的任务数量和状态信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getTasksByStatus_success() throws Exception {
         CompanyTask t1 = Mockito.mock(CompanyTask.class);
         CompanyTask t2 = Mockito.mock(CompanyTask.class);
@@ -90,6 +103,8 @@ class CompanyTaskControllerTest {
 
     @Test
     @DisplayName("POST /company-tasks 创建公司任务，调用 saveCompanyTask")
+    @Description("测试创建新的公司任务功能，验证任务创建成功并调用相应的服务方法")
+    @Severity(SeverityLevel.CRITICAL)
     void createCompanyTask_success() throws Exception {
         CompanyTask saved = Mockito.mock(CompanyTask.class);
 
@@ -113,6 +128,8 @@ class CompanyTaskControllerTest {
 
     @Test
     @DisplayName("PUT /company-tasks/{id} 更新公司任务")
+    @Description("测试更新现有公司任务的功能，验证任务更新成功并调用相应的服务方法")
+    @Severity(SeverityLevel.CRITICAL)
     void updateCompanyTask_success() throws Exception {
         Long id = 1L;
 
@@ -144,6 +161,8 @@ class CompanyTaskControllerTest {
 
     @Test
     @DisplayName("DELETE /company-tasks/{id} 删除公司任务")
+    @Description("测试删除公司任务的功能，验证任务删除成功并调用相应的服务方法")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteCompanyTask_success() throws Exception {
         Long id = 1L;
 

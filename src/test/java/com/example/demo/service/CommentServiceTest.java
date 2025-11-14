@@ -6,7 +6,13 @@ import com.example.demo.entity.User;
 import com.example.demo.enums.UserRole;
 import com.example.demo.repository.CommentRepository;
 import com.example.demo.repository.UserRepository;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,6 +34,8 @@ import static org.mockito.Mockito.*;
  * 测试评论部分的核心功能
  */
 @ExtendWith(MockitoExtension.class)
+@Feature("评论服务")
+@Story("评论业务逻辑处理")
 class CommentServiceTest {
 
     @Mock
@@ -56,6 +64,9 @@ class CommentServiceTest {
      * 测试1：获取评论列表成功
      */
     @Test
+    @DisplayName("获取评论列表成功")
+    @Description("测试获取评论列表的功能，验证返回的评论数据和分页信息")
+    @Severity(SeverityLevel.CRITICAL)
     void getComments_Success_ShouldReturnCommentPage() {
         // 准备：模拟Repository返回评论分页数据
         Page<Comment> commentPage = new PageImpl<>(
@@ -86,6 +97,9 @@ class CommentServiceTest {
      * 测试2：获取评论列表但数据库内无评论
      */
     @Test
+    @DisplayName("获取评论列表但数据库内无评论")
+    @Description("测试获取不存在评论的列表，验证返回空分页结果")
+    @Severity(SeverityLevel.CRITICAL)
     void getComments_NoComments_ShouldReturnEmptyPage() {
         Page<Comment> emptyPage = new PageImpl<>(Arrays.asList());
 
@@ -104,6 +118,9 @@ class CommentServiceTest {
      * 测试3：作者本人删除评论(权限验证)
      */
     @Test
+    @DisplayName("作者本人删除评论(权限验证)")
+    @Description("测试评论作者删除自己的评论，验证删除成功")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteComment_ByAuthor_ShouldDeleteSuccessfully() {
         when(commentRepository.findById(1L)).thenReturn(Optional.of(mockComment));
         when(userRepository.findById(1001L)).thenReturn(Optional.of(mockAuthor));
@@ -119,6 +136,9 @@ class CommentServiceTest {
      * 测试4：非作者尝试删除评论
      */
     @Test
+    @DisplayName("非作者尝试删除评论")
+    @Description("测试非作者用户尝试删除评论，验证抛出权限异常")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteComment_ByNonAuthor_ShouldThrowSecurityException() {
         User otherUser = new User();
         otherUser.setId(2002L);
@@ -138,6 +158,9 @@ class CommentServiceTest {
      * 测试5：管理员删除评论
      */
     @Test
+    @DisplayName("管理员删除评论")
+    @Description("测试管理员用户删除评论，验证删除成功")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteComment_ByAdmin_ShouldDeleteSuccessfully() {
 
         User admin = new User();
@@ -160,6 +183,9 @@ class CommentServiceTest {
 
     // 测试6：删除时评论不存在
     @Test
+    @DisplayName("删除时评论不存在")
+    @Description("测试删除不存在的评论，验证抛出异常")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteComment_CommentNotFound_ShouldThrowException() {
         when(commentRepository.findById(1L)).thenReturn(Optional.empty());
         RuntimeException ex = assertThrows(RuntimeException.class,
@@ -169,6 +195,9 @@ class CommentServiceTest {
 
     // 测试7：删除时用户不存在
     @Test
+    @DisplayName("删除时用户不存在")
+    @Description("测试删除评论时用户不存在，验证抛出异常")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteComment_UserNotFound_ShouldThrowException() {
         when(commentRepository.findById(1L)).thenReturn(Optional.of(mockComment));
         when(userRepository.findById(1001L)).thenReturn(Optional.empty());
@@ -181,6 +210,9 @@ class CommentServiceTest {
 
     // 测试10：parseId带前缀
     @Test
+    @DisplayName("parseId带前缀")
+    @Description("测试解析带前缀的ID字符串，验证返回正确的数字ID")
+    @Severity(SeverityLevel.NORMAL)
     void parseId_WithPrefix_ShouldReturnNumeric() throws Exception {
         var method = CommentService.class.getDeclaredMethod("parseId", String.class);
         method.setAccessible(true);
@@ -190,6 +222,9 @@ class CommentServiceTest {
 
     // 测试11：parseId无前缀
     @Test
+    @DisplayName("parseId无前缀")
+    @Description("测试解析不带前缀的ID字符串，验证返回原始数字")
+    @Severity(SeverityLevel.NORMAL)
     void parseId_WithoutPrefix_ShouldReturnDirect() throws Exception {
         var method = CommentService.class.getDeclaredMethod("parseId", String.class);
         method.setAccessible(true);

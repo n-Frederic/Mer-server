@@ -5,7 +5,13 @@ import com.example.demo.entity.Login;
 import com.example.demo.entity.User;
 import com.example.demo.repository.LoginRepository;
 import com.example.demo.repository.UserRepository;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,7 +27,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
- * ✅ LoginService 单元测试
+ * LoginService 单元测试
  *
  * 测试目标：
  * - 登录成功返回正确信息
@@ -31,6 +37,8 @@ import static org.mockito.Mockito.*;
  * - 验证调用顺序
  */
 @ExtendWith(MockitoExtension.class)
+@Feature("登录服务")
+@Story("用户登录业务逻辑处理")
 class LoginServiceTest {
 
     @Mock
@@ -57,9 +65,12 @@ class LoginServiceTest {
     }
 
     /**
-     * ✅ 测试1：登录成功
+     * 测试1：登录成功
      */
     @Test
+    @DisplayName("登录成功")
+    @Description("测试用户使用正确的邮箱和密码登录成功的场景，验证返回的token和用户信息")
+    @Severity(SeverityLevel.CRITICAL)
     void login_Success_ShouldReturnTokenAndUser() {
         when(userRepository.findByEmail("zhangsan@test.com")).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
@@ -77,9 +88,12 @@ class LoginServiceTest {
     }
 
     /**
-     * ✅ 测试2：用户不存在
+     * 测试2：用户不存在
      */
     @Test
+    @DisplayName("用户不存在")
+    @Description("测试使用不存在的邮箱登录的场景，验证返回的错误信息")
+    @Severity(SeverityLevel.CRITICAL)
     void login_UserNotFound_ShouldReturnError() {
         when(userRepository.findByEmail("notexist@test.com")).thenReturn(Optional.empty());
 
@@ -94,9 +108,12 @@ class LoginServiceTest {
     }
 
     /**
-     * ✅ 测试3：密码错误
+     * 测试3：密码错误
      */
     @Test
+    @DisplayName("密码错误")
+    @Description("测试使用错误密码登录的场景，验证返回的错误信息")
+    @Severity(SeverityLevel.CRITICAL)
     void login_WrongPassword_ShouldReturnError() {
         when(userRepository.findByEmail("zhangsan@test.com")).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
@@ -111,9 +128,12 @@ class LoginServiceTest {
     }
 
     /**
-     * ✅ 测试4：验证密码编码器调用
+     * 测试4：验证密码编码器调用
      */
     @Test
+    @DisplayName("验证密码编码器调用")
+    @Description("测试登录时密码编码器被正确调用，验证密码匹配过程")
+    @Severity(SeverityLevel.CRITICAL)
     void login_ShouldUsePasswordEncoder() {
         when(userRepository.findByEmail("zhangsan@test.com")).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
@@ -125,9 +145,12 @@ class LoginServiceTest {
     }
 
     /**
-     * ✅ 测试5：验证 Repository 调用顺序
+     * 测试5：验证 Repository 调用顺序
      */
     @Test
+    @DisplayName("验证 Repository 调用顺序")
+    @Description("测试登录时Repository方法的调用顺序，确保先查询用户再保存登录记录")
+    @Severity(SeverityLevel.CRITICAL)
     void login_ShouldCallRepositoriesInCorrectOrder() {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
@@ -141,9 +164,12 @@ class LoginServiceTest {
     }
 
     /**
-     * ✅ 测试6：边界情况 - 空邮箱或密码
+     * 测试6：边界情况 - 空邮箱或密码
      */
     @Test
+    @DisplayName("边界情况 - 空邮箱或密码")
+    @Description("测试使用空邮箱或密码登录的边界情况，验证返回错误")
+    @Severity(SeverityLevel.CRITICAL)
     void login_EmptyEmailOrPassword_ShouldReturnError() {
         // 空邮箱
         LoginResponseDTO result1 = loginService.login("", "password");
@@ -155,9 +181,12 @@ class LoginServiceTest {
     }
 
     /**
-     * ✅ 测试7：token 生成唯一性
+     * 测试7：token 生成唯一性
      */
     @Test
+    @DisplayName("token 生成唯一性")
+    @Description("测试每次登录生成不同的token，验证token的唯一性")
+    @Severity(SeverityLevel.CRITICAL)
     void login_ShouldGenerateDifferentTokensForDifferentLogins() {
         when(userRepository.findByEmail("zhangsan@test.com")).thenReturn(Optional.of(mockUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);

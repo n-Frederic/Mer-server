@@ -5,6 +5,11 @@ import com.example.demo.entity.User;
 import com.example.demo.interceptor.AuthInterceptor;
 import com.example.demo.service.CommentService;
 import com.example.demo.service.LoginService;
+import io.qameta.allure.Description;
+import io.qameta.allure.Feature;
+import io.qameta.allure.Severity;
+import io.qameta.allure.SeverityLevel;
+import io.qameta.allure.Story;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,6 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(CommentController.class)
 @AutoConfigureMockMvc(addFilters = false)
+@Feature("评论管理")
+@Story("评论的增删查功能")
 class CommentControllerTest {
 
     @Autowired
@@ -52,6 +59,8 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("POST /comments 创建评论成功，返回 201 和评论数据")
+    @Description("测试用户成功创建评论的场景，验证返回状态码和评论数据")
+    @Severity(SeverityLevel.CRITICAL)
     void createComment_success() throws Exception {
         Comment saved = Mockito.mock(Comment.class);
         User author = Mockito.mock(User.class);
@@ -87,6 +96,8 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("GET /comments 获取评论列表")
+    @Description("测试获取指定任务或资源的评论列表，验证分页和数据正确性")
+    @Severity(SeverityLevel.CRITICAL)
     void getComments_success() throws Exception {
         Comment c1 = Mockito.mock(Comment.class);
         Comment c2 = Mockito.mock(Comment.class);
@@ -131,6 +142,8 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("DELETE /comments/{id} 删除成功")
+    @Description("测试用户成功删除自己创建的评论")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteComment_success() throws Exception {
         mockMvc.perform(delete("/comments/C-001")
                         .param("userId", "U-1001"))
@@ -143,6 +156,8 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("DELETE /comments/{id} 无权限时返回 403")
+    @Description("测试用户尝试删除他人评论时返回权限错误")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteComment_forbidden() throws Exception {
         Mockito.doThrow(new SecurityException("FORBIDDEN"))
                 .when(commentService)
@@ -156,6 +171,8 @@ class CommentControllerTest {
 
     @Test
     @DisplayName("DELETE /comments/{id} 删除失败时返回 404")
+    @Description("测试删除不存在的评论时返回404错误")
+    @Severity(SeverityLevel.CRITICAL)
     void deleteComment_notFound() throws Exception {
         Mockito.doThrow(new RuntimeException("NOT_FOUND"))
                 .when(commentService)
