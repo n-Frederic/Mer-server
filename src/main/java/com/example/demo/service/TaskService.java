@@ -28,14 +28,16 @@ public class TaskService {
     private final UserRepository userRepository;
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final TagsRepository tagsRepository;
+    private final TeamRepository teamRepository;
 
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
 
         this.taskAssignmentRepository = taskAssignmentRepository;
         this.tagsRepository=tagsRepository;
+        this.teamRepository = teamRepository;
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
@@ -92,7 +94,7 @@ public class TaskService {
                                 user.getCreated_at(),
                                 user.getLast_login(),
                                 new UserResponseDTO.RoleDTO(user.getRole_id(), user.getRole().getName()),
-                                new UserResponseDTO.TeamDTO(user.getTeam_id(), user.getTeam().getName())
+                                new UserResponseDTO.TeamDTO(user.getTeamId(), teamRepository.findByTeamId(user.getTeamId()).getName())
                         ))
                         .toList(),
 

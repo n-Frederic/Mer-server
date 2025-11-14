@@ -121,7 +121,7 @@ public class LogService {
                         .map(Long::parseLong)
                         .collect(Collectors.toList());
 
-                List<Long> teamMemberIds = userRepository.findByTeam_TeamId(currentUser.getTeam_id())
+                List<Long> teamMemberIds = userRepository.findByTeamId(currentUser.getTeamId())
                         .stream()
                         .map(User::getId)
                         .toList();
@@ -140,7 +140,7 @@ public class LogService {
                     throw new RuntimeException("无权限查看团队成员日志");
                 }
 
-                targetUserIds = userRepository.findByTeam_TeamId(currentUser.getTeam_id())
+                targetUserIds = userRepository.findByTeamId(currentUser.getTeamId())
                         .stream()
                         .map(User::getId)
                         .filter(id -> !id.equals(currentUserId)) // 不包含自己

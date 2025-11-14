@@ -138,7 +138,7 @@ public class UserService {
         userMap.put("username", user.getUsername() != null ? user.getUsername() : "");
         userMap.put("email", user.getEmail() != null ? user.getEmail() : "");
         userMap.put("phone", user.getPhone() != null ? user.getPhone() : "");
-        userMap.put("team", user.getTeam_id() );
+        userMap.put("team", user.getTeamId() );
         userMap.put("role_id", user.getRole_id() );
         userMap.put("gender", user.getGender() != null ? user.getGender() : "");
         userMap.put("birth_date", user.getBirthday() != null ? user.getBirthday() : "");
@@ -168,7 +168,7 @@ public class UserService {
         user.setPhone(phone);
         user.setGender(gender);
         user.setBio(bio);
-        user.setTeam_id(team_id);
+        user.setTeamId(team_id);
         user.setRole_id(roleId);
 
         if (birthday != null) {
