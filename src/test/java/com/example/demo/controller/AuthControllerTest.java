@@ -1,114 +1,109 @@
 package com.example.demo.controller;
 
-import com.example.demo.config.TestSecurityConfig;
 import com.example.demo.dto.PasswordResetRequestDTO;
-import com.example.demo.entity.Login;
-import com.example.demo.entity.User;
-import com.example.demo.service.LoginService;
+import com.example.demo.dto.ResetErrorResponse;
+import com.example.demo.dto.ResetSuccessResponse;
+import com.example.demo.exception.BusinessException;
 import com.example.demo.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-@ActiveProfiles("test")
 
-@Import({TestSecurityConfig.class})
-@WebMvcTest(AuthController.class)
-@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper; // 用于序列化请求体
+    @Mock
+    private UserService userService;
 
-    @MockBean
-    private UserService userService; // 业务逻辑依赖
+    @InjectMocks
+    private AuthController authController;
 
-    // 移除不需要的LoginService依赖（因为接口不需要token验证）
-    @MockBean
-    private LoginService loginService; // 仅保留避免上下文错误，实际测试中不使用
+    private ObjectMapper objectMapper = new ObjectMapper();
 
-
-
-    // 测试场景：业务逻辑异常（如验证码错误）
-    @Test
-    void resetPassword_WithBusinessException() throws Exception {
-        // 移除token相关模拟代码（接口不需要token验证）
-
-        // 模拟业务逻辑抛出异常（如验证码无效）
-        doThrow(new com.example.demo.exception.BusinessException("无效验证码"))
-                .when(userService).resetPassword(any(PasswordResetRequestDTO.class));
-
-        PasswordResetRequestDTO request = new PasswordResetRequestDTO();
-        request.setEmail("test@example.com");
-        request.setVerificationCode("wrong-code");
-        request.setNewPassword("NewPass123!");
-
-        mockMvc.perform(post("/api/forgot-password/reset")
-                        // 移除token请求头
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("INVALID_VERIFICATION_CODE"))
-                .andExpect(jsonPath("$.message").value("验证信息错误，修改密码失败"));
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        // 手动创建 MockMvc，不加载任何安全配置
+        mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
     }
 
-    // 补充测试场景：密码重置成功
     @Test
     void resetPassword_Success() throws Exception {
-        // 模拟业务逻辑执行成功
+        // 模拟正常调用
         doNothing().when(userService).resetPassword(any(PasswordResetRequestDTO.class));
 
+        // 创建请求对象
         PasswordResetRequestDTO request = new PasswordResetRequestDTO();
         request.setEmail("test@example.com");
-        request.setVerificationCode("valid-code");
+        request.setVerificationCode("123456");  // 确保验证码长度为6
         request.setNewPassword("NewPass123!");
 
-        mockMvc.perform(post("/api/forgot-password/reset")
+        // 执行 POST 请求
+        mockMvc.perform(post("/forgot-password/reset")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andDo(print())
+                .andExpect(status().isOk())  // 期望返回200 OK
+                .andExpect(jsonPath("$.ok").value(true))
                 .andExpect(jsonPath("$.message").value("密码重置成功"));
     }
 
-    // 补充测试场景：服务器内部异常
+    @Test
+    void resetPassword_WithBusinessException() throws Exception {
+        // 模拟验证码无效的情况
+        doThrow(new BusinessException("验证信息错误，修改密码失败", "INVALID_VERIFICATION_CODE"))
+                .when(userService).resetPassword(any(PasswordResetRequestDTO.class));
+
+        // 创建请求对象
+        PasswordResetRequestDTO request = new PasswordResetRequestDTO();
+        request.setEmail("test@example.com");
+        request.setVerificationCode("123456");
+        request.setNewPassword("NewPass123!");
+
+        // 执行 POST 请求
+        mockMvc.perform(post("/forgot-password/reset")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
+                .andExpect(status().isBadRequest())  // 期望返回400 Bad Request
+                .andExpect(jsonPath("$.error").value(true))
+                .andExpect(jsonPath("$.code").value("INVALID_VERIFICATION_CODE"))  // 错误码
+                .andExpect(jsonPath("$.message").value("验证信息错误，修改密码失败"));
+    }
+
     @Test
     void resetPassword_WithServerError() throws Exception {
-        // 模拟抛出未知异常
+        // 模拟数据库错误
         doThrow(new RuntimeException("数据库错误"))
                 .when(userService).resetPassword(any(PasswordResetRequestDTO.class));
 
+        // 创建请求对象
         PasswordResetRequestDTO request = new PasswordResetRequestDTO();
         request.setEmail("test@example.com");
-        request.setVerificationCode("valid-code");
+        request.setVerificationCode("123456");  // 确保验证码长度为6
         request.setNewPassword("NewPass123!");
 
-        mockMvc.perform(post("/api/forgot-password/reset")
+        // 执行 POST 请求
+        mockMvc.perform(post("/forgot-password/reset")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.error").value("INTERNAL_SERVER_ERROR"))
+                .andDo(print())
+                .andExpect(status().isInternalServerError())  // 期望返回500 Internal Server Error
+                .andExpect(jsonPath("$.error").value(true))
+                .andExpect(jsonPath("$.code").value("INTERNAL_SERVER_ERROR"))  // 错误码
                 .andExpect(jsonPath("$.message").value("服务器内部错误"));
     }
 }

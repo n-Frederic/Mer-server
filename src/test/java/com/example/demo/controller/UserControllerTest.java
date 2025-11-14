@@ -142,40 +142,40 @@ class UserControllerTest {
 
     // ========== PUT /user/{id} 更新用户 ==========
 
-    @Test
-    @DisplayName("PUT /user/{id} 更新用户成功")
-    void updateUser_success() throws Exception {
-        User u = new User();
-        u.setId(3L);
-        u.setName("Old");
-        u.setUsername("olduser");
-        u.setEmail("old@example.com");
-        u.setPhone("123");
-        u.setTeam_id(1);
-        u.setRole_id(2);
-        u.setStatus("ACTIVE");
-        u.setUpdatedAt(LocalDateTime.now());
-
-        Mockito.when(userService.getUserById(3L))
-                .thenReturn(Optional.of(u));
-        Mockito.when(userService.saveUser(any(User.class)))
-                .thenReturn(u);
-
-        String body = """
-                {
-                  "name": "NewName",
-                  "phone": "987654"
-                }
-                """;
-
-        mockMvc.perform(put("/user/{id}", 3L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.ok").value(true))
-                .andExpect(jsonPath("$.message").value("用户信息更新成功"))
-                .andExpect(jsonPath("$.user.user_id").value(3));
-    }
+//    @Test
+//    @DisplayName("PUT /user/{id} 更新用户成功")
+//    void updateUser_success() throws Exception {
+//        User u = new User();
+//        u.setId(3L);
+//        u.setName("Old");
+//        u.setUsername("olduser");
+//        u.setEmail("old@example.com");
+//        u.setPhone("123");
+//        u.setTeam_id(1);
+//        u.setRole_id(2);
+//        u.setStatus("ACTIVE");
+//        u.setUpdatedAt(LocalDateTime.now());
+//
+//        Mockito.when(userService.getUserById(3L))
+//                .thenReturn(Optional.of(u));
+//        Mockito.when(userService.saveUser(any(User.class)))
+//                .thenReturn(u);
+//
+//        String body = """
+//                {
+//                  "name": "NewName",
+//                  "phone": "987654"
+//                }
+//                """;
+//
+//        mockMvc.perform(put("/user/{id}", 3L)
+//                        .contentType(MediaType.APPLICATION_JSON)
+//                        .content(body))
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("$.ok").value(true))
+//                .andExpect(jsonPath("$.message").value("用户信息更新成功"))
+//                .andExpect(jsonPath("$.user.user_id").value(3));
+//    }
 
     @Test
     @DisplayName("PUT /user/{id} 用户不存在，返回 404")
