@@ -28,14 +28,16 @@ public class TaskService {
     private final UserRepository userRepository;
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final TagsRepository tagsRepository;
+    private final TaskReportRepository taskReportRepository;
 
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TaskReportRepository taskReportRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
 
         this.taskAssignmentRepository = taskAssignmentRepository;
         this.tagsRepository=tagsRepository;
+        this.taskReportRepository = taskReportRepository;
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
@@ -343,5 +345,54 @@ public class TaskService {
 
         task.setProgress_pct(pct);
         taskRepository.save(task);
+    }
+
+    public Map<String, Object> getReports(Long taskId) {
+        List<TaskReport> reports = taskReportRepository.findByTaskId(taskId);
+
+        List<Map<String, Object>> reportList = reports.stream().map(r -> {
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("report_id", r.getReportId());
+            map.put("task_id", r.getTaskId());
+            map.put("reporter_id", r.getReporterId());
+            map.put("content", r.getContent());
+            map.put("address", r.getAddress());
+            map.put("attachments", r.getAttachments());
+            map.put("created_at", r.getCreatedAt());
+            return map;
+        }).toList();
+
+        return Map.of("ok", true, "reports", reportList);
+    }
+
+    // 2. 创建任务报告（reporterId 从前端传或从 JWT 解析）
+    public Map<String, Object> createReport(Long taskId, Long reporterId, String content, String address, String attachments) {
+        TaskReport report = new TaskReport();
+        report.setTaskId(taskId);
+        report.setReporterId(reporterId);
+        report.setContent(content);
+        report.setAddress(address);
+        report.setAttachments(attachments);
+
+        taskReportRepository.save(report);
+
+        return Map.of("ok", true, "report", Map.of(
+                "report_id", report.getReportId(),
+                "task_id", taskId,
+                "reporter_id", reporterId,
+                "content", content,
+                "address", address,
+                "attachments", attachments,
+                "created_at", report.getCreatedAt()
+        ));
+    }
+
+    // 3. 更新任务状态
+    public Map<String, Object> updateStatus(Long taskId, String status) {
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("Task not found"));
+        task.setStatus(status);
+        taskRepository.save(task);
+
+        return Map.of("ok", true);
     }
 }

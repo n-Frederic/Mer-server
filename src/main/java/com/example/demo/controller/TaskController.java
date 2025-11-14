@@ -163,6 +163,32 @@ public class TaskController {
         }
     }
 
+    @GetMapping("/{taskId}/reports")
+    public Map<String, Object> getReports(@PathVariable Long taskId) {
+        return taskService.getReports(taskId);
+    }
+
+    // 9.2 创建任务报告
+    @PostMapping("/{taskId}/reports")
+    public Map<String, Object> createReport(
+            @PathVariable Long taskId,
+            @RequestParam Long reporterId, // 或从 token 解析
+            @RequestParam String content,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) String attachments
+    ) {
+        return taskService.createReport(taskId, reporterId, content, address, attachments);
+    }
+
+    // 9.3 更新任务状态
+    @PatchMapping("/{taskId}/status")
+    public Map<String, Object> updateStatus(
+            @PathVariable Long taskId,
+            @RequestBody Map<String, String> body
+    ) {
+        return taskService.updateStatus(taskId, body.get("status"));
+    }
+
 
 
 }
