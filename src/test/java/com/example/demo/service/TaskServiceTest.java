@@ -57,7 +57,7 @@ class TaskServiceTest {
         mockUser.setId(1001L);
         mockUser.setName("张三");
         mockUser.setEmail("zhangsan@test.com");
-        mockUser.setRole_id(4); // 普通成员
+        mockUser.setRoleId(4); // 普通成员
         
         mockTask = new Task();
         mockTask.setId(1L);

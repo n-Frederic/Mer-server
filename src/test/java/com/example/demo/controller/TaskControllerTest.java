@@ -152,7 +152,7 @@ class TaskControllerTest {
     @Description("测试获取可分配员工列表的功能，验证筛选条件和返回数据")
     @Severity(SeverityLevel.CRITICAL)
     void getAssignableUsers() throws Exception {
-        Mockito.when(taskService.getAssignees(
+        Mockito.when(taskService.getAssignee(
                         any(), any(), any(), any(), anyInt(), anyInt()))
                 .thenReturn(
                         Map.of(
