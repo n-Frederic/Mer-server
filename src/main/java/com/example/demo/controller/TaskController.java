@@ -5,7 +5,6 @@ import com.example.demo.dto.TaskCreateDTO;
 import com.example.demo.dto.TaskProgressUpdateDTO;
 import com.example.demo.dto.TaskUpdateRequestDTO;
 import com.example.demo.entity.Task;
-import com.example.demo.entity.User;
 import com.example.demo.service.TaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -69,7 +68,7 @@ public class TaskController {
             @RequestParam(defaultValue = "10") int pageSize
     ) {
         Long userId = UserContext.getCurrentUserId();
-        return taskService.getAssignees(userId, keyword, departmentId, teamId, page, pageSize);
+        return taskService.getAssignee(userId, keyword, departmentId, teamId, page, pageSize);
     }
 
 
@@ -190,8 +189,8 @@ public class TaskController {
     }
 
     @GetMapping("/assignerAndDesignee/{taskId}")
-    public ResponseEntity<?> getAssignerAndDesignee(@PathVariable Long taskId) {
-        return ResponseEntity.ok(taskService.getAssignees(taskId));
+    public ResponseEntity<?> getAssignerAndAssignee(@PathVariable Long taskId) {
+        return ResponseEntity.ok(taskService.getAssignerAndAssignee(taskId));
     }
 
 

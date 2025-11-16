@@ -60,9 +60,8 @@ class UserServiceTest {
         mockUser.setUsername("zhangsan");
         mockUser.setEmail("zhangsan@test.com");
         mockUser.setPhone("13800000000");
-        mockUser.setTeam(new Team());
-        mockUser.setTeam_id(1);
-        mockUser.setRole_id(4);
+        mockUser.setTeamId(1);
+        mockUser.setRoleId(4);
         mockUser.setStatus("active");
         mockUser.setPassword("encodedPassword");
     }

@@ -52,7 +52,7 @@ public class TaskService {
         return wrapResponse2(taskPage, page, pageSize);
     }
     
-    public Map<String, Object> getAssignees(
+    public Map<String, Object> getAssignee(
             Long currentUserId,
             String keyword,
             Long departmentId,
@@ -416,7 +416,7 @@ public class TaskService {
     }
 
     @Transactional
-    public Map<String, Object> getAssignees(Long taskId) {
+    public Map<String, Object> getAssignerAndAssignee(Long taskId) {
         Optional<Task> taskOpt = taskRepository.findById(taskId);
         if (taskOpt.isEmpty()) {
             return Map.of(
@@ -425,9 +425,13 @@ public class TaskService {
                     "data", null
             );
         }
-        
+
         List<TaskAssignment> list = taskAssignmentRepository.findByTaskId(taskId);
         List<Map<String, Object>> assignees = new ArrayList<>();
+        Long assignedBy = list.get(0).getAssignedBy();
+        Optional<User> as = userRepository.findById(assignedBy);
+        User a = as.get();
+        Map<String, Object> assigner = Map.of("user_id",a.getId(),"name",a.getName());
 
         for (TaskAssignment ta : list) {
             Long assignee_id = ta.getAssigneeId();
@@ -449,10 +453,13 @@ public class TaskService {
             );
         }
 
+
+
         return Map.of(
                 "code", 200,
                 "message", "success",
                 "data", Map.of(
+                        "assigner", assigner,
                         "assignees", assignees
                 )
         );

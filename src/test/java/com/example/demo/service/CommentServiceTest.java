@@ -56,7 +56,7 @@ class CommentServiceTest {
         mockAuthor.setId(1001L);
         mockAuthor.setName("测试用户");
         mockAuthor.setEmail("test@example.com");
-        mockAuthor.setRole_id(4);
+        mockAuthor.setRoleId(4);
         mockComment = new Comment("task", 1L, mockAuthor, "测试评论1");
     }
 
@@ -142,7 +142,7 @@ class CommentServiceTest {
     void deleteComment_ByNonAuthor_ShouldThrowSecurityException() {
         User otherUser = new User();
         otherUser.setId(2002L);
-        otherUser.setRole_id(4); // 普通成员
+        otherUser.setRoleId(4); // 普通成员
 
         when(commentRepository.findById(1L)).thenReturn(Optional.of(mockComment));
         when(userRepository.findById(2002L)).thenReturn(Optional.of(otherUser));
@@ -166,9 +166,7 @@ class CommentServiceTest {
         User admin = new User();
         admin.setId(5L);
 
-        Role adminRole = new Role();
-        adminRole.setRoleId(UserRole.ADMIN.getId());
-        admin.setRole(adminRole);
+        admin.setRoleId(UserRole.ADMIN.getId());
 
 
         when(commentRepository.findById(1L)).thenReturn(Optional.of(mockComment));
