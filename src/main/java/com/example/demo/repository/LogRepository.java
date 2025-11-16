@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface LogRepository extends JpaRepository<Log, Long> {
@@ -51,4 +52,15 @@ public interface LogRepository extends JpaRepository<Log, Long> {
         WHERE m.task.id = :taskId
     """)
     List<RelatedLogDTO> findLogsByTaskId(@Param("taskId") Long taskId);
+
+    @Query("""
+        SELECT l
+        FROM Log l
+        WHERE l.author.id = :userId
+          AND l.createdAt >= :startOfWeek
+    """)
+    List<Log> findLogsForCurrentWeek(
+            @Param("userId") Long userId,
+            @Param("startOfWeek") LocalDateTime startOfWeek
+    );
 }
