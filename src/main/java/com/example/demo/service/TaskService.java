@@ -414,4 +414,49 @@ public class TaskService {
 
         return Map.of("ok", true);
     }
+
+    @Transactional
+    public Map<String, Object> getAssignees(Long taskId) {
+        Optional<Task> taskOpt = taskRepository.findById(taskId);
+        if (taskOpt.isEmpty()) {
+            return Map.of(
+                    "code", 404,
+                    "message", "任务不存在或未找到相关人员信息",
+                    "data", null
+            );
+        }
+
+        Task task = taskOpt.get();
+
+        List<TaskAssignment> list = taskAssignmentRepository.findByTaskId(taskId);
+        List<Map<String, Object>> assignees = new ArrayList<>();
+
+        for (TaskAssignment ta : list) {
+            Long assignee_id = ta.getAssigneeId();
+            Optional<User> users = userRepository.findById(assignee_id);
+            User user = users.get();
+            assignees.add(
+                    Map.of(
+                            "user_id", user.getId(),
+                            "name", user.getName()
+                    )
+            );
+        }
+
+        if (assignees.isEmpty()) {
+            return Map.of(
+                    "code", 404,
+                    "message", "任务不存在或未找到相关人员信息",
+                    "data", null
+            );
+        }
+
+        return Map.of(
+                "code", 200,
+                "message", "success",
+                "data", Map.of(
+                        "assignees", assignees
+                )
+        );
+    }
 }

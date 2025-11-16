@@ -189,6 +189,10 @@ public class TaskController {
         return taskService.updateStatus(taskId, body.get("status"));
     }
 
+    @GetMapping("/assignerAndDesignee/{taskId}")
+    public ResponseEntity<?> getAssignerAndDesignee(@PathVariable Long taskId) {
+        return ResponseEntity.ok(taskService.getAssignees(taskId));
+    }
 
 
 }
