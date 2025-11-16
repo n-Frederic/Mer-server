@@ -77,7 +77,7 @@ public class CommentController {
             );
 
             return Map.of(
-                    "commentId", "C-" + String.format("%03d", c.getCommentId()),
+                    "commentId", c.getCommentId(),
                     "ownerType", c.getOwnerType(),
                     "ownerId", ownerId,
                     "authorId", "U-" + c.getAuthor().getId(),
