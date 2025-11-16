@@ -425,9 +425,7 @@ public class TaskService {
                     "data", null
             );
         }
-
-        Task task = taskOpt.get();
-
+        
         List<TaskAssignment> list = taskAssignmentRepository.findByTaskId(taskId);
         List<Map<String, Object>> assignees = new ArrayList<>();
 
