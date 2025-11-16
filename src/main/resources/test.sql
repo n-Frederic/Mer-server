@@ -2,18 +2,14 @@
 START TRANSACTION;
 SET FOREIGN_KEY_CHECKS = 0;
 -- 1. 先清空有外键依赖的关联表（避免删除主表数据时触发约束）
-TRUNCATE TABLE ai_analysis_log_map;
-TRUNCATE TABLE ai_analysis_task_map;
-TRUNCATE TABLE role_permission;
+
 TRUNCATE TABLE task_assignment;
 TRUNCATE TABLE task_report;
 TRUNCATE TABLE log_task_map;
 TRUNCATE TABLE tags;
-TRUNCATE TABLE log_keyword;
 TRUNCATE TABLE attachment;
 TRUNCATE TABLE comment;
 TRUNCATE TABLE notification;
-TRUNCATE TABLE dashboard_item;
 TRUNCATE TABLE ai_analysis;
 TRUNCATE TABLE log;
 TRUNCATE TABLE task;
@@ -53,12 +49,6 @@ INSERT INTO permission (perm_id, code, name, description) VALUES
   (4, 'USER_MANAGE',  'Manage User',  'Manage users')
 ON DUPLICATE KEY UPDATE code=VALUES(code);
 
--- 角色-权限映射
-INSERT INTO role_permission (id, role_id, perm_id) VALUES
-  (1, 1, 1),(2, 1, 2),(3, 1, 3),(4, 1, 4),    -- Admin: all
-  (5, 2, 1),(6, 2, 2),(7, 2, 3),              -- Manager: create/assign/view
-  (8, 3, 3)                                   -- Member: view
-ON DUPLICATE KEY UPDATE role_id=VALUES(role_id), perm_id=VALUES(perm_id);
 
 -- ---- 组织结构 ----
 INSERT INTO department (dept_id, name, parent_dept_id) VALUES
@@ -176,10 +166,6 @@ VALUES
                          status       = VALUES(status),
                          log_date     = VALUES(log_date);
 
-INSERT INTO log_keyword (id, log_id, keyword, weight) VALUES
-  (1, 1, 'release', 0.9),
-  (2, 2, 'ci',      0.8)
-ON DUPLICATE KEY UPDATE weight=VALUES(weight);
 
 INSERT INTO log_task_map (log_id, task_id) VALUES
                                                (1, 1),
@@ -197,13 +183,6 @@ INSERT INTO tags (task_id, tag) VALUES
                                     (5, 'roadmap');
 --     ON DUPLICATE KEY UPDATE
 --                          updated_at = updated_at;
--- ---- 面板项 ----
-INSERT INTO dashboard_item
-  (item_id, scope, category, title, ref_type, ref_id, sort_order, updated_by)
-VALUES
-  (1, 'Company', 'Task', 'Top Priority Tasks', 'task', 1, 1, 1001),
-  (2, 'Personal','Log',  'My Daily Logs',      'log',  1, 2, 1002)
-ON DUPLICATE KEY UPDATE sort_order=VALUES(sort_order), updated_by=VALUES(updated_by);
 
 -- ---- AI 分析 ----
 INSERT INTO ai_analysis
@@ -214,15 +193,6 @@ VALUES
    'Keep monitoring CI times; prioritize release blockers.')
 ON DUPLICATE KEY UPDATE title=VALUES(title), summary=VALUES(summary);
 
-INSERT INTO ai_analysis_log_map (id, analysis_id, log_id) VALUES
-  (1, 1, 1),
-  (2, 1, 2)
-ON DUPLICATE KEY UPDATE analysis_id=VALUES(analysis_id), log_id=VALUES(log_id);
-
-INSERT INTO ai_analysis_task_map (id, analysis_id, task_id) VALUES
-  (1, 1, 1),
-  (2, 1, 2)
-ON DUPLICATE KEY UPDATE analysis_id=VALUES(analysis_id), task_id=VALUES(task_id);
 
 -- ---- 附件 & 评论 ----
 INSERT INTO attachment

@@ -43,11 +43,7 @@ DROP TABLE IF EXISTS
     notification,
     comment,
     attachment,
-    ai_analysis_task_map,
-    ai_analysis_log_map,
     ai_analysis,
-    dashboard_item,
-    log_keyword,
     log,
     task_report,
     task_assignment,
@@ -55,7 +51,6 @@ DROP TABLE IF EXISTS
     user,
     team,
     department,
-    role_permission,
     permission,
     role;
 
@@ -77,14 +72,7 @@ CREATE TABLE permission (
                             UNIQUE KEY uq_perm_code (code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE role_permission (
-                                 id            INT PRIMARY KEY AUTO_INCREMENT,
-                                 role_id       INT NOT NULL,
-                                 perm_id       INT NOT NULL,
-                                 UNIQUE KEY uq_role_perm (role_id, perm_id),
-                                 KEY idx_rp_role (role_id),
-                                 KEY idx_rp_perm (perm_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 
 -- =========================================================
 -- 组织结构
@@ -258,14 +246,6 @@ CREATE TABLE IF NOT EXISTS log (
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
-CREATE TABLE IF NOT EXISTS log_keyword (
-                             id        BIGINT PRIMARY KEY AUTO_INCREMENT,
-                             log_id    BIGINT NOT NULL,
-                             keyword   VARCHAR(100) NOT NULL,
-                             weight    FLOAT NOT NULL DEFAULT 0,
-                             UNIQUE KEY uq_log_keyword (log_id, keyword),
-                             KEY idx_lk_log (log_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
 CREATE TABLE IF NOT EXISTS log_task_map (
@@ -286,20 +266,6 @@ CREATE TABLE IF NOT EXISTS log_task_map (
 -- =========================================================
 -- 面板展示项
 -- =========================================================
-CREATE TABLE IF NOT EXISTS dashboard_item (
-                                item_id     BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                scope       ENUM('Company','Personal') NOT NULL,
-                                category    VARCHAR(100) NOT NULL,
-                                title       VARCHAR(255) NOT NULL,
-                                ref_type    VARCHAR(50) NOT NULL,
-                                ref_id      BIGINT NULL,
-                                sort_order  INT NOT NULL DEFAULT 0,
-                                updated_by  BIGINT NULL,
-                                updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-                                KEY idx_di_scope_cat (scope, category),
-                                KEY idx_di_ref (ref_type, ref_id),
-                                KEY idx_di_updated_by (updated_by)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
 -- AI 分析模块
@@ -314,24 +280,6 @@ CREATE TABLE IF NOT EXISTS ai_analysis (
                              suggestions   TEXT,
                              KEY idx_ai_generated_by (generated_by),
                              KEY idx_ai_generated_at (generated_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS ai_analysis_log_map (
-                                     id           BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                     analysis_id  BIGINT NOT NULL,
-                                     log_id       BIGINT NOT NULL,
-                                     UNIQUE KEY uq_ai_log (analysis_id, log_id),
-                                     KEY idx_ail_log (log_id),
-                                     KEY idx_ail_ai (analysis_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS ai_analysis_task_map (
-                                      id           BIGINT PRIMARY KEY AUTO_INCREMENT,
-                                      analysis_id  BIGINT NOT NULL,
-                                      task_id      BIGINT NOT NULL,
-                                      UNIQUE KEY uq_ai_task (analysis_id, task_id),
-                                      KEY idx_ait_task (task_id),
-                                      KEY idx_ait_ai (analysis_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
@@ -402,8 +350,6 @@ CALL add_fk_if_not_exists('user','fk_user_role','ALTER TABLE user ADD CONSTRAINT
 CALL add_fk_if_not_exists('user','fk_user_team','ALTER TABLE user ADD CONSTRAINT fk_user_team FOREIGN KEY (team_id) REFERENCES team(team_id) ON UPDATE CASCADE ON DELETE SET NULL');
 CALL add_fk_if_not_exists('user','fk_user_department','ALTER TABLE user ADD CONSTRAINT fk_user_department FOREIGN KEY (dept_id) REFERENCES department(dept_id) ON UPDATE CASCADE ON DELETE SET NULL');
 CALL add_fk_if_not_exists('team','fk_team_leader','ALTER TABLE team ADD CONSTRAINT fk_team_leader FOREIGN KEY (leader_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
-CALL add_fk_if_not_exists('role_permission','fk_rp_role','ALTER TABLE role_permission ADD CONSTRAINT fk_rp_role FOREIGN KEY (role_id) REFERENCES role(role_id) ON UPDATE CASCADE ON DELETE CASCADE');
-CALL add_fk_if_not_exists('role_permission','fk_rp_perm','ALTER TABLE role_permission ADD CONSTRAINT fk_rp_perm FOREIGN KEY (perm_id) REFERENCES permission(perm_id) ON UPDATE CASCADE ON DELETE CASCADE');
 CALL add_fk_if_not_exists('task','fk_task_creator','ALTER TABLE task ADD CONSTRAINT fk_task_creator FOREIGN KEY (creator_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
 CALL add_fk_if_not_exists('task_assignment','fk_ta_task','ALTER TABLE task_assignment ADD CONSTRAINT fk_ta_task FOREIGN KEY (task_id) REFERENCES task(task_id) ON UPDATE CASCADE ON DELETE CASCADE');
 CALL add_fk_if_not_exists('task_assignment','fk_ta_assignee','ALTER TABLE task_assignment ADD CONSTRAINT fk_ta_assignee FOREIGN KEY (assignee_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
@@ -412,13 +358,7 @@ CALL add_fk_if_not_exists('task_report','fk_tr_task','ALTER TABLE task_report AD
 CALL add_fk_if_not_exists('task_report','fk_tr_reporter','ALTER TABLE task_report ADD CONSTRAINT fk_tr_reporter FOREIGN KEY (reporter_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
 CALL add_fk_if_not_exists('log','fk_log_user','ALTER TABLE log ADD CONSTRAINT fk_log_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE CASCADE');
 
-CALL add_fk_if_not_exists('log_keyword','fk_lk_log','ALTER TABLE log_keyword ADD CONSTRAINT fk_lk_log FOREIGN KEY (log_id) REFERENCES log(log_id) ON UPDATE CASCADE ON DELETE CASCADE');
-CALL add_fk_if_not_exists('dashboard_item','fk_di_updated_by','ALTER TABLE dashboard_item ADD CONSTRAINT fk_di_updated_by FOREIGN KEY (updated_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
 CALL add_fk_if_not_exists('ai_analysis','fk_ai_generated_by','ALTER TABLE ai_analysis ADD CONSTRAINT fk_ai_generated_by FOREIGN KEY (generated_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
-CALL add_fk_if_not_exists('ai_analysis_log_map','fk_ail_ai','ALTER TABLE ai_analysis_log_map ADD CONSTRAINT fk_ail_ai FOREIGN KEY (analysis_id) REFERENCES ai_analysis(analysis_id) ON UPDATE CASCADE ON DELETE CASCADE');
-CALL add_fk_if_not_exists('ai_analysis_log_map','fk_ail_log','ALTER TABLE ai_analysis_log_map ADD CONSTRAINT fk_ail_log FOREIGN KEY (log_id) REFERENCES log(log_id) ON UPDATE CASCADE ON DELETE CASCADE');
-CALL add_fk_if_not_exists('ai_analysis_task_map','fk_ait_ai','ALTER TABLE ai_analysis_task_map ADD CONSTRAINT fk_ait_ai FOREIGN KEY (analysis_id) REFERENCES ai_analysis(analysis_id) ON UPDATE CASCADE ON DELETE CASCADE');
-CALL add_fk_if_not_exists('ai_analysis_task_map','fk_ait_task','ALTER TABLE ai_analysis_task_map ADD CONSTRAINT fk_ait_task FOREIGN KEY (task_id) REFERENCES task(task_id) ON UPDATE CASCADE ON DELETE CASCADE');
 CALL add_fk_if_not_exists('attachment','fk_att_uploader','ALTER TABLE attachment ADD CONSTRAINT fk_att_uploader FOREIGN KEY (uploaded_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
 CALL add_fk_if_not_exists('comment','fk_cmt_author','ALTER TABLE comment ADD CONSTRAINT fk_cmt_author FOREIGN KEY (author_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
 CALL add_fk_if_not_exists('notification','fk_notif_user','ALTER TABLE notification ADD CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE CASCADE');
