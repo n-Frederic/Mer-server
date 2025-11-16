@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.context.UserContext;
+import com.example.demo.dto.StatusCount;
 import com.example.demo.dto.WeeklySummaryResponse;
 import com.example.demo.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -31,6 +33,22 @@ public class AnalyticsController {
                     "ok", false,
                     "error", "AI summary generation failed",
                     "message", e.getMessage()
+            ));
+        }
+    }
+
+    @GetMapping("/chart-data")
+    public ResponseEntity<?> getChartData() {
+        Long userId = UserContext.getCurrentUserId();
+        try {
+            List<StatusCount> data = analyticsService.getWeeklyChartData(userId);
+            return ResponseEntity.ok(Map.of(
+                    "ok", true,
+                    "data", data
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "ok", false
             ));
         }
     }

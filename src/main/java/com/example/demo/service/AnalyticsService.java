@@ -2,11 +2,13 @@ package com.example.demo.service;
 
 import com.example.demo.component.KeywordExtractor;
 import com.example.demo.dto.Keyword;
+import com.example.demo.dto.StatusCount;
 import com.example.demo.dto.WeeklySummaryResponse;
 import com.example.demo.entity.AiAnalysis;
 import com.example.demo.entity.Log;
 import com.example.demo.repository.AiAnalysisRepository;
 import com.example.demo.repository.LogRepository;
+import com.example.demo.repository.TaskAssignmentRepository;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -26,12 +28,14 @@ public class AnalyticsService {
     private final DeepseekService deepseekService;
     private final KeywordExtractor keywordExtractor;
     private final AiAnalysisRepository aiAnalysisRepository;
+    private final TaskAssignmentRepository taskAssignmentRepository;
 
-    public AnalyticsService(LogRepository logRepository, DeepseekService deepseekService, KeywordExtractor keywordExtractor, AiAnalysisRepository aiAnalysisRepository) {
+    public AnalyticsService(LogRepository logRepository, DeepseekService deepseekService, KeywordExtractor keywordExtractor, AiAnalysisRepository aiAnalysisRepository, TaskAssignmentRepository taskAssignmentRepository) {
         this.logRepository = logRepository;
         this.deepseekService = deepseekService;
         this.keywordExtractor = keywordExtractor;
         this.aiAnalysisRepository = aiAnalysisRepository;
+        this.taskAssignmentRepository = taskAssignmentRepository;
     }
 
     public WeeklySummaryResponse generateWeeklySummary(Long userId) {
@@ -77,5 +81,11 @@ public class AnalyticsService {
         );
     }
 
+    public List<StatusCount> getWeeklyChartData(Long userId) {
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.with(DayOfWeek.MONDAY).atStartOfDay();
+        LocalDateTime end = LocalDateTime.now();
 
+        return taskAssignmentRepository.findWeeklyTaskStatusCount(userId, start, end);
+    }
 }
