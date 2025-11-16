@@ -149,11 +149,7 @@ public class LogController {
         data.put("pageSize", pageSize);
         data.put("hasNext", logPage.hasNext());
 
-        return Map.of(
-                "code", 200,
-                "message", "success",
-                "data", data
-        );
+        return data;
     }
 
     @DeleteMapping("/{journalId}")
