@@ -73,13 +73,13 @@ ON DUPLICATE KEY UPDATE name=VALUES(name), dept_id=VALUES(dept_id);
 
 -- ---- 用户（先插入，再把团队负责人回填到 team.leader_id）----
 INSERT INTO user
-  (user_id, name, email, password, username, phone, team_id, role_id, gender, status, last_login)
+  (user_id, name, email, password, username, phone, team_id, dept_id,role_id, gender, status, last_login)
 VALUES
-  (1001, 'Alice Admin',  '1831437770@qq.com',  '111111',  'alice',  '100-0001', 1, 5, 'F', 'active', NOW()),
-  (1002, 'Bob Manager',  'bob@example.com',    '$2a$10$FsaCNkYKalO3.3sdn/X9SOts/37p3TRV5bwm0pt.6OSS7VF34XV6K','bob',    '100-0002', 1, 2, 'M', 'active', NOW()),
-  (1003, 'Carol Member', 'carol@example.com',  '$2a$10$member', 'carol',  '100-0003', 2, 4, 'F', 'active', NOW()),
-  (1004, 'Lisa CEO', 'lisa@amd.com',  '$2a$10$ceo', 'lisa',  '101-0003', 1, 1, 'F', 'active', NOW()),
-  (1005, 'Helen Leader', 'helen@example.com',  '$2a$10$ceo', '05hal',  '100-0013', 2, 3, 'F', 'active', NOW())
+  (1001, 'Alice Admin',  '1831437770@qq.com',  '111111',  'alice',  '100-0001', 1, 1,5, 'F', 'active', NOW()),
+  (1002, 'Bob Manager',  'bob@example.com',    '$2a$10$FsaCNkYKalO3.3sdn/X9SOts/37p3TRV5bwm0pt.6OSS7VF34XV6K','bob',    '100-0002', 1, 1,2, 'M', 'active', NOW()),
+  (1003, 'Carol Member', 'carol@example.com',  '$2a$10$member', 'carol',  '100-0003', 2, 1,4, 'F', 'active', NOW()),
+  (1004, 'Lisa CEO', 'lisa@amd.com',  '$2a$10$ceo', 'lisa',  '101-0003', 1, 2,1, 'F', 'active', NOW()),
+  (1005, 'Helen Leader', 'helen@example.com',  '$2a$10$ceo', '05hal',  '100-0013', 2, 2,3, 'F', 'active', NOW())
 ON DUPLICATE KEY UPDATE name=VALUES(name), team_id=VALUES(team_id), role_id=VALUES(role_id);
 
 UPDATE team SET leader_id = 1001 WHERE team_id = 1;
