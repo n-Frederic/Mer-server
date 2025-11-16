@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import com.example.demo.context.UserContext;
 import com.example.demo.dto.LogRequestDTO;
 import com.example.demo.dto.LogResponseDTO;
+import com.example.demo.dto.LogUpdateRequest;
 import com.example.demo.entity.Log;
 import com.example.demo.entity.Log_Task;
 import com.example.demo.entity.User;
@@ -191,6 +192,28 @@ public class LogController {
     @GetMapping("/{logId}")
     public ResponseEntity<Map<String, Object>> getJournalDetail(@PathVariable Long logId) {
         return ResponseEntity.ok(logService.getJournalDetail(logId));
+    }
+
+    @PutMapping("/{logId}")
+    public ResponseEntity<?> updateJournal(
+            @PathVariable Long logId,
+            @RequestBody LogUpdateRequest request
+    ) {
+        boolean ok = logService.updateLog(logId, request);
+
+        if (!ok) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of(
+                            "ok", false,
+                            "error", "Invalid data or journal"
+                    ));
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "ok", true,
+                "message", "日志更新成功"
+        ));
     }
 
 

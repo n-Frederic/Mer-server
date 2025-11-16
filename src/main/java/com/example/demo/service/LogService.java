@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.context.UserContext;
 import com.example.demo.dto.LogRequestDTO;
 import com.example.demo.dto.LogResponseDTO;
+import com.example.demo.dto.LogUpdateRequest;
 import com.example.demo.entity.Log;
 import com.example.demo.entity.Log_Task;
 import com.example.demo.entity.Tags;
@@ -288,6 +289,33 @@ public class LogService {
         data.put("tags", tags);
 
         return Map.of("code", 200, "message", "success", "data", data);
+    }
+
+    @Transactional
+    public boolean updateLog(Long logId, LogUpdateRequest req) {
+        Optional<Log> optionalLog = logRepository.findById(logId);
+        if (optionalLog.isEmpty()) return false;
+
+        Log log = optionalLog.get();
+
+        if (req.getTodaySummary() != null) log.setSummary(req.getTodaySummary());
+        if (req.getTomorrowPlan() != null) log.setTomorrowPlan(req.getTomorrowPlan());
+        if (req.getHelpNeeded() != null) log.setHelpNeeded(req.getHelpNeeded());
+
+        logRepository.save(log);
+
+        // === 更新日志关联任务 ===
+        if (req.getTaskId() != null) {
+            // 删除旧关联
+            logTaskRepository.deleteById_LogId(logId);
+
+            // 新增关联
+            for (Long taskId : req.getTaskId()) {
+                logTaskRepository.save(new Log_Task(logId, taskId));
+            }
+        }
+
+        return true;
     }
 
 
