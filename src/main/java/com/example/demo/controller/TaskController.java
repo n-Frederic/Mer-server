@@ -171,11 +171,11 @@ public class TaskController {
     @PostMapping("/{taskId}/reports")
     public Map<String, Object> createReport(
             @PathVariable Long taskId,
-            @RequestParam Long reporterId, // 或从 token 解析
             @RequestParam String content,
             @RequestParam(required = false) String address,
             @RequestParam(required = false) String attachments
     ) {
+        Long reporterId = UserContext.getCurrentUserId();
         return taskService.createReport(taskId, reporterId, content, address, attachments);
     }
 
