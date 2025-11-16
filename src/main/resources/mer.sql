@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS user (
     username    VARCHAR(100) NULL,          -- 用户名
     phone       VARCHAR(50) NULL,           -- 手机号
     team_id     INT NULL,                   -- 所在团队ID（外键关联team表）
+    dept_id     INT NULL,
     role_id     INT NULL,                   -- 角色ID（外键关联role表）
     gender      ENUM('M', 'F') NULL, -- 性别
     birth_date  DATE NULL,                  -- 出生日期
@@ -137,6 +138,7 @@ CREATE TABLE IF NOT EXISTS user (
     KEY uq_user_username (username),
     KEY idx_user_team (team_id),
     KEY idx_user_role (role_id),
+    KEY idx_user_department(dept_id),
     KEY idx_user_status (status),
     KEY idx_user_last_login (last_login)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户表-完整版';
@@ -398,6 +400,7 @@ CALL add_fk_if_not_exists('department','fk_dept_parent','ALTER TABLE department 
 CALL add_fk_if_not_exists('team','fk_team_dept','ALTER TABLE team ADD CONSTRAINT fk_team_dept FOREIGN KEY (dept_id) REFERENCES department(dept_id) ON UPDATE CASCADE ON DELETE SET NULL');
 CALL add_fk_if_not_exists('user','fk_user_role','ALTER TABLE user ADD CONSTRAINT fk_user_role FOREIGN KEY (role_id) REFERENCES role(role_id) ON UPDATE CASCADE ON DELETE SET NULL');
 CALL add_fk_if_not_exists('user','fk_user_team','ALTER TABLE user ADD CONSTRAINT fk_user_team FOREIGN KEY (team_id) REFERENCES team(team_id) ON UPDATE CASCADE ON DELETE SET NULL');
+CALL add_fk_if_not_exists('user','fk_user_department','ALTER TABLE user ADD CONSTRAINT fk_user_department FOREIGN KEY (dept_id) REFERENCES department(dept_id) ON UPDATE CASCADE ON DELETE SET NULL');
 CALL add_fk_if_not_exists('team','fk_team_leader','ALTER TABLE team ADD CONSTRAINT fk_team_leader FOREIGN KEY (leader_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
 CALL add_fk_if_not_exists('role_permission','fk_rp_role','ALTER TABLE role_permission ADD CONSTRAINT fk_rp_role FOREIGN KEY (role_id) REFERENCES role(role_id) ON UPDATE CASCADE ON DELETE CASCADE');
 CALL add_fk_if_not_exists('role_permission','fk_rp_perm','ALTER TABLE role_permission ADD CONSTRAINT fk_rp_perm FOREIGN KEY (perm_id) REFERENCES permission(perm_id) ON UPDATE CASCADE ON DELETE CASCADE');
