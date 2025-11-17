@@ -186,11 +186,9 @@ INSERT INTO tags (task_id, tag) VALUES
 
 -- ---- AI 分析 ----
 INSERT INTO ai_analysis
-  (analysis_id, title, generated_at, generated_by, summary, metrics_json, suggestions)
+  (analysis_id, title, generated_at, generated_by, summary, suggestions)
 VALUES
-  (1, 'Weekly Task Analysis', NOW(), 1001, 'Overall progress is on track.',
-   JSON_OBJECT('precision',0.91,'recall',0.83,'tasks',2),
-   'Keep monitoring CI times; prioritize release blockers.')
+  (1, 'Weekly Task Analysis', NOW(), 1001, 'Overall progress is on track.', 'Keep monitoring CI times; prioritize release blockers.')
 ON DUPLICATE KEY UPDATE title=VALUES(title), summary=VALUES(summary);
 
 
@@ -203,19 +201,19 @@ VALUES
 ON DUPLICATE KEY UPDATE file_url=VALUES(file_url);
 
 INSERT INTO comment
-  (comment_id, owner_type, owner_id, author_id, content, created_at)
+  (comment_id,  owner_id, log_id, content, created_at)
 VALUES
-  (1, 'task', 1, 1002, 'LGTM, proceeding to next step.', NOW()),
-  (2, 'task', 1, 1001, 'Please add release notes.',      NOW())
+  (1,  1002, 1, 'LGTM, proceeding to next step.', NOW()),
+  (2, 1001, 2, 'Please add release notes.',      NOW())
 ON DUPLICATE KEY UPDATE content=VALUES(content);
 
 -- ---- 通知 ----
 INSERT INTO notification
-  (notif_id, user_id, type, title, body, is_read, created_at)
+  (notif_id, user_id, type,relevent_id, title, body, is_read, created_at)
 VALUES
-  (1, 1002, 'Task', 'New assignment',  'You were assigned to task #1', 0, NOW()),
-  (2, 1003, 'Task', 'New assignment',  'You were assigned to task #2', 0, NOW()),
-  (3, 1002, 'Log',  'Log reminder',    'Don''t forget to submit today''s log', 0, NOW())
+  (1, 1002, 'task', 1,'New assignment',  'You were assigned to task #1', 0, NOW()),
+  (2, 1003, 'task',2, 'New assignment',  'You were assigned to task #2', 0, NOW())
+
 ON DUPLICATE KEY UPDATE is_read=VALUES(is_read);
 
 COMMIT;

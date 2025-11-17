@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.context.UserContext;
 import com.example.demo.dto.CommentCreateRequest;
 import com.example.demo.entity.Comment;
 import com.example.demo.service.CommentService;
@@ -7,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,19 +28,18 @@ public class CommentController {
         try {
             Comment saved = commentService.createComment(req);
 
-            Map<String, Object> authorInfo = Map.of(
-                    "userId", "U-" + saved.getAuthor().getId(),
-                    "name", saved.getAuthor().getName()
-            );
+//            Map<String, Object> authorInfo = Map.of(
+//                    "userId", "U-" + saved.getAuthor().getId(),
+//                    "name", saved.getAuthor().getName()
+//            );
 
             Map<String, Object> data = Map.of(
                     "commentId", "C-" + String.format("%03d", saved.getCommentId()),
-                    "ownerType", saved.getOwnerType(),
                     "ownerId", req.getOwnerId(),
-                    "authorId", "U-" + saved.getAuthor().getId(),
+                    "logId", req.getLogId(),
                     "content", saved.getContent(),
-                    "createdAt", saved.getCreatedAt().toString(),
-                    "authorInfo", authorInfo
+                    "createdAt", saved.getCreatedAt().toString()
+
             );
 
             return ResponseEntity
@@ -58,50 +59,49 @@ public class CommentController {
                     ));
         }
     }
-
     @GetMapping
     public Map<String, Object> getComments(
-            @RequestParam String ownerType,
+            @RequestParam String logId,
             @RequestParam String ownerId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize
     ) {
 
-        Page<Comment> commentPage = commentService.getComments(ownerType, ownerId, page, pageSize);
+        Page<Comment> commentPage = commentService.getComments(logId, page, pageSize);
 
-        List<Map<String, Object>> list = commentPage.getContent().stream().map(c -> {
+        List<Map<String, Object>> list = commentPage.getContent().stream()
+                .map(c -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("commentId", c.getCommentId());
+                    m.put("logId", c.getLogId());
+                    m.put("ownerId", c.getOwnerId());
+                    m.put("content", c.getContent());
+                    m.put("createdAt", c.getCreatedAt().toString());
+                    return m;
+                })
+                .collect(Collectors.toList());
 
-            Map<String, Object> authorInfo = Map.of(
-                    "userId", "U-" + c.getAuthor().getId(),
-                    "name", c.getAuthor().getName()
-            );
+        Map<String, Object> data = new HashMap<>();
+        data.put("comments", list);
+        data.put("page", page);
+        data.put("pageSize", pageSize);
+        data.put("total", commentPage.getTotalElements());
 
-            return Map.of(
-                    "commentId", c.getCommentId(),
-                    "ownerType", c.getOwnerType(),
-                    "ownerId", ownerId,
-                    "authorId", "U-" + c.getAuthor().getId(),
-                    "content", c.getContent(),
-                    "createdAt", c.getCreatedAt().toString(),
-                    "authorInfo", authorInfo
-            );
+        Map<String, Object> result = new HashMap<>();
+        result.put("code", 200);
+        result.put("message", "success");
+        result.put("data", data);
 
-        }).collect(Collectors.toList());
-
-        return Map.of(
-                "list", list,
-                "total", commentPage.getTotalElements(),
-                "page", page,
-                "pageSize", pageSize
-        );
+        return result;
     }
 
     @DeleteMapping("/{commentId}")
     public Map<String, Object> deleteComment(
-            @PathVariable String commentId,
-            @RequestParam String userId
+            @PathVariable String commentId
     ) {
         try {
+            Long user=UserContext.getCurrentUserId();
+            String userId=user.toString();
             commentService.deleteComment(commentId, userId);
 
             return Map.of(

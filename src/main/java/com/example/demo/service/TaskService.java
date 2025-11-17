@@ -28,12 +28,13 @@ public class TaskService {
     private final TaskReportRepository taskReportRepository;
     private final TeamRepository teamRepository;
     private final RoleRepository roleRepository;
+    private final NotificationRepository notificationRepository;
     private final LogRepository logRepository;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, NotificationRepository notificationRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
-
+this.notificationRepository = notificationRepository;
         this.taskAssignmentRepository = taskAssignmentRepository;
         this.tagsRepository=tagsRepository;
         this.taskReportRepository = taskReportRepository;
@@ -175,6 +176,8 @@ public class TaskService {
                 LocalDateTime assignedAt = LocalDateTime.now();
                 TaskAssignment taskAssignment = new TaskAssignment(savedTask.getId(),task.getAssigneeIds().get(i),userId,assignedAt);
 
+                Notification notification = new Notification(task.getAssigneeIds().get(i),"task",savedTask.getId(),"A new task is assigned to you",savedTask.getTitle(),false);
+                notificationRepository.save(notification);
                 taskAssignmentRepository.save(taskAssignment);
             }
 
@@ -394,6 +397,11 @@ public class TaskService {
         report.setAttachments(attachments);
 
         taskReportRepository.save(report);
+
+        Task task=taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("<UNK>"));
+        Long ownerId = task.getCreator().getId();
+        Notification notification = new Notification(ownerId,"task",task.getId(),"A new task report",report.getContent(),false);
+        notificationRepository.save(notification);
 
         return Map.of("ok", true, "report", Map.of(
                 "report_id", report.getReportId(),

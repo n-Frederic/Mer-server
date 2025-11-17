@@ -276,7 +276,6 @@ CREATE TABLE IF NOT EXISTS ai_analysis (
                              generated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                              generated_by  BIGINT NULL,
                              summary       TEXT,
-                             metrics_json  JSON NULL,
                              suggestions   TEXT,
                              KEY idx_ai_generated_by (generated_by),
                              KEY idx_ai_generated_at (generated_at)
@@ -299,13 +298,11 @@ CREATE TABLE IF NOT EXISTS attachment (
 
 CREATE TABLE IF NOT EXISTS comment (
                          comment_id   BIGINT PRIMARY KEY AUTO_INCREMENT,
-                         owner_type   VARCHAR(50) NOT NULL,
-                         owner_id     BIGINT NOT NULL,
-                         author_id    BIGINT NOT NULL,
+                         owner_id    BIGINT NOT NULL,
+                         log_id       BIGINT NOT NULL,
                          content      TEXT,
                          created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                         KEY idx_cmt_owner (owner_type, owner_id),
-                         KEY idx_cmt_author (author_id),
+                         KEY idx_cmt_owner (owner_id),
                          FULLTEXT KEY ftx_cmt_content (content)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -313,6 +310,7 @@ CREATE TABLE IF NOT EXISTS notification (
                               notif_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
                               user_id     BIGINT NOT NULL,
                               type        VARCHAR(50) NOT NULL,
+                              relevent_id BIGINT NOT NULL,
                               title       VARCHAR(255) NOT NULL,
                               body        TEXT,
                               is_read     BOOLEAN NOT NULL DEFAULT FALSE,
@@ -360,7 +358,8 @@ CALL add_fk_if_not_exists('log','fk_log_user','ALTER TABLE log ADD CONSTRAINT fk
 
 CALL add_fk_if_not_exists('ai_analysis','fk_ai_generated_by','ALTER TABLE ai_analysis ADD CONSTRAINT fk_ai_generated_by FOREIGN KEY (generated_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
 CALL add_fk_if_not_exists('attachment','fk_att_uploader','ALTER TABLE attachment ADD CONSTRAINT fk_att_uploader FOREIGN KEY (uploaded_by) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
-CALL add_fk_if_not_exists('comment','fk_cmt_author','ALTER TABLE comment ADD CONSTRAINT fk_cmt_author FOREIGN KEY (author_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
+CALL add_fk_if_not_exists('comment','fk_cmt_log','ALTER TABLE comment ADD CONSTRAINT fk_cmt_log FOREIGN KEY (log_id) REFERENCES log(log_id) ON UPDATE CASCADE ON DELETE RESTRICT');
+CALL add_fk_if_not_exists('comment','fk_cmt_owner','ALTER TABLE comment ADD CONSTRAINT fk_cmt_owner FOREIGN KEY (owner_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
 CALL add_fk_if_not_exists('notification','fk_notif_user','ALTER TABLE notification ADD CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE CASCADE');
 CALL add_fk_if_not_exists('login','fk_login_user','ALTER TABLE login ADD CONSTRAINT fk_login_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE CASCADE');
 

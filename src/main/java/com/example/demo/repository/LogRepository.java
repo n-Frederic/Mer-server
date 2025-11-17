@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface LogRepository extends JpaRepository<Log, Long> {
 
@@ -33,6 +34,8 @@ public interface LogRepository extends JpaRepository<Log, Long> {
             String keyword,
             Pageable pageable
     );
+
+    Optional<Log> findById(Long id) ;
 
     // 全条件（时间 + 关键词）
     Page<Log> findByAuthorIdInAndDateBetweenAndSummaryContainingIgnoreCase(
