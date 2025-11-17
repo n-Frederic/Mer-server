@@ -4,7 +4,9 @@ import com.example.demo.dto.*;
 import com.example.demo.entity.*;
 import com.example.demo.enums.UserRole;
 import com.example.demo.repository.*;
+import com.example.demo.utils.FileUploadUtils;
 import com.example.demo.utils.ResponseUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -13,7 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -29,8 +33,9 @@ public class TaskService {
     private final TeamRepository teamRepository;
     private final RoleRepository roleRepository;
     private final LogRepository logRepository;
+    private final FileUploadUtils fileUploadUtils;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository, FileUploadUtils fileUploadUtils) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
 
@@ -40,6 +45,7 @@ public class TaskService {
         this.teamRepository = teamRepository;
         this.roleRepository = roleRepository;
         this.logRepository = logRepository;
+        this.fileUploadUtils = fileUploadUtils;
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
@@ -386,26 +392,87 @@ public class TaskService {
     }
 
     //  创建任务报告（reporterId 从前端传或从 JWT 解析）
-    public Map<String, Object> createReport(Long taskId, Long reporterId, String content, String address, String attachments) {
+
+    public Map<String, Object> createReport(
+            Long taskId,
+            Long reporterId,
+            String content,
+            String address,
+            List<MultipartFile> files
+    ) {
+        // 验证任务是否存在
+        if (!taskRepository.existsById(taskId)) {
+            return Map.of("ok", false, "message", "任务不存在");
+        }
+
+        // 验证用户是否存在
+        if (!userRepository.existsById(reporterId)) {
+            return Map.of("ok", false, "message", "用户不存在");
+        }
+
         TaskReport report = new TaskReport();
         report.setTaskId(taskId);
         report.setReporterId(reporterId);
         report.setContent(content);
         report.setAddress(address);
-        report.setAttachments(attachments);
 
+        List<String> filePaths = new ArrayList<>();
+
+        // 处理附件
+        if (files != null && !files.isEmpty()) {
+            for (MultipartFile file : files) {
+                if (!file.isEmpty()) {
+                    try {
+                        System.out.println("处理文件: " + file.getOriginalFilename() + ", 大小: " + file.getSize());
+                        String savedPath = fileUploadUtils.saveFile(file, "task_reports/" + taskId);
+                        filePaths.add(savedPath);
+                        System.out.println("文件保存路径: " + savedPath);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return Map.of(
+                                "ok", false,
+                                "message", "文件保存失败: " + e.getMessage()
+                        );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        return Map.of(
+                                "ok", false,
+                                "message", "文件处理异常: " + e.getMessage()
+                        );
+                    }
+                }
+            }
+        }
+
+        // 保存 JSON
+        try {
+            if (!filePaths.isEmpty()) {
+                report.setAttachments(new ObjectMapper().writeValueAsString(filePaths));
+                System.out.println("附件JSON: " + report.getAttachments());
+            } else {
+                report.setAttachments("[]");
+            }
+        } catch (Exception e) {
+            return Map.of(
+                    "ok", false,
+                    "message", "JSON 转换失败: " + e.getMessage()
+            );
+        }
+
+        report.setCreatedAt(LocalDateTime.now());
         taskReportRepository.save(report);
 
-        return Map.of("ok", true, "report", Map.of(
-                "report_id", report.getReportId(),
-                "task_id", taskId,
-                "reporter_id", reporterId,
-                "content", content,
-                "address", address,
-                "attachments", attachments,
-                "created_at", report.getCreatedAt()
-        ));
+        System.out.println("任务报告创建成功，报告ID: " + report.getReportId());
+
+        return Map.of(
+                "ok", true,
+                "message", "报告提交成功",
+                "attachments", filePaths
+        );
     }
+
+
+
 
     // 3. 更新任务状态
     public Map<String, Object> updateStatus(Long taskId, String status) {

@@ -8,8 +8,10 @@ import com.example.demo.entity.Task;
 import com.example.demo.service.TaskService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -168,16 +170,21 @@ public class TaskController {
     }
 
     // 9.2 创建任务报告
-    @PostMapping("/{taskId}/reports")
-    public Map<String, Object> createReport(
+    @PostMapping(value = "/{taskId}/reports", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> createReport(
             @PathVariable Long taskId,
-            @RequestParam String content,
-            @RequestParam(required = false) String address,
-            @RequestParam(required = false) String attachments
-    ) {
-        Long reporterId = UserContext.getCurrentUserId();
-        return taskService.createReport(taskId, reporterId, content, address, attachments);
+            @RequestParam("content") String content,
+            @RequestParam("latitude") Double latitude,
+            @RequestParam("longitude") Double longitude,
+            @RequestParam(value = "address", required = false) String address,
+            @RequestParam("reporter_id") Long reporterId,
+            @RequestPart(value = "files", required = false) List<MultipartFile> files // 接收多文件
+    ){
+        return ResponseEntity.ok(
+                taskService.createReport(taskId, reporterId, content, address, files)
+        );
     }
+
 
     // 9.3 更新任务状态
     @PatchMapping("/{taskId}/status")
