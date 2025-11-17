@@ -161,7 +161,7 @@ public class TaskService {
                     now,                  // createTime
                     task.getDueAt(),      // dueAt
                     now,                  // startAt
-                    "Reported",           // status
+                    "Published",           // status
                      pct,                   //pct
                     task.getPriority(),   // priority
                     task.getDescription(),// description
@@ -224,6 +224,7 @@ public class TaskService {
         response.put("pageSize", pageSize);
         return response;
     }
+
     private Map<String, Object> wrapResponse2(Page<Task> taskPage, int page, int pageSize) {
         Map<String, Object> response = new LinkedHashMap<>();  // 改用 LinkedHashMap
 
@@ -384,7 +385,7 @@ public class TaskService {
         return Map.of("ok", true, "reports", reportList);
     }
 
-    // 2. 创建任务报告（reporterId 从前端传或从 JWT 解析）
+    //  创建任务报告（reporterId 从前端传或从 JWT 解析）
     public Map<String, Object> createReport(Long taskId, Long reporterId, String content, String address, String attachments) {
         TaskReport report = new TaskReport();
         report.setTaskId(taskId);
