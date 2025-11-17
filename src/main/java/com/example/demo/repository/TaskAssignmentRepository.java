@@ -16,15 +16,21 @@ import java.util.Optional;
 
 @Repository
 public interface TaskAssignmentRepository extends JpaRepository<TaskAssignment, Long> {
+    List<TaskAssignment> findByTaskId(Long taskId);
 
-
-
+    @Query("""
+        SELECT t.status AS status, COUNT(t) AS count
+        FROM TaskAssignment ta
+        JOIN Task t ON ta.taskId = t.id
+        WHERE ta.assignedAt BETWEEN :start AND :end AND ta.assigneeId = :userId
+        GROUP BY t.status
+    """)
     List<StatusCount> findWeeklyTaskStatusCount(
             @Param("userId") Long userId,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
     );
-    List<TaskAssignment> findByTaskId(Long taskId);
+
     @Query(value = """
             SELECT 
                 u.user_id AS userId,

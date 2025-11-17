@@ -36,7 +36,7 @@ public class TaskService {
     private final LogRepository logRepository;
     private final FileUploadUtils fileUploadUtils;
 
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository, FileUploadUtils fileUploadUtils) {
+    public TaskService(TaskRepository taskRepository, NotificationRepository notificationRepository,UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository, FileUploadUtils fileUploadUtils) {
 
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
@@ -478,17 +478,13 @@ this.notificationRepository = notificationRepository;
                 "reporter_id", reporterId,
                 "content", content,
                 "address", address,
-                "attachments", attachments,
+                "attachments", report.getAttachments(),
                 "created_at", report.getCreatedAt()
         ));
 
-        System.out.println("任务报告创建成功，报告ID: " + report.getReportId());
 
-        return Map.of(
-                "ok", true,
-                "message", "报告提交成功",
-                "attachments", filePaths
-        );
+
+
 
     }
 
