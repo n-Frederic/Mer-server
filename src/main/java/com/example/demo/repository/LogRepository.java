@@ -66,4 +66,15 @@ public interface LogRepository extends JpaRepository<Log, Long> {
             @Param("userId") Long userId,
             @Param("startOfWeek") LocalDateTime startOfWeek
     );
+
+    @Query("""
+        SELECT l FROM Log l
+        WHERE l.author.id = :userId
+        AND l.date >= :start
+        ORDER BY l.date DESC
+    """)
+    List<Log> findLogsForUserSince(
+            @Param("userId") Long userId,
+            @Param("start") LocalDate start
+    );
 }

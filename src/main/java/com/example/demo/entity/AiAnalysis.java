@@ -3,6 +3,8 @@ package com.example.demo.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -20,7 +22,7 @@ public class AiAnalysis {
     private String title;
 
     @Column(name = "generated_at", nullable = false, updatable = false)
-    private LocalDateTime generatedAt = LocalDateTime.now();
+    private LocalDate generatedAt = LocalDate.now();
 
     @Column(name = "generated_by")
     private Long generatedBy; // user ID
