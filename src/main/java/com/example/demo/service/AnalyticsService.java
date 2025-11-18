@@ -39,7 +39,7 @@ public class AnalyticsService {
         this.taskAssignmentRepository = taskAssignmentRepository;
     }
 
-    public WeeklySummaryResponse generateWeeklySummary(Long userId) {
+    public WeeklySummaryResponse generateWeeklySummary(Long userId) throws JsonProcessingException {
 
         LocalDateTime startOfWeek = LocalDate.now()
                 .with(DayOfWeek.MONDAY)
@@ -63,23 +63,23 @@ public class AnalyticsService {
                 .collect(Collectors.joining("\n\n"));
 
         String summary = zhiPuService.summarize(text);
-        List<Keyword> keywords = keywordExtractor.extractTopKeywords(text);
+        String content = extractContentFromZhiPu(summary);
+        content = cleanContent(content);
+
+        if (!isValidJson(content)) {
+            throw new RuntimeException("Invalid JSON from AI: " + content);
+        }
 
         AiAnalysis record = new AiAnalysis();
         record.setTitle("Weekly Summary");
         record.setGeneratedBy(userId);
-        record.setSummary(summary);
+        record.setSummary(content);
         record.setMetricsJson(null);
         record.setSuggestions(null);
 
         aiAnalysisRepository.save(record);
 
-        return new WeeklySummaryResponse(
-                true,
-                summary,
-                keywords,
-                LocalDateTime.now()
-        );
+        return parseWSR(content);
     }
 
     public List<StatusCount> getWeeklyChartData(Long userId) {
@@ -186,6 +186,10 @@ public class AnalyticsService {
 
     private FortuneResponse parseFP(String json) throws JsonProcessingException {
         return new ObjectMapper().readValue(json, FortuneResponse.class);
+    }
+
+    private WeeklySummaryResponse parseWSR(String json) throws JsonProcessingException {
+        return new ObjectMapper().readValue(json, WeeklySummaryResponse.class);
     }
 
     private String extractContentFromZhiPu(String responseJson) {
