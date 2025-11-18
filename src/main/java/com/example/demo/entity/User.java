@@ -47,7 +47,7 @@ public class User {
     private String email;
 
     // 不把密码序列化到返回 JSON
-    @JsonIgnore
+//    @JsonIgnore
     @Column(name = "password", nullable = false)
     private String password;
 
@@ -60,13 +60,13 @@ public class User {
 //    @ManyToOne
     @JoinColumn(name = "team_id", referencedColumnName = "team_id")
     // 打断可能的环（例如 Team.leader / Team.users 等），保留 set 功能
-    @JsonIgnoreProperties(value = {"leader", "users", "members"}, allowSetters = true)
+//    @JsonIgnoreProperties(value = {"leader", "users", "members"}, allowSetters = true)
     private Integer teamId;
 
 
     @JoinColumn(name = "role_id", referencedColumnName = "role_id")
     // 同理：防止 Role 里指回用户集合等字段造成环
-    @JsonIgnoreProperties(value = {"users", "permissions", "menus"}, allowSetters = true)
+//    @JsonIgnoreProperties(value = {"users", "permissions", "menus"}, allowSetters = true)
     private Integer roleId;
 
     public Integer getTeamId() {
