@@ -137,44 +137,153 @@ VALUES
   (2, 1, 1002, 'Fixed failing tests, coverage 82%.','street1' , 'coverage.txt','2025-10-26 14:20:18')
 ON DUPLICATE KEY UPDATE content=VALUES(content);
 
--- ---- 日志 & 关键词 ----
 INSERT INTO log
-(log_id, user_id,
- today_summary,                tomorrow_plan,                               help_needed,                           status,
- log_date)
+(
+    log_id,
+    user_id,
+    today_summary,
+    tomorrow_plan,
+    help_needed,
+    status,
+    log_date
+)
 VALUES
-    -- 旧示例1（把 content -> todaySummary，mood -> status）
     (1, 1002,
-     'Working on release artifacts.', 'Continue release packaging and smoke test.', NULL, 'Focus',
+     'Working on release artifacts.',
+     'Continue release packaging and smoke test.',
+     NULL,
+     'Focus',
      CURDATE()),
 
-    -- 旧示例2
     (2, 1003,
-     'Investigating CI cache misses.', 'Re-run pipeline and compare cache keys.', NULL, 'Optimistic',
+     'Investigating CI cache misses.',
+     'Re-run pipeline and compare cache keys.',
+     NULL,
+     'Optimistic',
      CURDATE()),
+    -- Alice Admin (1001) logs
+    (3, 1001,
+     'Completed v1.0 release review and updated project plan documents',
+     'Coordinate final pre-release checks across teams',
+     'Need design team to provide new version LOGO assets',
+     'Productive',
+     CURDATE() - INTERVAL 1 DAY),
+    (4, 1001,
+     'Resolved user permission configuration issues and optimized task assignment workflow',
+     'Prepare weekly meeting presentation materials and organize project risk list',
+     NULL,
+     'Focus',
+     CURDATE() - INTERVAL 2 DAY),
 
-    -- 新增：与截图语义一致的“周报”示例（task_id 可先置 NULL，关联走 log_task_map）
-    (101, 1001,
-     'today work...', 'work tomorrow', 'sos', 'passed',
-     DATE '2025-09-18')
-    ON DUPLICATE KEY UPDATE
-                         user_id      = VALUES(user_id),
+    -- Bob Manager (1002) logs
+    (5, 1002,
+     'Reviewed team task progress and resolved resource conflicts in the Platform team',
+     'Follow up on CI migration progress and sync requirements with DevOps',
+     'Need backend team to cooperate with API adjustments',
+     'Busy',
+     CURDATE() - INTERVAL 1 DAY),
+    (6, 1002,
+     'Completed new employee onboarding training plan and organized technical documents',
+     'Interview 3 frontend candidates and prepare evaluation reports',
+     NULL,
+     'Efficient',
+     CURDATE() - INTERVAL 3 DAY),
 
+    -- Carol Member (1003) logs
+    (7, 1003,
+     'Fixed CI cache invalidation issue and optimized build scripts',
+     'Test new version compatibility and write test reports',
+     'Need test environment upgrade to MySQL 8.4',
+     'Challenged',
+     CURDATE() - INTERVAL 1 DAY),
+    (8, 1003,
+     'Completed test case design for Task #4 and executed first round of testing',
+     'Analyze test failure causes and submit bug reports',
+     NULL,
+     'Careful',
+     CURDATE() - INTERVAL 2 DAY),
+
+    -- Lisa CEO (1004) logs
+    (9, 1004,
+     'Attended quarterly business review meeting and confirmed next quarter goals',
+     'Communicate financing progress with investors and prepare presentation materials',
+     NULL,
+     'Strategic',
+     CURDATE() - INTERVAL 1 DAY),
+    (10, 1004,
+     'Approved department budget adjustment plan and optimized resource allocation',
+     'Meet with department heads to understand team challenges',
+     'Need finance department to provide cost analysis reports',
+     'Decisive',
+     CURDATE() - INTERVAL 4 DAY),
+
+    -- Helen Leader (1005) logs
+    (11, 1005,
+     'Hosted Ops-East team weekly meeting and synced task progress',
+     'Develop team performance evaluation standards and collect feedback',
+     NULL,
+     'Organized',
+     CURDATE() - INTERVAL 1 DAY),
+    (12, 1005,
+     'Follow up on infrastructure upgrade plan and coordinate maintenance window',
+     'Write team capability improvement plan and schedule training courses',
+     'Need HR support for training resource coordination',
+     'Proactive',
+     CURDATE() - INTERVAL 3 DAY),
+    (13, 1002,
+     'Finalized Q3 project roadmap and distributed to all teams',
+     'Kickoff meeting with design team for new feature mockups',
+     'Need marketing team to align on product launch timeline',
+     'Productive',
+     CURDATE() - INTERVAL 5 DAY),
+
+    (14, 1002,
+     'Reviewed platform team performance metrics for last month',
+     'Schedule 1:1 meetings with underperforming team members',
+     NULL,
+     'Focused',
+     CURDATE() - INTERVAL 6 DAY),
+
+    (15, 1002,
+     'Resolved cross-department resource allocation conflict',
+     'Draft resource sharing policy for future projects',
+     'Legal team review needed for the policy draft',
+     'Relieved',
+     CURDATE() - INTERVAL 7 DAY),
+
+    (16, 1002,
+     'Completed budget review for infrastructure upgrades',
+     'Present budget proposal to CFO in tomorrows meeting',
+     NULL,
+     'Prepared',
+     CURDATE() - INTERVAL 8 DAY),
+
+    (17, 1002,
+     'Conducted root cause analysis for last weeks deployment failure',
+     'Implement preventive measures in CI/CD pipeline',
+     'DevOps support required for pipeline changes',
+     'Determined',
+     CURDATE() - INTERVAL 9 DAY)
+
+
+
+ON DUPLICATE KEY UPDATE
                          today_summary = VALUES(today_summary),
                          tomorrow_plan = VALUES(tomorrow_plan),
-                         help_needed   = VALUES(help_needed),
-                         status       = VALUES(status),
-                         log_date     = VALUES(log_date);
+                         help_needed = VALUES(help_needed),
+                         status = VALUES(status),
+                         log_date = VALUES(log_date);
 
 
 INSERT INTO log_task_map (log_id, task_id) VALUES
-                                               (1, 1),
-                                               (1, 3),
-                                               (2, 2),
-                                               (2, 4),
-                                               (2, 5);
---     ON DUPLICATE KEY UPDATE
---                          log_id = VALUES(log_id);  -- 或者 task_id = VALUES(task_id)
+                                               (3, 1),   -- log_id=3 (Alice) maps to task_id=1
+                                               (3, 6),   -- log_id=3 (Alice) maps to task_id=6
+                                               (5, 2),   -- log_id=5 (Bob) maps to task_id=2
+                                               (7, 4),   -- log_id=7 (Carol) maps to task_id=4
+                                               (7, 5),   -- log_id=7 (Carol) maps to task_id=5
+                                               (9, 1),   -- log_id=9 (Lisa) maps to task_id=1
+                                               (11, 2);  -- log_id=11 (Helen) maps to task_id=2
+
 INSERT INTO tags (task_id, tag) VALUES
                                     (1, 'release'),
                                     (1, 'v1.0'),
@@ -200,12 +309,19 @@ VALUES
   (2, 'ai_analysis', 1, 'weekly.pdf', 'https://files.example.com/weekly.pdf', 1001, NOW())
 ON DUPLICATE KEY UPDATE file_url=VALUES(file_url);
 
+-- Replace your existing comment inserts with this corrected version
 INSERT INTO comment
-  (comment_id,  owner_id, log_id, content, created_at)
+(comment_id,  owner_id, log_id, content, created_at)
 VALUES
-  (1,  1002, 1, 'LGTM, proceeding to next step.', NOW()),
-  (2, 1001, 2, 'Please add release notes.',      NOW())
-ON DUPLICATE KEY UPDATE content=VALUES(content);
+    -- Use log_id=1 (exists in log table)
+    (1,  1002, 1, 'LGTM, proceeding to next step.', NOW()),
+    -- Use log_id=2 (exists in log table)
+    (2, 1001, 2, 'Please add release notes.',      NOW()),
+    -- Add new comments with valid log_ids (e.g., 3,5,7 from extended logs)
+    (3, 1003, 3, 'Approved the release plan.',    NOW()),
+    (4, 1004, 5, 'Can we discuss the CI timeline?', NOW())
+
+    ON DUPLICATE KEY UPDATE content=VALUES(content);
 
 -- ---- 通知 ----
 INSERT INTO notification
