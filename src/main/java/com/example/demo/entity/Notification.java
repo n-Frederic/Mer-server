@@ -3,6 +3,7 @@ package com.example.demo.entity;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name="notification")
@@ -31,7 +32,7 @@ public class Notification {
     private Boolean isRead;
 
     @Column(name="created_at")
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     public Notification() {
     }
@@ -52,7 +53,7 @@ public class Notification {
         this.releventId = releventId;
         this.body = body;
         this.isRead = isRead;
-        this.createdAt=LocalDate.now();
+        this.createdAt=LocalDateTime.now();
     }
 
     public Long getNotifId() {
@@ -103,11 +104,11 @@ public class Notification {
         isRead = read;
     }
 
-    public LocalDate getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDate createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 }
