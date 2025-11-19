@@ -3,6 +3,7 @@ package com.example.demo.service;
 import com.example.demo.entity.CompanyTask;
 import com.example.demo.repository.CompanyTaskRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,21 +48,22 @@ public class CompanyTaskService {
     public CompanyTask saveCompanyTask(CompanyTask companyTask) {
         return companyTaskRepository.save(companyTask);
     }
+    @Transactional
     public List<CompanyTask> replaceAllCompanyTasks(List<String> taskTitles) {
         // 1. 先删除所有旧的CompanyTask
         companyTaskRepository.deleteAll();
-
+        
         // 2. 将前端传递的标题列表转换为CompanyTask对象列表
         List<CompanyTask> newTasks = taskTitles.stream()
                 .map(title -> {
                     CompanyTask task = new CompanyTask();
                     task.setTitle(title);
                     // 补充其他默认字段（根据你的实体类需求设置，例如：
-
+                    
                     return task;
                 })
                 .collect(Collectors.toList());
-
+        
         // 3. 批量插入新任务
         return companyTaskRepository.saveAll(newTasks);
     }
