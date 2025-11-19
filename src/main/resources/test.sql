@@ -138,12 +138,37 @@ VALUES
                          progress_pct=VALUES(progress_pct),
                          assignee_id=VALUES(assignee_id);  -- 新增：冲突时同步更新负责人
 
-INSERT INTO task_report
-  (report_id, task_id, reporter_id, content,address, attachments,created_at)
-VALUES
-  (1, 1, 1002, 'Initialized repo, set up pipelines.','street', 'README.md;pipeline.yml','2024-10-26 14:20:18'),
-  (2, 1, 1002, 'Fixed failing tests, coverage 82%.','street1' , 'coverage.txt','2025-10-26 14:20:18')
-ON DUPLICATE KEY UPDATE content=VALUES(content);
+
+INSERT INTO task_report (
+    report_id,
+    task_id,
+    reporter_id,
+    content,
+    address,
+    attachments,
+    created_at,
+    status,
+    reject_reason,
+    approved_by,
+    approved_at,
+    rejected_by,
+    rejected_at
+) VALUES
+      (1, 1, 1002, 'Initialized repo, set up pipelines.', 'street', 'README.md;pipeline.yml', '2024-10-26 14:20:18',
+       'submitted', NULL, NULL, NULL, NULL, NULL),
+      (2, 1, 1002, 'Fixed failing tests, coverage 82%.', 'street1', 'coverage.txt', '2025-10-26 14:20:18',
+       'submitted', NULL, 1001, '2025-10-26 15:30:00', NULL, NULL)
+    ON DUPLICATE KEY UPDATE
+                         content = VALUES(content),
+                         address = VALUES(address),
+                         attachments = VALUES(attachments),
+                         created_at = VALUES(created_at),
+                         status = VALUES(status),
+                         reject_reason = VALUES(reject_reason),
+                         approved_by = VALUES(approved_by),
+                         approved_at = VALUES(approved_at),
+                         rejected_by = VALUES(rejected_by),
+                         rejected_at = VALUES(rejected_at);
 
 INSERT INTO log
 (
