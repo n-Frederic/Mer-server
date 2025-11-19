@@ -38,6 +38,14 @@ public class AuthInterceptor implements HandlerInterceptor {
         System.out.println("Servlet Path: " + request.getServletPath());
         System.out.println("=".repeat(50));
 
+        //允许文件访问
+        String requestUri = request.getRequestURI();
+
+        if (requestUri.startsWith("/api/files/")) {
+            System.out.println("✅ 文件访问，跳过认证检查");
+            return true; // 允许文件访问通过
+        }
+
         // 1. 从请求头获取 token
         String token = request.getHeader("Authorization");
 
@@ -66,6 +74,8 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // 5. Token 有效，将用户ID存入 ThreadLocal
         UserContext.setCurrentUserId(login.getUser().getId());
+
+
 
         return true; // 继续执行
     }
