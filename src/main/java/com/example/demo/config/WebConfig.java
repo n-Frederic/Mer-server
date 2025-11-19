@@ -18,6 +18,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/**")  // 拦截所有请求
-                .excludePathPatterns("/login", "/api/login","**/login","/error","/send-verification-code","/send-verification-code/","/forgot-password/**","**/forgot-password/**"); // 接口不拦截
+                .excludePathPatterns("/login", "/api/login","**/login","/error","/send-verification-code","/send-verification-code/","/forgot-password/**","**/forgot-password/**", "/api/files/**" ); // 接口不拦截
     }
 }
