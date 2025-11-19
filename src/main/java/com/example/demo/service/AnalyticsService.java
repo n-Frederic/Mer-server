@@ -63,23 +63,23 @@ public class AnalyticsService {
                 .collect(Collectors.joining("\n\n"));
 
         String summary = zhiPuService.summarize(text);
-        String content = extractContentFromZhiPu(summary);
-        content = cleanContent(content);
-
-        if (!isValidJson(content)) {
-            throw new RuntimeException("Invalid JSON from AI: " + content);
-        }
+        List<Keyword> keywords = keywordExtractor.extractTopKeywords(text);
 
         AiAnalysis record = new AiAnalysis();
         record.setTitle("Weekly Summary");
         record.setGeneratedBy(userId);
-        record.setSummary(content);
+        record.setSummary(summary);
         record.setMetricsJson(null);
         record.setSuggestions(null);
 
         aiAnalysisRepository.save(record);
 
-        return parseWSR(content);
+        return new WeeklySummaryResponse(
+                true,
+                summary,            // 直接使用自然语言
+                keywords,
+                LocalDateTime.now()
+        );
     }
 
     public List<StatusCount> getWeeklyChartData(Long userId) {
