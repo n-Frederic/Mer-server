@@ -43,6 +43,7 @@ DROP TABLE IF EXISTS
     notification,
     comment,
     attachment,
+    company_task,
     ai_analysis,
     log,
     task_report,
@@ -140,17 +141,7 @@ CREATE TABLE IF NOT EXISTS user (
 CREATE TABLE IF NOT EXISTS `company_task` (
                                 `task_id`   BIGINT NOT NULL AUTO_INCREMENT,
                                 `title`     VARCHAR(255) NOT NULL,
-                                `description` TEXT NULL,
-                                `priority`  VARCHAR(32) NULL,
-                                `status`    VARCHAR(32) NULL,
-                                `startAt`   DATETIME(6) NULL,
-                                `dueAt`     DATETIME(6) NULL,
-                                `createdAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-                                `updatedAt` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-                                PRIMARY KEY (`task_id`),
-                                KEY `idx_company_task_status` (`status`),
-                                KEY `idx_company_task_priority` (`priority`),
-                                KEY `idx_company_task_dueAt` (`dueAt`)
+                                PRIMARY KEY (`task_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS task (

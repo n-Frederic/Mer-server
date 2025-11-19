@@ -32,21 +32,7 @@ public class CompanyTaskService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 根据优先级获取任务标题
-     */
-    public List<String> getTasksByPriority(String priority) {
-        return companyTaskRepository.findByPriority(priority).stream()
-                .map(CompanyTask::getTitle)
-                .collect(Collectors.toList());
-    }
 
-    /**
-     * 根据状态获取任务
-     */
-    public List<CompanyTask> getTasksByStatus(String status) {
-        return companyTaskRepository.findByStatus(status);
-    }
 
     /**
      * 根据ID获取任务
@@ -61,6 +47,25 @@ public class CompanyTaskService {
     public CompanyTask saveCompanyTask(CompanyTask companyTask) {
         return companyTaskRepository.save(companyTask);
     }
+    public List<CompanyTask> replaceAllCompanyTasks(List<String> taskTitles) {
+        // 1. 先删除所有旧的CompanyTask
+        companyTaskRepository.deleteAll();
+
+        // 2. 将前端传递的标题列表转换为CompanyTask对象列表
+        List<CompanyTask> newTasks = taskTitles.stream()
+                .map(title -> {
+                    CompanyTask task = new CompanyTask();
+                    task.setTitle(title);
+                    // 补充其他默认字段（根据你的实体类需求设置，例如：
+
+                    return task;
+                })
+                .collect(Collectors.toList());
+
+        // 3. 批量插入新任务
+        return companyTaskRepository.saveAll(newTasks);
+    }
+
 
     /**
      * 删除任务

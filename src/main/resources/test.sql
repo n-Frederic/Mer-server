@@ -88,11 +88,19 @@ ON DUPLICATE KEY UPDATE token=VALUES(token);
 
 -- ---- 任务（两套：company_task & 业务 task）----
 INSERT INTO company_task
-  (task_id, title, description, priority, status, startAt, dueAt)
+  (task_id, title)
 VALUES
-  (1, 'KT for new hires', 'Prepare onboarding materials', 'High',   'Reported',      NOW(), DATE_ADD(NOW(), INTERVAL 7 DAY)),
-  (2, 'Infra upgrade',    'Upgrade MySQL to 8.4',         'Medium', 'Reported',NOW(), DATE_ADD(NOW(), INTERVAL 14 DAY))
-ON DUPLICATE KEY UPDATE title=VALUES(title), status=VALUES(status);
+  (1, 'KT for new hires'),
+  (2, 'Infra upgrade'),
+  (3, 'Infra upgrade'),
+  (4, 'Infra upgrade'),
+  (5, 'Infra upgrade'),
+  (6, 'Infra upgrade'),
+  (7, 'Infra upgrade'),
+  (8, 'Infra upgrade'),
+  (9, 'Infra upgrade'),
+  (10, 'Infra upgrade')
+ON DUPLICATE KEY UPDATE title=VALUES(title);
 
 INSERT INTO task
 (task_id, title, description, creator_id, priority, status, progress_pct,start_at, due_at, parent_task)

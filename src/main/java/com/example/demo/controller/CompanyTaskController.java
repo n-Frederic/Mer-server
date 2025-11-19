@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.CompanyTaskBatchDTO;
 import com.example.demo.entity.CompanyTask;
 import com.example.demo.service.CompanyTaskService;
 import org.springframework.web.bind.annotation.*;
@@ -46,37 +47,7 @@ public class CompanyTaskController {
         return response;
     }
 
-    /**
-     * GET /api/company-tasks/by-priority?priority=高
-     * 根据优先级筛选任务
-     */
-    @GetMapping("/by-priority")
-    public Map<String, Object> getTasksByPriority(@RequestParam String priority) {
-        List<String> tasks = companyTaskService.getTasksByPriority(priority);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("tasks", tasks);
-        response.put("priority", priority);
-        response.put("count", tasks.size());
-
-        return response;
-    }
-
-    /**
-     * GET /api/company-tasks/by-status?status=进行中
-     * 根据状态筛选任务
-     */
-    @GetMapping("/by-status")
-    public Map<String, Object> getTasksByStatus(@RequestParam String status) {
-        List<CompanyTask> tasks = companyTaskService.getTasksByStatus(status);
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("tasks", tasks);
-        response.put("status", status);
-        response.put("count", tasks.size());
-
-        return response;
-    }
 
     /**
      * GET /api/company-tasks/{id}
@@ -100,19 +71,9 @@ public class CompanyTaskController {
      * PUT /api/company-tasks/{id}
      * 更新公司任务
      */
-    @PutMapping("/{id}")
-    public CompanyTask updateCompanyTask(@PathVariable Long id, @RequestBody CompanyTask companyTaskDetails) {
-        CompanyTask existingTask = companyTaskService.getCompanyTaskById(id);
-        if (existingTask != null) {
-            existingTask.setTitle(companyTaskDetails.getTitle());
-            existingTask.setDescription(companyTaskDetails.getDescription());
-            existingTask.setPriority(companyTaskDetails.getPriority());
-            existingTask.setStatus(companyTaskDetails.getStatus());
-            existingTask.setStartAt(companyTaskDetails.getStartAt());
-            existingTask.setDueAt(companyTaskDetails.getDueAt());
-            return companyTaskService.saveCompanyTask(existingTask);
-        }
-        return null;
+    @PutMapping
+    public List<CompanyTask> updateCompanyTask(@RequestBody CompanyTaskBatchDTO dto) {
+        return companyTaskService.replaceAllCompanyTasks(dto.getTasks());
     }
 
     /**
