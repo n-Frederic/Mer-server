@@ -63,6 +63,7 @@ public class AnalyticsService {
                 .collect(Collectors.joining("\n\n"));
 
         String summary = zhiPuService.summarize(text);
+        summary = extractContentFromZhiPu(summary);
         List<Keyword> keywords = keywordExtractor.extractTopKeywords(text);
 
         AiAnalysis record = new AiAnalysis();

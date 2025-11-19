@@ -68,12 +68,24 @@ public class CompanyTaskController {
     }
 
     /**
-     * PUT /api/company-tasks/{id}
-     * 更新公司任务
+     * PUT /api/company-tasks
+     * 更新公司十大重要事项
      */
     @PutMapping
-    public List<CompanyTask> updateCompanyTask(@RequestBody CompanyTaskBatchDTO dto) {
-        return companyTaskService.replaceAllCompanyTasks(dto.getTasks());
+    public Map<String, Object> updateCompanyTask(@RequestBody CompanyTaskBatchDTO dto) {
+        try {
+            List<CompanyTask> result = companyTaskService.replaceAllCompanyTasks(dto.getTasks());
+            Map<String, Object> response = new HashMap<>();
+            response.put("error", false);
+            response.put("message", "公司重要事项更新成功");
+            response.put("data", result);
+            return response;
+        } catch (Exception e) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("error", true);
+            response.put("message", "更新公司重要事项失败: " + e.getMessage());
+            return response;
+        }
     }
 
     /**
