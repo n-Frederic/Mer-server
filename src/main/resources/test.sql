@@ -81,9 +81,9 @@ INSERT INTO verification_code (id, email, code, created_at) VALUES
   (2, 'carol@example.com', '553144', NOW())
 ON DUPLICATE KEY UPDATE code=VALUES(code), created_at=VALUES(created_at);
 
-INSERT INTO login (login_id, user_id, token) VALUES
-  (1, 1001, 'tok_admin_abc123'),
-  (2, 1002, 'tok_mgr_def456')
+INSERT INTO login (login_id, user_id, token,created_at,valid_to) VALUES
+  (1, 1001, 'tok_admin_abc123','2025-11-19 11:16:10','2025-11-19 11:16:10'),
+  (2, 1002, '3a0c12fe-196f-4b08-bf2d-fcdcfe95973f','2025-11-19 11:16:10','2026-11-19 11:16:10')
 ON DUPLICATE KEY UPDATE token=VALUES(token);
 
 -- ---- 任务（两套：company_task & 业务 task）----
