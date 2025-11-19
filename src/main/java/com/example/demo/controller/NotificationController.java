@@ -6,7 +6,9 @@ import com.example.demo.dto.LoginResponseDTO;
 import com.example.demo.entity.Notification;
 import com.example.demo.service.LoginService;
 import com.example.demo.service.NotificationService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,6 +16,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 
@@ -25,6 +28,7 @@ public class NotificationController {
     public NotificationController(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
+
 
     @GetMapping
     public Map<String, Object> getNotification(
@@ -65,6 +69,33 @@ public class NotificationController {
 
         result.put("data", data);
         return result;
+    }
+
+    @PutMapping("/{notifId}/read")
+    public ResponseEntity<Map<String, Object>> read( @PathVariable Long notifId) {
+        try {
+            notificationService.read(notifId);
+
+            return ResponseEntity.ok(Map.of(
+                    "ok", true,
+                    "message", "已读成功"
+            ));
+
+        } catch (NoSuchElementException e) {
+            // 日志不存在
+            return ResponseEntity.status(404).body(Map.of(
+                    "ok", false,
+                    "message", "通知不存在"
+            ));
+
+        } catch (Exception e) {
+            // 其他异常
+            return ResponseEntity.status(500).body(Map.of(
+                    "ok", false,
+                    "message", "服务器错误"
+            ));
+
+        }
     }
 
 }

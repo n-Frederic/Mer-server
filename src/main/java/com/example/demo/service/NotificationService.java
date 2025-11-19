@@ -21,5 +21,8 @@ public class NotificationService {
         Pageable pageable = PageRequest.of(page, size);
         return notificationRepository.findByUserId(userId,pageable);
     }
+    public void read(Long notificationId) {
+        notificationRepository.findById(notificationId).orElseThrow().setRead(true);
+    }
 
 }
