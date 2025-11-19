@@ -92,115 +92,143 @@ public class LogService {
         return tasks;
     }
 
-    public Page<Log> getScopedLogs(String mode, String memberIds, String timeFilter,
-                                   String keyword, int page, int pageSize) {
+    public Page<Log> getScopedLogs(
+            String mode,
+            String memberIds,
+            String timeFilter,
+            String keyword,
+            String tags,
+            int page,
+            int pageSize
+    ) {
 
         Long currentUserId = UserContext.getCurrentUserId();
         User currentUser = userRepository.findById(currentUserId).orElseThrow();
 
-        // 1. 获取要查询的用户列表 userIds
         List<Long> targetUserIds;
 
         switch (mode) {
 
+            // ================= my ====================
             case "my":
                 targetUserIds = List.of(currentUserId);
                 break;
 
+            // ================= member =================
             case "member":
-                if (currentUser.getRoleId() != 3) {
-                    throw new RuntimeException("您没有权限查看团队成员的日志");
+                int role = currentUser.getRoleId();
+
+                // 普通成员 4 不能看任何人的日志
+                if (role == 4) {
+                    throw new RuntimeException("权限不足：普通成员不可查看他人日志");
                 }
 
-                if (memberIds == null || memberIds.isBlank()) {
-                    throw new RuntimeException("member 模式下必须提供 memberIds");
-                }
-
-                List<Long> requestedIds = Arrays.stream(memberIds.split(","))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .map(Long::parseLong)
-                        .collect(Collectors.toList());
-
-                List<Long> teamMemberIds = userRepository.findByTeamId(currentUser.getTeamId())
-                        .stream()
-                        .map(User::getId)
-                        .toList();
-
-                for (Long id : requestedIds) {
-                    if (!teamMemberIds.contains(id)) {
-                        throw new RuntimeException("非法的 memberId: " + id + "（不属于您团队）");
+                // CEO(1) / Admin(5) = 可看所有人日志
+                if (role == 1 || role == 5) {
+                    if (memberIds == null || memberIds.isBlank()) {
+                        targetUserIds = userRepository.findAll()
+                                .stream().map(User::getId).toList();
+                    } else {
+                        targetUserIds = parseIds(memberIds);
                     }
+                    break;
                 }
 
-                targetUserIds = requestedIds;
-                break;
+                // Manager(2) = 看本部门所有人
+                if (role == 2) {
+                    List<Long> deptUserIds =
+                            userRepository.findByDeptId(currentUser.getDeptId())
+                                    .stream().map(User::getId).toList();
 
-            case "approval":
-                if (currentUser.getRoleId() != 3) {
-                    throw new RuntimeException("无权限查看团队成员日志");
+                    if (memberIds == null || memberIds.isBlank()) {
+                        targetUserIds = deptUserIds;
+                    } else {
+                        List<Long> req = parseIds(memberIds);
+                        validateContain(deptUserIds, req, "成员不在你部门");
+                        targetUserIds = req;
+                    }
+                    break;
                 }
 
-                targetUserIds = userRepository.findByTeamId(currentUser.getTeamId())
-                        .stream()
-                        .map(User::getId)
-                        .filter(id -> !id.equals(currentUserId)) // 不包含自己
-                        .collect(Collectors.toList());
-                break;
+                // TeamLeader(3) = 看本团队所有人
+                if (role == 3) {
+                    List<Long> teamUserIds =
+                            userRepository.findByTeamId(currentUser.getTeamId())
+                                    .stream().map(User::getId).toList();
+
+                    if (memberIds == null || memberIds.isBlank()) {
+                        targetUserIds = teamUserIds;
+                    } else {
+                        List<Long> req = parseIds(memberIds);
+                        validateContain(teamUserIds, req, "成员不在你团队");
+                        targetUserIds = req;
+                    }
+                    break;
+                }
 
             default:
                 throw new RuntimeException("错误的 mode 参数");
         }
 
-        // 2. 时间过滤
+        // ======== 时间过滤参数 ========
         LocalDate start = null, end = null;
         LocalDate today = LocalDate.now();
 
         switch (timeFilter) {
             case "today":
-                start = today;
-                end = today;
-                break;
-
+                start = today; end = today; break;
             case "this_week":
                 start = today.with(DayOfWeek.MONDAY);
                 end = today.with(DayOfWeek.SUNDAY);
                 break;
-
             case "this_year":
                 start = today.with(TemporalAdjusters.firstDayOfYear());
                 end = today.with(TemporalAdjusters.lastDayOfYear());
                 break;
-
             case "all":
             default:
                 break;
         }
 
-        PageRequest pageable = PageRequest.of(page - 1, pageSize);
-
-        // 3. 组合筛选逻辑
-        boolean useTime = start != null;
-        boolean useKeyword = keyword != null && !keyword.isBlank();
-
-        if (useTime && useKeyword) {
-            return logRepository.findByAuthorIdInAndDateBetweenAndSummaryContainingIgnoreCase(
-                    targetUserIds, start, end, keyword, pageable);
+        // ======== tags 处理 ========
+        List<String> tagList = null;
+        if (tags != null && !tags.isBlank()) {
+            tagList = Arrays.stream(tags.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toList();
         }
 
-        if (useTime) {
-            return logRepository.findByAuthorIdInAndDateBetween(
-                    targetUserIds, start, end, pageable);
-        }
+        // ======== 分页 ========
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
 
-        if (useKeyword) {
-            return logRepository.findByAuthorIdInAndSummaryContainingIgnoreCase(
-                    targetUserIds, keyword, pageable);
-        }
-
-        // 默认情况
-        return logRepository.findByAuthorIdIn(targetUserIds, pageable);
+        // ======== 最终统一查询 ========
+        return logRepository.searchLogs(
+                targetUserIds,
+                start,
+                end,
+                keyword,
+                tagList,
+                pageable
+        );
     }
+
+    // 工具函数
+    private List<Long> parseIds(String ids) {
+        return Arrays.stream(ids.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(Long::parseLong)
+                .toList();
+    }
+
+    private void validateContain(List<Long> parent, List<Long> req, String msg) {
+        for (Long id : req)
+            if (!parent.contains(id))
+                throw new RuntimeException(msg + ": " + id);
+    }
+
+
 
     public List<Long> getTaskIdsByLogId(Long logId) {
         List<Log_Task> mappings = logTaskRepository.findById_LogId(logId);

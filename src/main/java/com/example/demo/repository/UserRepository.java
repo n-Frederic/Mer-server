@@ -36,4 +36,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             @Param("teamId") Long teamId,
             Pageable pageable
     );
+
+    List<User> findByDeptId(int deptId);
+
 }
