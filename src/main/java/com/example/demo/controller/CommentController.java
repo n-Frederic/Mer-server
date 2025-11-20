@@ -62,7 +62,6 @@ public class CommentController {
     @GetMapping
     public Map<String, Object> getComments(
             @RequestParam String logId,
-            @RequestParam String ownerId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize
     ) {
@@ -74,7 +73,6 @@ public class CommentController {
                     Map<String, Object> m = new HashMap<>();
                     m.put("commentId", c.getCommentId());
                     m.put("logId", c.getLogId());
-                    m.put("ownerId", c.getOwnerId());
                     m.put("content", c.getContent());
                     m.put("createdAt", c.getCreatedAt().toString());
                     return m;
