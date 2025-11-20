@@ -116,11 +116,12 @@ public class LogController {
             @RequestParam(required = false) String memberIds,
             @RequestParam(defaultValue = "all") String timeFilter,
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String tags,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize
     ) {
 
-        var logPage = logService.getScopedLogs(mode, memberIds, timeFilter, keyword, page, pageSize);
+        var logPage = logService.getScopedLogs(mode, memberIds, timeFilter, keyword, tags, page, pageSize);
 
         List<Map<String, Object>> list = logPage.getContent().stream().map(log -> {
 

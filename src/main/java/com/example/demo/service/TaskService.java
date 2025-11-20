@@ -549,4 +549,120 @@ this.notificationRepository = notificationRepository;
                 )
         );
     }
+
+    @Transactional
+    public void approveReport(Long taskId, Long reporterId, Long approvedBy, LocalDateTime approvedAt) {
+        TaskReport report = taskReportRepository.findByTaskIdAndReporterId(taskId, reporterId)
+                .orElseThrow(() -> new RuntimeException("未找到报告"));
+
+        report.setStatus("approved");
+        report.setApprovedBy(approvedBy);
+        report.setApprovedAt(approvedAt);
+        report.setRejectedBy(null);
+        report.setRejectedAt(null);
+        report.setRejectReason(null);
+
+        taskReportRepository.save(report);
+    }
+
+    @Transactional
+    public void rejectReport(
+            Long taskId, Long reporterId, Long rejectedBy,
+            LocalDateTime rejectedAt, String reason
+    ) {
+        TaskReport report = taskReportRepository.findByTaskIdAndReporterId(taskId, reporterId)
+                .orElseThrow(() -> new RuntimeException("未找到报告"));
+
+        report.setStatus("rejected");
+        report.setRejectedBy(rejectedBy);
+        report.setRejectedAt(rejectedAt);
+        report.setRejectReason(reason);
+
+        taskReportRepository.save(report);
+    }
+
+    public Map<String, Object> checkAllApproved(Long taskId) {
+        List<TaskReport> all = taskReportRepository.findByTaskId(taskId);
+
+        long approved = all.stream().filter(r -> "approved".equals(r.getStatus())).count();
+        long submitted = all.stream().filter(r -> "submitted".equals(r.getStatus())).count();
+        long rejected = all.stream().filter(r -> "rejected".equals(r.getStatus())).count();
+
+        boolean allApproved = submitted == 0 && rejected == 0 && approved == all.size();
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("total_assignees", all.size());
+        data.put("approved_reports", approved);
+        data.put("pending_reports", submitted);
+        data.put("rejected_reports", rejected);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("ok", true);
+        result.put("all_approved", allApproved);
+        result.put("data", data);
+
+        return result;
+    }
+
+    @Transactional
+    public Map<String, Object> batchApprove(Long taskId, Long approvedBy, LocalDateTime approvedAt) {
+
+        List<TaskReport> list = taskReportRepository.findByTaskId(taskId);
+
+        int count = 0;
+        for (TaskReport r : list) {
+            if (!"approved".equals(r.getStatus())) {
+                r.setStatus("approved");
+                r.setApprovedBy(approvedBy);
+                r.setApprovedAt(approvedAt);
+                r.setRejectedBy(null);
+                r.setRejectedAt(null);
+                r.setRejectReason(null);
+                taskReportRepository.save(r);
+                count++;
+            }
+        }
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("ok", true);
+        result.put("message", "成功审批" + count + "个报告");
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("approved_count", count);
+        data.put("failed_count", 0);
+        result.put("data", data);
+
+        return result;
+    }
+
+    public Map<String, Object> reportStatistics(Long taskId) {
+        List<TaskReport> all = taskReportRepository.findByTaskId(taskId);
+        int total = all.size();
+
+        long submitted = all.stream().filter(r -> "submitted".equals(r.getStatus())).count();
+        long approved = all.stream().filter(r -> "approved".equals(r.getStatus())).count();
+        long rejected = all.stream().filter(r -> "rejected".equals(r.getStatus())).count();
+
+        double progress = (double) approved / total * 100.0;
+
+        Map<String, String> statusMap = new LinkedHashMap<>();
+        for (TaskReport r : all) {
+            statusMap.put(String.valueOf(r.getReporterId()), r.getStatus());
+        }
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("total_assignees", total);
+        data.put("submitted_reports", submitted);
+        data.put("approved_reports", approved);
+        data.put("pending_reports", submitted);
+        data.put("rejected_reports", rejected);
+        data.put("progress_percentage", progress);
+        data.put("report_status", statusMap);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("ok", true);
+        result.put("data", data);
+
+        return result;
+    }
 }

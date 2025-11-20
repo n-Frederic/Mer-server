@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface LogRepository extends JpaRepository<Log, Long> {
+public interface LogRepository extends JpaRepository<Log, Long>, LogRepositoryCustom{
 
     // 按作者ID查询，并可选日期过滤
     Page<Log> findByAuthor_Id(Long authorId, Pageable pageable);

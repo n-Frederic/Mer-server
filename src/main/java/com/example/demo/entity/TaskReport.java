@@ -6,42 +6,48 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "task_report")
 public class TaskReport {
 
-    @Setter
-    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "report_id")
     private Long reportId;
 
-    @Setter
-    @Getter
     @Column(name = "task_id")
     private Long taskId;
 
-    @Setter
-    @Getter
     @Column(name = "reporter_id")
     private Long reporterId;
 
-    @Setter
-    @Getter
     private String content;
 
-    @Setter
-    @Getter
     private String address;
 
-    @Getter
-    @Setter
-    private String attachments; // JSON 字符串
+    private String attachments;
 
-    @Setter
-    @Getter
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "reject_reason")
+    private String rejectReason;
+
+    @Column(name = "approved_by")
+    private Long approvedBy;
+
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
+    @Column(name = "rejected_by")
+    private Long rejectedBy;
+
+    @Column(name = "rejected_at")
+    private LocalDateTime rejectedAt;
 }
+

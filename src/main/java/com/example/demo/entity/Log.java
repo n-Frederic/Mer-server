@@ -1,7 +1,11 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import java.time.Instant;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.Set;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -9,34 +13,65 @@ import java.time.LocalDateTime;
 @Table(name = "log")
 public class Log {
 
+    // Getter / Setter
+    @Getter
+    @Setter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "log_id")
     private Long id;
 
+    @Getter
+    @Setter
     @Column(name = "log_date")
     private LocalDate date;
 
+    @Getter
+    @Setter
     @Column(name = "today_summary")
     private String summary;
 
+    @Getter
+    @Setter
     @Column(name = "tomorrow_plan")
     private String tomorrowPlan;
 
+    @Getter
+    @Setter
     @Column(name = "help_needed")
     private String helpNeeded;
 
+    @Getter
+    @Setter
     @Column(name = "status")
     private String status;
 
 
 
+    @Getter
+    @Setter
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
     private User author;
 
+    @Getter
+    @Setter
     private LocalDateTime createdAt;
+    @Getter
+    @Setter
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "id.logId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Log_Task> logTasks = new HashSet<>();
+
+    @Transient
+    public Set<Task> getTasks() {
+        Set<Task> tasks = new HashSet<>();
+        for (Log_Task lt : logTasks) {
+            tasks.add(lt.getTask());
+        }
+        return tasks;
+    }
 
     public Log() {}
 
@@ -51,48 +86,4 @@ public class Log {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Getter / Setter
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
-
-
-    public String getSummary() { return summary; }
-    public void setSummary(String summary) { this.summary = summary; }
-
-
-    public User getAuthor() { return author; }
-    public void setAuthor(User author) { this.author = author; }
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
-
-    public String getTomorrowPlan() {
-        return tomorrowPlan;
-    }
-
-    public void setTomorrowPlan(String tomorrowPlan) {
-        this.tomorrowPlan = tomorrowPlan;
-    }
-
-    public String getHelpNeeded() {
-        return helpNeeded;
-    }
-
-    public void setHelpNeeded(String helpNeeded) {
-        this.helpNeeded = helpNeeded;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
 }
