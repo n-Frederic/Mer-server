@@ -383,6 +383,8 @@ this.notificationRepository = notificationRepository;
         List<Map<String, Object>> reportList = reports.stream().map(r -> {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("report_id", r.getReportId());
+            map.put("status", r.getStatus());
+            map.put("reject_reason", r.getRejectReason());
             map.put("task_id", r.getTaskId());
             map.put("reporter_id", r.getReporterId());
             map.put("content", r.getContent());
@@ -419,6 +421,7 @@ this.notificationRepository = notificationRepository;
         report.setReporterId(reporterId);
         report.setContent(content);
         report.setAddress(address);
+        report.setStatus("submitted");
 
         List<String> filePaths = new ArrayList<>();
 

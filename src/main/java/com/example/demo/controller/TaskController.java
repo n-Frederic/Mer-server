@@ -164,11 +164,6 @@ public class TaskController {
         }
     }
 
-    @GetMapping("/{taskId}/reports")
-    public Map<String, Object> getReports(@PathVariable Long taskId) {
-        return taskService.getReports(taskId);
-    }
-
     // 9.2 创建任务报告
     @PostMapping(value = "/{taskId}/reports", consumes = {"multipart/form-data"})
     public ResponseEntity<?> createReport(
