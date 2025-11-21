@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/tasks/{taskId}/reports")
+@RequestMapping("tasks/{taskId}/reports")
 public class TaskReportController {
 
     private final TaskService taskService;
@@ -64,5 +64,10 @@ public class TaskReportController {
     @GetMapping("/statistics")
     public Map<String, Object> statistics(@PathVariable Long taskId) {
         return taskService.reportStatistics(taskId);
+    }
+
+    @GetMapping
+    public Map<String, Object> getReports(@PathVariable Long taskId) {
+        return taskService.getReports(taskId);
     }
 }
