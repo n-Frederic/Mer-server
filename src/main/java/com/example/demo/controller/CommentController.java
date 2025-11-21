@@ -3,6 +3,8 @@ package com.example.demo.controller;
 import com.example.demo.context.UserContext;
 import com.example.demo.dto.CommentCreateRequest;
 import com.example.demo.entity.Comment;
+import com.example.demo.entity.User;
+import com.example.demo.repository.UserRepository;
 import com.example.demo.service.CommentService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @RestController
@@ -18,9 +21,11 @@ import java.util.stream.Collectors;
 public class CommentController {
 
     private final CommentService commentService;
+    private final UserRepository userRepository;
 
-    public CommentController(CommentService commentService) {
+    public CommentController(CommentService commentService, UserRepository userRepository) {
         this.commentService = commentService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping
@@ -62,25 +67,43 @@ public class CommentController {
     @GetMapping
     public Map<String, Object> getComments(
             @RequestParam String logId,
-            @RequestParam String ownerId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int pageSize
     ) {
 
         Page<Comment> commentPage = commentService.getComments(logId, page, pageSize);
 
-        List<Map<String, Object>> list = commentPage.getContent().stream()
-                .map(c -> {
-                    Map<String, Object> m = new HashMap<>();
-                    m.put("commentId", c.getCommentId());
-                    m.put("logId", c.getLogId());
-                    m.put("ownerId", c.getOwnerId());
-                    m.put("content", c.getContent());
-                    m.put("createdAt", c.getCreatedAt().toString());
-                    return m;
-                })
+        List<Long> ownerIds = commentPage.getContent().stream()
+                .map(Comment::getOwnerId)
+                .distinct()
                 .collect(Collectors.toList());
 
+        Map<Long, User> userMap = userRepository.findAllById(ownerIds).stream()
+                .collect(Collectors.toMap(User::getId, Function.identity()));
+
+// 2. 构造返回结果
+        List<Map<String, Object>> list = commentPage.getContent().stream()
+                .map(c -> {
+                    Map<String, Object> commentMap = new HashMap<>();
+                    commentMap.put("commentId", c.getCommentId());
+                    commentMap.put("logId", c.getLogId());
+
+                    // 构建 authorInfo
+                    Map<String, Object> authorInfo = new HashMap<>();
+                    authorInfo.put("userId", "U-" + c.getOwnerId());
+
+                    // 从预加载的用户Map中获取信息，并处理用户不存在的情况
+                    User author = userMap.get(c.getOwnerId());
+                    authorInfo.put("name", author != null ? author.getName() : "匿名用户");
+
+                    commentMap.put("authorInfo", authorInfo);
+
+                    commentMap.put("content", c.getContent());
+                    commentMap.put("createdAt", c.getCreatedAt().toString());
+
+                    return commentMap;
+                })
+                .collect(Collectors.toList());
         Map<String, Object> data = new HashMap<>();
         data.put("comments", list);
         data.put("page", page);

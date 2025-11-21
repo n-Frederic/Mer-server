@@ -204,17 +204,27 @@ CREATE TABLE IF NOT EXISTS task_assignment (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS task_report (
-                             report_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
-                             task_id      BIGINT NOT NULL,
-                             reporter_id  BIGINT NOT NULL,
-                             content      TEXT,
-                             address      TEXT,
-                             attachments  TEXT,
-                             created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                             KEY idx_tr_task (task_id),
-                             KEY idx_tr_reporter (reporter_id),
-                             FULLTEXT KEY ftx_tr_content (content)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+                                           report_id    BIGINT PRIMARY KEY AUTO_INCREMENT,
+                                           task_id      BIGINT NOT NULL,
+                                           reporter_id  BIGINT NOT NULL,
+                                           content      VARCHAR(255),  -- 图片中是varchar(255)（非TEXT）
+    address      VARCHAR(255),  -- 图片中是varchar(255)（非TEXT）
+    attachments  VARCHAR(255),  -- 图片中是varchar(255)（非TEXT）
+    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    status       VARCHAR(50) NOT NULL DEFAULT 'submitted',  -- 新增字段：状态（默认submitted）
+    reject_reason TEXT,  -- 新增字段：拒绝原因
+    approved_by  BIGINT,  -- 新增字段：审批人ID
+    approved_at  DATETIME,  -- 新增字段：审批时间
+    rejected_by  BIGINT,  -- 新增字段：拒绝人ID
+    rejected_at  DATETIME,  -- 新增字段：拒绝时间
+-- 索引（匹配图片中的MUL键）
+    KEY idx_tr_task (task_id),
+    KEY idx_tr_reporter (reporter_id),
+    KEY idx_tr_content (content),  -- 图片中content是MUL键（非FULLTEXT）
+    KEY idx_tr_status (status),  -- 图片中status是MUL键
+    KEY idx_tr_approved_by (approved_by),  -- 图片中approved_by是MUL键
+    KEY idx_tr_rejected_by (rejected_by)  -- 图片中rejected_by是MUL键
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
 -- 日志系统
