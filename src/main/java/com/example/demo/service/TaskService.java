@@ -421,6 +421,7 @@ this.notificationRepository = notificationRepository;
         report.setReporterId(reporterId);
         report.setContent(content);
         report.setAddress(address);
+        report.setStatus("submitted");
 
         List<String> filePaths = new ArrayList<>();
 
