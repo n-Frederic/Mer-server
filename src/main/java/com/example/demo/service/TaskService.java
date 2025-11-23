@@ -555,8 +555,17 @@ this.notificationRepository = notificationRepository;
 
     @Transactional
     public void approveReport(Long taskId, Long reporterId, Long approvedBy, LocalDateTime approvedAt) {
-        TaskReport report = taskReportRepository.findByTaskIdAndReporterId(taskId, reporterId)
+
+        TaskReport report = taskReportRepository.findLatestByTaskIdAndReporterId(taskId, reporterId)
                 .orElseThrow(() -> new RuntimeException("未找到报告"));
+
+        if ("approved".equals(report.getStatus())) {
+            throw new RuntimeException("报告已通过，无需重复审批");
+        }
+
+        if (!"submitted".equals(report.getStatus())) {
+            throw new RuntimeException("只有待审核的报告可以审批");
+        }
 
         report.setStatus("approved");
         report.setApprovedBy(approvedBy);
@@ -566,15 +575,31 @@ this.notificationRepository = notificationRepository;
         report.setRejectReason(null);
 
         taskReportRepository.save(report);
-    }
 
+        Map<String, Object> check = checkAllApproved(taskId);
+        if (Boolean.TRUE.equals(check.get("all_approved"))) {
+            updateStatus(taskId, "Completed");
+
+            Task task = taskRepository.findById(taskId).orElse(null);
+            if (task != null) {
+                task.setProgress_pct(100L);
+                taskRepository.save(task);
+            }
+        }
+    }
     @Transactional
     public void rejectReport(
             Long taskId, Long reporterId, Long rejectedBy,
             LocalDateTime rejectedAt, String reason
     ) {
-        TaskReport report = taskReportRepository.findByTaskIdAndReporterId(taskId, reporterId)
+        // 使用新的方法获取最新报告
+        TaskReport report = taskReportRepository.findLatestByTaskIdAndReporterId(taskId, reporterId)
                 .orElseThrow(() -> new RuntimeException("未找到报告"));
+
+        // 检查报告状态
+        if ("approved".equals(report.getStatus())) {
+            throw new RuntimeException("已通过的报告不能拒绝");
+        }
 
         report.setStatus("rejected");
         report.setRejectedBy(rejectedBy);
@@ -585,44 +610,90 @@ this.notificationRepository = notificationRepository;
     }
 
     public Map<String, Object> checkAllApproved(Long taskId) {
-        List<TaskReport> all = taskReportRepository.findByTaskId(taskId);
+        // 1. 获取该任务的所有指派记录 (用来确定总人数)
+        List<TaskAssignment> assignments = taskAssignmentRepository.findByTaskId(taskId);
+        int totalAssigneesCount = assignments.size();
 
-        long approved = all.stream().filter(r -> "approved".equals(r.getStatus())).count();
-        long submitted = all.stream().filter(r -> "submitted".equals(r.getStatus())).count();
-        long rejected = all.stream().filter(r -> "rejected".equals(r.getStatus())).count();
+        if (totalAssigneesCount == 0) {
+            return Map.of("ok", true, "all_approved", false);
+        }
 
-        boolean allApproved = submitted == 0 && rejected == 0 && approved == all.size();
+        // 2. 获取所有报告
+        List<TaskReport> allReports = taskReportRepository.findByTaskId(taskId);
 
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("total_assignees", all.size());
-        data.put("approved_reports", approved);
-        data.put("pending_reports", submitted);
-        data.put("rejected_reports", rejected);
+        // 3. 找出每个用户的最新报告状态
+        Map<Long, String> userLatestStatus = new HashMap<>();
+
+        // 按 reporterId 分组
+        Map<Long, List<TaskReport>> reportsByUser = allReports.stream()
+                .collect(Collectors.groupingBy(TaskReport::getReporterId));
+
+        for (Map.Entry<Long, List<TaskReport>> entry : reportsByUser.entrySet()) {
+            List<TaskReport> reports = entry.getValue();
+            // 按时间倒序，取第一条（最新的）
+            TaskReport latest = reports.stream()
+                    .max(Comparator.comparing(TaskReport::getCreatedAt))
+                    .orElse(null);
+            if (latest != null) {
+                userLatestStatus.put(entry.getKey(), latest.getStatus());
+            }
+        }
+
+        // 4. 统计当前真正通过的人数
+        long approvedCount = 0;
+        for (TaskAssignment assignment : assignments) {
+            Long userId = assignment.getAssigneeId();
+            String status = userLatestStatus.get(userId);
+            if ("approved".equals(status)) {
+                approvedCount++;
+            }
+        }
+
+        // 5. 判定：只有当通过人数等于总指派人数时，才算全部通过
+        boolean allApproved = (approvedCount == totalAssigneesCount);
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("ok", true);
         result.put("all_approved", allApproved);
-        result.put("data", data);
-
         return result;
     }
 
     @Transactional
     public Map<String, Object> batchApprove(Long taskId, Long approvedBy, LocalDateTime approvedAt) {
-
         List<TaskReport> list = taskReportRepository.findByTaskId(taskId);
 
         int count = 0;
-        for (TaskReport r : list) {
-            if (!"approved".equals(r.getStatus())) {
-                r.setStatus("approved");
-                r.setApprovedBy(approvedBy);
-                r.setApprovedAt(approvedAt);
-                r.setRejectedBy(null);
-                r.setRejectedAt(null);
-                r.setRejectReason(null);
-                taskReportRepository.save(r);
+        // 按用户分组，只审批每个用户的最新报告
+        Map<Long, List<TaskReport>> reportsByUser = list.stream()
+                .collect(Collectors.groupingBy(TaskReport::getReporterId));
+
+        for (Map.Entry<Long, List<TaskReport>> entry : reportsByUser.entrySet()) {
+            List<TaskReport> userReports = entry.getValue();
+            // 获取用户的最新报告（按创建时间倒序）
+            TaskReport latestReport = userReports.stream()
+                    .max(Comparator.comparing(TaskReport::getCreatedAt))
+                    .orElse(null);
+
+            if (latestReport != null && "submitted".equals(latestReport.getStatus())) {
+                latestReport.setStatus("approved");
+                latestReport.setApprovedBy(approvedBy);
+                latestReport.setApprovedAt(approvedAt);
+                latestReport.setRejectedBy(null);
+                latestReport.setRejectedAt(null);
+                latestReport.setRejectReason(null);
+                taskReportRepository.save(latestReport);
                 count++;
+            }
+        }
+
+        Map<String, Object> check = checkAllApproved(taskId);
+        if (Boolean.TRUE.equals(check.get("all_approved"))) {
+            updateStatus(taskId, "Completed");
+
+            Task task = taskRepository.findById(taskId).orElse(null);
+            if (task != null) {
+                task.setProgress_pct(100L);
+                taskRepository.save(task);
             }
         }
 
@@ -640,24 +711,50 @@ this.notificationRepository = notificationRepository;
 
     public Map<String, Object> reportStatistics(Long taskId) {
         List<TaskReport> all = taskReportRepository.findByTaskId(taskId);
-        int total = all.size();
 
-        long submitted = all.stream().filter(r -> "submitted".equals(r.getStatus())).count();
-        long approved = all.stream().filter(r -> "approved".equals(r.getStatus())).count();
-        long rejected = all.stream().filter(r -> "rejected".equals(r.getStatus())).count();
+        // 按用户分组，只统计每个用户的最新报告
+        Map<Long, List<TaskReport>> reportsByUser = all.stream()
+                .collect(Collectors.groupingBy(TaskReport::getReporterId));
 
-        double progress = (double) approved / total * 100.0;
+        int total = reportsByUser.size();
+        long submitted = 0;
+        long approved = 0;
+        long rejected = 0;
 
         Map<String, String> statusMap = new LinkedHashMap<>();
-        for (TaskReport r : all) {
-            statusMap.put(String.valueOf(r.getReporterId()), r.getStatus());
+
+        for (Map.Entry<Long, List<TaskReport>> entry : reportsByUser.entrySet()) {
+            List<TaskReport> userReports = entry.getValue();
+            // 获取用户的最新报告状态
+            TaskReport latestReport = userReports.stream()
+                    .max(Comparator.comparing(TaskReport::getCreatedAt))
+                    .orElse(null);
+
+            if (latestReport != null) {
+                String status = latestReport.getStatus();
+                statusMap.put(String.valueOf(latestReport.getReporterId()), status);
+
+                switch (status) {
+                    case "submitted":
+                        submitted++;
+                        break;
+                    case "approved":
+                        approved++;
+                        break;
+                    case "rejected":
+                        rejected++;
+                        break;
+                }
+            }
         }
+
+        double progress = total > 0 ? (double) approved / total * 100.0 : 0.0;
 
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("total_assignees", total);
         data.put("submitted_reports", submitted);
         data.put("approved_reports", approved);
-        data.put("pending_reports", submitted);
+        data.put("pending_reports", submitted); // 保持兼容性
         data.put("rejected_reports", rejected);
         data.put("progress_percentage", progress);
         data.put("report_status", statusMap);
@@ -668,4 +765,5 @@ this.notificationRepository = notificationRepository;
 
         return result;
     }
+
 }
