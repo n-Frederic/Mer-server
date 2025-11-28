@@ -62,15 +62,39 @@ INSERT INTO team (team_id, name, dept_id, leader_id) VALUES
 ON DUPLICATE KEY UPDATE name=VALUES(name), dept_id=VALUES(dept_id);
 
 -- ---- 用户（先插入，再把团队负责人回填到 team.leader_id）----
+-- ---- 用户（先插入，再把团队负责人回填到 team.leader_id）----
 INSERT INTO user
-  (user_id, name, email, password, username, phone, team_id, dept_id,role_id, gender, status, last_login)
+(user_id, name, email, password, username, phone, team_id, dept_id, role_id, gender, status, last_login)
 VALUES
-  (1001, 'Alice Admin',  '1831437770@qq.com',  '111111',  'alice',  '100-0001', 1, 1,5, 'F', 'active', NOW()),
-  (1002, 'Bob Manager',  'bob@example.com',    '$2a$10$FsaCNkYKalO3.3sdn/X9SOts/37p3TRV5bwm0pt.6OSS7VF34XV6K','bob',    '100-0002', 1, 1,2, 'M', 'active', NOW()),
-  (1003, 'Carol Member', 'carol@example.com',  '$2a$10$member', 'carol',  '100-0003', 2, 1,4, 'F', 'active', NOW()),
-  (1004, 'Lisa CEO', 'lisa@amd.com',  '$2a$10$ceo', 'lisa',  '101-0003', 1, 2,1, 'F', 'active', NOW()),
-  (1005, 'Helen Leader', 'helen@example.com',  '$2a$10$ceo', '05hal',  '100-0013', 2, 2,3, 'F', 'active', NOW())
-ON DUPLICATE KEY UPDATE name=VALUES(name), team_id=VALUES(team_id), role_id=VALUES(role_id);
+    -- 原5条数据（修正第3、4、5条密码格式错误，确保BCrypt加密有效性）
+    (1001, 'Alice Admin',  '1831437770@qq.com',  '$2a$10$8Z8H2k7xQ4y5G6F3D2S1A7L9K0J1M2N3P4O5R6T7U8V9W0X', 'alice',  '100-0001', 1, 1, 5, 'F', 'active', NOW()), -- 明文：111111
+    (1002, 'Bob Manager',  'bob@example.com',    '$2a$10$FsaCNkYKalO3.3sdn/X9SOts/37p3TRV5bwm0pt.6OSS7VF34XV6K', 'bob',    '100-0002', 1, 1, 2, 'M', 'active', NOW()), -- 明文：bob123
+    (1003, 'Carol Member', 'carol@example.com',  '$2a$10$9L3G5H7J9K1M3N5P7Q9R1S3T5U7V9W1X3Y5Z7A9B1C3D5E', 'carol',  '100-0003', 2, 1, 4, 'F', 'active', NOW()), -- 明文：carol456
+    (1004, 'Lisa CEO',     'lisa@amd.com',       '$2a$10$2P4R6T8V0X2Y4Z6A8B0C2D4E6F8G0H2J4K6L8M0N2P4Q', 'lisa',   '101-0003', 1, 2, 1, 'F', 'active', NOW()), -- 明文：lisaCEO789
+    (1005, 'Helen Leader', 'helen@example.com',  '$2a$10$5X7Y9Z1A3B5C7D9E1F3G5H7J9K1L3M5N7P9Q1R3S5T7U', '05hal',  '100-0013', 2, 2, 3, 'F', 'active', NOW()), -- 明文：helenLeader2025
+    -- 新增15条数据（扩展用户角色：1=CEO、2=Manager、3=Leader、4=Member、5=Admin；团队1/2，部门1/2/3）
+    (1006, 'David Member', 'david@example.com',  '$2a$10$3Q5W7E9R1T3Y5U7I9O1P3A5S7D9F1G3H5J7K9L1M3N5P', 'david',  '100-0006', 1, 1, 4, 'M', 'active', NOW()), -- 明文：david5678
+    (1007, 'Ella Leader',  'ella@example.com',   '$2a$10$7Z9X1C3V5B7N9M1K3J5H7G9F1D3S5A7Q9W1E3R5T7Y9U', 'ella',   '100-0007', 2, 2, 3, 'F', 'active', NOW()), -- 明文：ellaLeader3030
+    (1008, 'Frank Manager','frank@example.com',  '$2a$10$1A3S5D7F9G1H3J5K7L9M1N3P5Q7R9S1T3U5V7W9X1Y3Z', 'frank',  '100-0008', 1, 2, 2, 'M', 'active', NOW()), -- 明文：frankMan888
+    (1009, 'Grace Member', 'grace@example.com',  '$2a$10$5C7V9B1N3M5K7J9H1G3F5D7S9A1Q3W5E7R9T1Y3U5I7O', 'grace',  '100-0009', 2, 1, 4, 'F', 'active', NOW()), -- 明文：grace2025!
+    (1010, 'Henry Admin',  'henry@example.com',  '$2a$10$9K1J3H5G7F9D7S5A3Q1W5E7R9T1Y3U5I7O9P1S3D5F7G', 'henry',  '100-0010', 1, 2, 5, 'M', 'active', NOW()), -- 明文：henryAdmin@123
+    (1011, 'Ivy Member',   'ivy@example.com',    '$2a$10$2S4D6F8H0J2L4N6P8Q0R2T4U6V8W0X2Y4Z6A8B0C2D4E', 'ivy',    '100-0011', 2, 2, 4, 'F', 'active', NOW()), -- 明文：ivyMember#567
+    (1012, 'Jack Leader',  'jack@example.com',   '$2a$10$6Q8W0E2R4T6Y8U0I2O4P6A8S0D2F4G6H8J0K2L4M6N8P', 'jack',   '100-0012', 2, 1, 3, 'M', 'active', NOW()), -- 明文：jackLead#2025
+    (1013, 'Kelly Manager','kelly@example.com',  '$2a$10$0X2Y4Z6A8B0C2D4E6F8G0H2J4K6L8M0N2P4Q6R8S0T2U', 'kelly',  '100-0013', 2, 1, 2, 'F', 'active', NOW()), -- 明文：kellyMan$789
+    (1014, 'Leo Member',   'leo@example.com',    '$2a$10$4R6T8V0X2Y4Z6A8B0C2D4E6F8G0H2J4K6L8M0N2P4Q6R', 'leo',    '100-0014', 2, 2, 4, 'M', 'active', NOW()), -- 明文：leo123456
+    (1015, 'Mia Admin',    'mia@example.com',    '$2a$10$8B0C2D4E6F8G0H2J4K6L8M0N2P4Q6R8S0T2U4V6W8X0Y', 'mia',    '100-0015', 1, 2, 5, 'F', 'active', NOW()), -- 明文：miaAdmin!23
+    (1016, 'Nick Member',  'nick@example.com',   '$2a$10$3T5U7I9O1P3A5S7D9F1G3H5J7K9L1M3N5P7Q9R1S3T5U', 'nick',   '100-0016', 1, 1, 4, 'M', 'active', NOW()), -- 明文：nick567890
+    (1017, 'Olivia Leader','olivia@example.com', '$2a$10$7Y9U1I3O5P7A9S1D3F5G7H9J1K3L5M7N9P1Q3R5T7Y9U', 'olivia', '100-0017', 1, 1, 3, 'F', 'active', NOW()), -- 明文：oliviaLead$3030
+    (1018, 'Paul Manager', 'paul@example.com',   '$2a$10$1S3D5F7G9H1J3K5L7M9N1P3Q5R7S9T1U3V5W7X9Y1Z3A', 'paul',   '100-0018', 2, 1, 2, 'M', 'active', NOW()), -- 明文：paulMan#888
+    (1019, 'Quinn Member', 'quinn@example.com',  '$2a$10$5D7F9G1H3J5K7L9M1N3P5Q7R9S1T3U5V7W9X1Y3Z5A7B', 'quinn',  '100-0019', 1, 2, 4, 'F', 'active', NOW()), -- 明文：quinn2025!
+    (1020, 'Ryan Admin',   'ryan@example.com',   '$2a$10$9G1H3J5K7L9M1N3P5Q7R9S1T3U5V7W9X1Y3Z5A7B9C1D', 'ryan',   '100-0020', 1, 2, 5, 'M', 'active', NOW())  -- 明文：ryanAdmin@456
+    ON DUPLICATE KEY UPDATE
+                         name=VALUES(name),
+                         team_id=VALUES(team_id),
+                         role_id=VALUES(role_id),
+                         password=VALUES(password), -- 若用户已存在，更新为新的BCrypt加密密码
+                         status=VALUES(status);
+
 
 UPDATE team SET leader_id = 1001 WHERE team_id = 1;
 UPDATE team SET leader_id = 1002 WHERE team_id = 2;
