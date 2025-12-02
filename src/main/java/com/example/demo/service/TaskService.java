@@ -765,5 +765,23 @@ this.notificationRepository = notificationRepository;
 
         return result;
     }
+    public List<TaskDTO> findOverlappingTasks(LocalDateTime startDateTime,
+                                                             LocalDateTime endDateTime,
+                                                             Long userId) {
+        // 调用Repository层执行查询
+        List<Task> tasks = taskRepository.findOverlappingTasks(startDateTime, endDateTime, userId);
+
+        // 转换为DTO返回（可使用MapStruct等工具简化转换）
+        return tasks.stream().map(task -> {
+            TaskDTO dto = new TaskDTO();
+            dto.setTaskId(task.getId());
+            dto.setTitle(task.getTitle());
+            dto.setStatus(task.getStatus());
+            dto.setPriority(task.getPriority());
+            dto.setStartAt(task.getStartAt());
+            dto.setDueAt(task.getDueAt());
+            return dto;
+        }).toList();
+    }
 
 }

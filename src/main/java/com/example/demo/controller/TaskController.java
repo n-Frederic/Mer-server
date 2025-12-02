@@ -2,14 +2,19 @@ package com.example.demo.controller;
 
 import com.example.demo.context.UserContext;
 import com.example.demo.dto.TaskCreateDTO;
+import com.example.demo.dto.TaskDTO;
 import com.example.demo.dto.TaskProgressUpdateDTO;
 import com.example.demo.dto.TaskUpdateRequestDTO;
 import com.example.demo.entity.Task;
 import com.example.demo.service.TaskService;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -194,6 +199,29 @@ public class TaskController {
     public ResponseEntity<?> getAssignerAndAssignee(@PathVariable Long taskId) {
         return ResponseEntity.ok(taskService.getAssignerAndAssignee(taskId));
     }
+    @GetMapping("/calendar")
+    public ResponseEntity<Map<String, Object>> getCalendarTasks(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+
+        // 获取当前用户ID
+        Long userId = UserContext.getCurrentUserId();
+
+        // 将日期转换为时间范围：startDate 00:00:00 到 endDate 23:59:59
+        LocalDateTime startDateTime = LocalDateTime.of(startDate, LocalTime.MIN);
+        LocalDateTime endDateTime = LocalDateTime.of(endDate, LocalTime.MAX);
+
+        // 查询时间段有重叠的任务
+        List<TaskDTO> tasks = taskService.findOverlappingTasks(startDateTime, endDateTime, userId);
+
+        // 构造成功响应
+        Map<String, Object> response = new HashMap<>();
+        response.put("ok", true);
+        response.put("data", tasks);
+
+        return ResponseEntity.ok(response);
+    }
+
 
 
 }
