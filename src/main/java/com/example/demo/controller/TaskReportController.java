@@ -4,6 +4,7 @@ import com.example.demo.service.TaskService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @RestController
@@ -23,7 +24,8 @@ public class TaskReportController {
             @RequestBody Map<String, String> body
     ) {
         Long approvedBy = Long.valueOf(body.get("approved_by"));
-        LocalDateTime approvedAt = LocalDateTime.parse(body.get("approved_at"));
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        LocalDateTime approvedAt = LocalDateTime.parse(body.get("approved_at"), formatter);
 
         taskService.approveReport(taskId, reporterId, approvedBy, approvedAt);
 
@@ -37,7 +39,9 @@ public class TaskReportController {
             @RequestBody Map<String, String> body
     ) {
         Long rejectedBy = Long.valueOf(body.get("rejected_by"));
-        LocalDateTime rejectedAt = LocalDateTime.parse(body.get("rejected_at"));
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        LocalDateTime rejectedAt = LocalDateTime.parse(body.get("rejected_at"), formatter);
+//        LocalDateTime rejectedAt = LocalDateTime.parse(body.get("rejected_at"));
         String reason = body.get("reason");
 
         taskService.rejectReport(taskId, reporterId, rejectedBy, rejectedAt, reason);
@@ -56,7 +60,8 @@ public class TaskReportController {
             @RequestBody Map<String, String> body
     ) {
         Long approvedBy = Long.valueOf(body.get("approved_by"));
-        LocalDateTime approvedAt = LocalDateTime.parse(body.get("approved_at"));
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        LocalDateTime approvedAt = LocalDateTime.parse(body.get("approved_at"), formatter);
 
         return taskService.batchApprove(taskId, approvedBy, approvedAt);
     }
