@@ -153,7 +153,8 @@ public class UserService {
     }
 
 
-    public boolean updateUserProfile(String name, String username, String email, String phone, String gender, String bio, int team_id, int roleId, LocalDate birthday) {
+    // 1. 修改方法签名：将 int team_id, int roleId 改为 Integer (允许为 null)
+    public boolean updateUserProfile(String name, String username, String email, String phone, String gender, String bio, Integer team_id, Integer roleId, LocalDate birthday) {
 
         Optional<User> optionalUser = userRepository.findByEmail(email);
 
@@ -162,14 +163,25 @@ public class UserService {
         }
 
         User user = optionalUser.get();
-        user.setName(name);
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPhone(phone);
-        user.setGender(gender);
-        user.setBio(bio);
-        user.setTeamId(team_id);
-        user.setRoleId(roleId);
+
+        // 对于 String 类型，建议也加上判空，实现“只更新已修改的字段”
+        // 如果前端传 null，就不覆盖数据库里的原值
+        if (name != null) user.setName(name);
+        if (username != null) user.setUsername(username);
+        // email 通常作为查找依据不轻易修改，但如果业务允许改：
+        if (email != null) user.setEmail(email);
+        if (phone != null) user.setPhone(phone);
+        if (gender != null) user.setGender(gender);
+        if (bio != null) user.setBio(bio);
+
+        // 只有当前端真的传了 team_id (不为 null) 时，才去更新数据库
+        if (team_id != null) {
+            user.setTeamId(team_id);
+        }
+
+        if (roleId != null) {
+            user.setRoleId(roleId);
+        }
 
         if (birthday != null) {
             user.setBirthday(birthday);
