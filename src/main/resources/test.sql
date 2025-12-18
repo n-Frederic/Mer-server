@@ -178,21 +178,24 @@ INSERT INTO task_report (
     rejected_by,
     rejected_at
 ) VALUES
-      (1, 1, 1002, 'Initialized repo, set up pipelines.', 'street', 'README.md;pipeline.yml', '2024-10-26 14:20:18',
-       'submitted', NULL, NULL, NULL, NULL, NULL),
-      (2, 1, 1002, 'Fixed failing tests, coverage 82%.', 'street1', 'coverage.txt', '2025-10-26 14:20:18',
-       'submitted', NULL, 1001, '2025-10-26 15:30:00', NULL, NULL)
-    ON DUPLICATE KEY UPDATE
-                         content = VALUES(content),
-                         address = VALUES(address),
-                         attachments = VALUES(attachments),
-                         created_at = VALUES(created_at),
-                         status = VALUES(status),
-                         reject_reason = VALUES(reject_reason),
-                         approved_by = VALUES(approved_by),
-                         approved_at = VALUES(approved_at),
-                         rejected_by = VALUES(rejected_by),
-                         rejected_at = VALUES(rejected_at);
+      -- 1. Task 1 submission report (pending review)
+      (1, 1, 1002, 'Completed repo initialization and CI/CD pipeline setup', 'R&D Workstation A1', 'README.md;pipeline.yml', '2024-10-26 14:20:18', 'submitted', NULL, NULL, NULL, NULL, NULL),
+
+      -- 2. Task 1 approved report
+      (2, 1, 1002, 'Fixed failing test cases, coverage increased to 82%', 'R&D Workstation A1', 'coverage.txt', '2024-10-27 09:15:30', 'submitted', NULL, 1001, '2024-10-27 10:45:00', NULL, NULL),
+
+      -- 3. Task 2 rejected report
+      (3, 2, 1003, 'Completed basic GitHub Actions configuration', 'R&D Workstation B2', 'github-action.yml', '2024-10-28 16:30:22', 'submitted', 'CI configuration lacks cache strategy', NULL, NULL, 1001, '2024-10-28 17:10:15'),
+
+      -- 4. Task 3 approved report
+      (4, 3, 1003, 'Completed v1.0 release notes draft', 'R&D Workstation B2', 'release-notes-v1.0.md', '2024-10-29 11:20:45', 'submitted', NULL, 1002, '2024-10-29 14:30:00', NULL, NULL),
+
+      -- 5. Task 4 submission report (pending review)
+      (5, 4, 1002, 'Verified core CI workflow scenarios, 95% test cases passed', 'R&D Workstation A1', 'test-report.pdf', '2024-10-30 15:40:10', 'submitted', NULL, NULL, NULL, NULL, NULL),
+
+      -- 6. Task 5 approved report
+      (6, 5, 1002, 'Resolved dependency cache failure, build speed improved by 40%', 'R&D Workstation A1', 'cache-fix.patch', '2024-10-31 10:15:20', 'submitted', NULL, 1001, '2024-10-31 11:25:30', NULL, NULL);
+
 
 INSERT INTO log
 (
