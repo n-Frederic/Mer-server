@@ -37,9 +37,10 @@ public class TaskService {
     private final LogRepository logRepository;
     private final FileUploadUtils fileUploadUtils;
     private FeiShuBotService feishuBotService;
+    private TaskDeadlineService taskDeadlineService;
 
 
-    public TaskService(TaskRepository taskRepository, NotificationRepository notificationRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository, FileUploadUtils fileUploadUtils, FeiShuBotService feishuBotService) {
+    public TaskService(TaskRepository taskRepository, NotificationRepository notificationRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository, FileUploadUtils fileUploadUtils, FeiShuBotService feishuBotService, TaskDeadlineService taskDeadlineService) {
 
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
@@ -52,6 +53,7 @@ this.notificationRepository = notificationRepository;
         this.logRepository = logRepository;
         this.fileUploadUtils = fileUploadUtils;
         this.feishuBotService = feishuBotService;
+        this.taskDeadlineService = taskDeadlineService;
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
@@ -202,6 +204,11 @@ this.notificationRepository = notificationRepository;
                     "📌 新任务已创建\n" +
                             "任务名称：" + task.getTitle() + "\n" +
                             "截止时间：" + task.getDueAt()
+            );
+
+            taskDeadlineService.scheduleDeadlineNotification(
+                    task.getTitle(),
+                    task.getDueAt()
             );
 
             // 4. 成功响应
