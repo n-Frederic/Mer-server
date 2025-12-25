@@ -9,6 +9,7 @@ import com.example.demo.utils.ResponseUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -35,8 +36,10 @@ public class TaskService {
     private final NotificationRepository notificationRepository;
     private final LogRepository logRepository;
     private final FileUploadUtils fileUploadUtils;
+    private FeiShuBotService feishuBotService;
 
-    public TaskService(TaskRepository taskRepository, NotificationRepository notificationRepository,UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository, FileUploadUtils fileUploadUtils) {
+
+    public TaskService(TaskRepository taskRepository, NotificationRepository notificationRepository, UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository, FileUploadUtils fileUploadUtils, FeiShuBotService feishuBotService) {
 
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
@@ -48,6 +51,7 @@ this.notificationRepository = notificationRepository;
         this.roleRepository = roleRepository;
         this.logRepository = logRepository;
         this.fileUploadUtils = fileUploadUtils;
+        this.feishuBotService = feishuBotService;
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
@@ -193,6 +197,12 @@ this.notificationRepository = notificationRepository;
                 tagsRepository.save(tags);
 
             }
+
+            feishuBotService.sendText(
+                    "📌 新任务已创建\n" +
+                            "任务名称：" + task.getTitle() + "\n" +
+                            "截止时间：" + task.getDueAt()
+            );
 
             // 4. 成功响应
             Map<String, Object> successResponse = new HashMap<>();
