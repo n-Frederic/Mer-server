@@ -1,3 +1,9 @@
 /.idea
 target/
 /allure-results
+*.csv
+*.jar
+*.jmx
+.openapi-generator-ignore
+/.openapi-generator
+src/main/resources/application.properties

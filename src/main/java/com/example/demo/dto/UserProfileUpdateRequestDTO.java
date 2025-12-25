@@ -11,8 +11,8 @@ public class UserProfileUpdateRequestDTO {
     private String gender;
     private LocalDate birth_date;
     private String bio;
-    private int team_id;
-    private int role_id;
+    private Integer team_id;
+    private Integer role_id;
 
     public String getName() {
         return name;
@@ -70,19 +70,19 @@ public class UserProfileUpdateRequestDTO {
         this.bio = bio;
     }
 
-    public int getTeam_id() {
+    public Integer getTeam_id() {
         return team_id;
     }
 
-    public void setTeam_id(int team_id) {
+    public void setTeam_id(Integer team_id) {
         this.team_id = team_id;
     }
 
-    public int getRole_id() {
+    public Integer getRole_id() {
         return role_id;
     }
 
-    public void setRole_id(int role_id) {
+    public void setRole_id(Integer role_id) {
         this.role_id = role_id;
     }
 }
