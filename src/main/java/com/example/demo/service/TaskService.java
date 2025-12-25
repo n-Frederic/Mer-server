@@ -53,7 +53,6 @@ public class TaskService {
             TaskReportRepository taskReportRepository,
             LogRepository logRepository,
             FileUploadUtils fileUploadUtils,
-            // 👇👇👇 必须加上这两个参数 👇👇👇
             FeiShuBotService feishuBotService,
             TaskDeadlineService taskDeadlineService
     ) {
