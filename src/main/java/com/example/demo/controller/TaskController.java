@@ -174,15 +174,34 @@ public class TaskController {
     public ResponseEntity<?> createReport(
             @PathVariable Long taskId,
             @RequestParam("content") String content,
-            @RequestParam("latitude") Double latitude,
-            @RequestParam("longitude") Double longitude,
+            @RequestParam(value = "latitude", required = false) Double latitude,
+            @RequestParam(value = "longitude", required = false) Double longitude,
             @RequestParam(value = "address", required = false) String address,
             @RequestParam("reporter_id") Long reporterId,
-            @RequestPart(value = "files", required = false) List<MultipartFile> files // 接收多文件
-    ){
-        return ResponseEntity.ok(
-                taskService.createReport(taskId, reporterId, content, address, files)
+            @RequestPart(value = "files", required = false) List<MultipartFile> files
+    ) {
+        // 验证当前用户是否有权限创建报告
+        Long currentUserId = UserContext.getCurrentUserId();
+        if (currentUserId == null || !currentUserId.equals(reporterId)) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "ok", false,
+                    "message", "无权限创建报告",
+                    "code", "UNAUTHORIZED"
+            ));
+        }
+
+        // 处理地址
+        String finalAddress = address;
+        if (finalAddress == null && latitude != null && longitude != null) {
+            finalAddress = String.format("位置: %.6f, %.6f", latitude, longitude);
+        }
+
+        // 调用Service创建报告
+        Map<String, Object> result = taskService.createReport(
+                taskId, reporterId, content, finalAddress, files
         );
+
+        return ResponseEntity.ok(result);
     }
 
 
@@ -223,13 +242,13 @@ public class TaskController {
     }
 
 
-    @GetMapping("/statistic")
-    public ResponseEntity<Map<String, Object>> getTaskDaily(
-            @RequestParam("startDate")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam("endDate")
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
-    ) {
-        return taskService.getTaskDaily(startDate, endDate);
-    }
+//    @GetMapping("/statistic")
+//    public ResponseEntity<Map<String, Object>> getTaskDaily(
+//            @RequestParam("startDate")
+//            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+//            @RequestParam("endDate")
+//            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+//    ) {
+//        return taskService.getTaskDaily(startDate, endDate);
+//    }
 }

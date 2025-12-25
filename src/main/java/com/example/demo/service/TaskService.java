@@ -17,10 +17,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
-    private final EventLogRepository eventLogRepository;
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final TagsRepository tagsRepository;
     private final TaskReportRepository taskReportRepository;
@@ -40,6 +39,7 @@ public class TaskService {
     private final FileUploadUtils fileUploadUtils;
     private FeiShuBotService feishuBotService;
     private TaskDeadlineService taskDeadlineService;
+    private final FileService fileService;
 
     public TaskService(
             TaskRepository taskRepository,
@@ -52,16 +52,18 @@ public class TaskService {
             RoleRepository roleRepository,
             TaskReportRepository taskReportRepository,
             LogRepository logRepository,
+            FileService fileService,
             FileUploadUtils fileUploadUtils,
             FeiShuBotService feishuBotService,
             TaskDeadlineService taskDeadlineService
     ) {
+
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
-        this.eventLogRepository = eventLogRepository;
+
         this.notificationRepository = notificationRepository;
         this.taskAssignmentRepository = taskAssignmentRepository;
-        this.tagsRepository = tagsRepository;
+        this.tagsRepository=tagsRepository;
         this.taskReportRepository = taskReportRepository;
         this.teamRepository = teamRepository;
         this.roleRepository = roleRepository;
@@ -69,12 +71,14 @@ public class TaskService {
         this.fileUploadUtils = fileUploadUtils;
         this.feishuBotService = feishuBotService;
         this.taskDeadlineService = taskDeadlineService;
+        this.fileService = fileService;
     }
 
     public Map<String, Object> getPersonalTasks(Long userId, String status, String priority, int page, int pageSize) {
         Page<Task> taskPage = taskRepository.findAssignedTasks(
                 userId, PageRequest.of(page - 1, pageSize)
         );
+
         System.out.println(userId);
         System.out.println(taskPage.getContent());
 
@@ -200,8 +204,6 @@ public class TaskService {
 
             // 3. 保存任务
             Task savedTask = taskRepository.save(newTask);
-            eventLogRepository.save(new EventLog(creator.getId(), "TASK CREATE",LocalDateTime.now(),"task", savedTask.getId()));
-
             for (int i = 0; i < task.getAssigneeIds().size(); i++) {
                 LocalDateTime assignedAt = LocalDateTime.now();
                 TaskAssignment taskAssignment = new TaskAssignment(savedTask.getId(),task.getAssigneeIds().get(i),userId,assignedAt);
@@ -227,6 +229,7 @@ public class TaskService {
                     task.getTitle(),
                     task.getDueAt()
             );
+
 
             // 4. 成功响应
             Map<String, Object> successResponse = new HashMap<>();
@@ -408,12 +411,6 @@ public class TaskService {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("不存在该任务"));
 
         task.setProgress_pct(pct);
-        if(pct>50){
-            eventLogRepository.save(new EventLog(UserContext.getCurrentUserId(), "UPDATE PROGRESS > 50",LocalDateTime.now(),"task", task.getId()));
-        }
-        if(pct>100){
-            eventLogRepository.save(new EventLog(UserContext.getCurrentUserId(), "UPDATE PROGRESS > 100",LocalDateTime.now(),"task", task.getId()));
-        }
         taskRepository.save(task);
     }
 
@@ -463,72 +460,61 @@ public class TaskService {
         report.setAddress(address);
         report.setStatus("submitted");
 
-        List<String> filePaths = new ArrayList<>();
+        List<String> fileUrls = new ArrayList<>();
 
-        // 处理附件
+        // 处理附件 - 只上传到COS
         if (files != null && !files.isEmpty()) {
             for (MultipartFile file : files) {
                 if (!file.isEmpty()) {
                     try {
                         System.out.println("处理文件: " + file.getOriginalFilename() + ", 大小: " + file.getSize());
-                        String savedPath = fileUploadUtils.saveFile(file, "task_reports/" + taskId);
-                        filePaths.add(savedPath);
-                        System.out.println("文件保存路径: " + savedPath);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return Map.of(
-                                "ok", false,
-                                "message", "文件保存失败: " + e.getMessage()
-                        );
+
+                        // 只使用FileService上传到COS
+                        String fileUrl = fileService.uploadFile(file, taskId);
+                        fileUrls.add(fileUrl);
+
+                        System.out.println("文件上传到COS成功: " + fileUrl);
+
                     } catch (Exception e) {
                         e.printStackTrace();
                         return Map.of(
                                 "ok", false,
-                                "message", "文件处理异常: " + e.getMessage()
+                                "message", "文件上传失败: " + e.getMessage()
                         );
                     }
                 }
             }
         }
 
-        // 保存 JSON
-        try {
-            if (!filePaths.isEmpty()) {
-                report.setAttachments(new ObjectMapper().writeValueAsString(filePaths));
-                System.out.println("附件JSON: " + report.getAttachments());
-            } else {
-                report.setAttachments("[]");
-            }
-        } catch (Exception e) {
-            return Map.of(
-                    "ok", false,
-                    "message", "JSON 转换失败: " + e.getMessage()
-            );
-        }
+        // 使用实体类的辅助方法设置附件
+        report.setAttachmentList(fileUrls);
 
+        // 保存报告
         report.setCreatedAt(LocalDateTime.now());
-        taskReportRepository.save(report);
-        eventLogRepository.save(new EventLog(UserContext.getCurrentUserId(), "CREATE REPORT",LocalDateTime.now(),"report", report.getReportId()));
+        TaskReport savedReport = taskReportRepository.save(report);
 
-        Task task=taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("<UNK>"));
+        // 发送通知给任务创建者
+        Task task = taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("任务不存在"));
         Long ownerId = task.getCreator().getId();
-        Notification notification = new Notification(ownerId,"task",task.getId(),"A new task report",report.getContent(),false);
+        Notification notification = new Notification(
+                ownerId,
+                "task",
+                task.getId(),
+                "新任务报告",
+                report.getContent(),
+                false
+        );
         notificationRepository.save(notification);
 
         return Map.of("ok", true, "report", Map.of(
-                "report_id", report.getReportId(),
+                "report_id", savedReport.getReportId(),
                 "task_id", taskId,
                 "reporter_id", reporterId,
                 "content", content,
                 "address", address,
-                "attachments", report.getAttachments(),
-                "created_at", report.getCreatedAt()
+                "attachments", fileUrls,
+                "created_at", savedReport.getCreatedAt()
         ));
-
-
-
-
-
     }
 
 
@@ -823,42 +809,5 @@ public class TaskService {
             return dto;
         }).toList();
     }
-    public ResponseEntity<Map<String, Object>> getTaskDaily(
-            LocalDate startDate,
-            LocalDate endDate
-    ) {
-        if (startDate == null || endDate == null) {
-            throw new IllegalArgumentException("startDate and endDate are required");
-        }
-
-        // [startDate, endDate+1) 半开区间
-        LocalDateTime startTime = startDate.atStartOfDay();
-        LocalDateTime endTime = endDate.plusDays(1).atStartOfDay();
-
-        List<EventLogRepository.TaskDailyProjection> projections =
-                eventLogRepository.findTaskDaily(startTime, endTime);
-
-        // 组装 daily 数组
-        List<Map<String, Object>> dailyList = new ArrayList<>();
-        for (EventLogRepository.TaskDailyProjection p : projections) {
-            Map<String, Object> day = new HashMap<>();
-            day.put("date", p.getStatDate());
-            day.put("taskCreateCount", p.getTaskCreateCount());
-            day.put("taskCreateUserCount", p.getTaskCreateUserCount());
-            day.put("reportCreateCount", p.getReportCreateCount());
-            day.put("reportCreateUserCount", p.getReportCreateUserCount());
-            day.put("progressOver50Count", p.getProgressOver50Count());
-            day.put("progressOver100Count", p.getProgressOver100Count());
-            dailyList.add(day);
-        }
-
-        Map<String, Object> body = new HashMap<>();
-        body.put("startDate", startDate.toString());
-        body.put("endDate", endDate.toString());
-        body.put("daily", dailyList);
-
-        return ResponseEntity.ok(body);
-    }
-
 
 }
