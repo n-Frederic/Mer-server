@@ -438,8 +438,13 @@ INSERT INTO event_log (
       (20, 1004, 'CREATE COMMENT', 4, 'comment', '2024-10-28 09:10:00'),
 
       -- 7) 重置密码 RESET PASSWORD （使用 verification_code + user 1002,1003）
-      (21, 1002, 'RESET PASSWORD', 1002, 'user', '2025-11-19 11:20:00'),
-      (22, 1003, 'RESET PASSWORD', 1003, 'user', '2025-11-19 11:21:00');
+      (21, 1002, 'RESET PASSWORD', 1002, 'user', '2025-12-25 11:20:00'),
+      (22, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:19:00'),
+        (23, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:20:00'),
+      (24, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:21:00'),
+        (25, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:22:00'),
+      (26, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:23:00'),
+      (27, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:24:00');
 
 COMMIT;
 
