@@ -10,7 +10,6 @@ import com.example.demo.utils.ResponseUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -42,14 +41,28 @@ public class TaskService {
     private FeiShuBotService feishuBotService;
     private TaskDeadlineService taskDeadlineService;
 
-    public TaskService(TaskRepository taskRepository, EventLogRepository eventLogRepository, NotificationRepository notificationRepository,UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository, FileUploadUtils fileUploadUtils) {
-
+    public TaskService(
+            TaskRepository taskRepository,
+            EventLogRepository eventLogRepository,
+            NotificationRepository notificationRepository,
+            UserRepository userRepository,
+            TaskAssignmentRepository taskAssignmentRepository,
+            TagsRepository tagsRepository,
+            TeamRepository teamRepository,
+            RoleRepository roleRepository,
+            TaskReportRepository taskReportRepository,
+            LogRepository logRepository,
+            FileUploadUtils fileUploadUtils,
+            // 👇👇👇 必须加上这两个参数 👇👇👇
+            FeiShuBotService feishuBotService,
+            TaskDeadlineService taskDeadlineService
+    ) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.eventLogRepository = eventLogRepository;
-this.notificationRepository = notificationRepository;
+        this.notificationRepository = notificationRepository;
         this.taskAssignmentRepository = taskAssignmentRepository;
-        this.tagsRepository=tagsRepository;
+        this.tagsRepository = tagsRepository;
         this.taskReportRepository = taskReportRepository;
         this.teamRepository = teamRepository;
         this.roleRepository = roleRepository;
