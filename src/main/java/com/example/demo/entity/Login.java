@@ -32,7 +32,7 @@ public class Login {
         this.user = user;
         this.token = token;
         this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Shanghai"));
-        this.validTo = LocalDateTime.now().plusHours(2);
+        this.validTo = LocalDateTime.now().plusHours(4);
     }
 
     // Getter & Setter

@@ -1,11 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.dto.PasswordResetRequestDTO;
-import com.example.demo.entity.Login;
-import com.example.demo.entity.Task;
-import com.example.demo.entity.User;
-import com.example.demo.entity.VerificationCode;
+import com.example.demo.entity.*;
 import com.example.demo.exception.BusinessException;
+import com.example.demo.repository.EventLogRepository;
 import com.example.demo.repository.LoginRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.VerificationCodeRepository;
@@ -29,14 +27,16 @@ public class UserService {
     private final LoginRepository loginRepository;
     private final VerificationCodeRepository verificationCodeRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EventLogRepository eventLogRepository;
 
     @Value("${verification.code.validity.minutes:10}")
     private long validityMinutes;
 
-    public UserService(UserRepository userRepository, LoginRepository loginRepository,VerificationCodeRepository verificationCodeRepository,
+    public UserService(UserRepository userRepository, EventLogRepository eventLogRepository, LoginRepository loginRepository,VerificationCodeRepository verificationCodeRepository,
                        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.loginRepository = loginRepository;
+        this.eventLogRepository = eventLogRepository;
         this.verificationCodeRepository = verificationCodeRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -100,6 +100,8 @@ public class UserService {
         String encodedPassword = passwordEncoder.encode(newPassword);
         user.setPassword(encodedPassword);
         userRepository.save(user);
+        eventLogRepository.save(new EventLog(user.getId(),"RESET PASSWORD",LocalDateTime.now(),"user",user.getId()));
+
 
         // 3. 删除已使用的验证码
         verificationCodeRepository.deleteByEmail(email);
@@ -179,4 +181,29 @@ public class UserService {
         return true;
     }
 
+    public ResponseEntity<Map<String, Object>> getResetPasswordAlerts(LocalDate date) {
+        LocalDate queryDate = (date != null) ? date : LocalDate.now();
+        int threshold = 5;
+
+        List<EventLogRepository.ResetPasswordAlertProjection> projections =
+                eventLogRepository.findResetPasswordAlerts(queryDate);
+
+        // 组装 users 数组
+        List<Map<String, Object>> users = projections.stream().map(p -> {
+            Map<String, Object> u = new HashMap<>();
+            u.put("userId", p.getUserId());
+            u.put("userName", p.getUserName());
+            u.put("resetCount", p.getResetCount());
+            return u;
+        }).toList();
+
+        // 组装响应 body
+        Map<String, Object> body = new HashMap<>();
+        body.put("date", queryDate.toString());
+        body.put("threshold", threshold);
+        body.put("totalUsers", users.size());
+        body.put("users", users);
+
+        return ResponseEntity.ok(body);
+    }
 }

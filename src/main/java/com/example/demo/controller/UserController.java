@@ -221,4 +221,9 @@ public class UserController {
             ));
         }
     }
+
+    @GetMapping("/statistic")
+    public ResponseEntity<Map<String, Object>> resetStatistic () {
+        return userService.getResetPasswordAlerts(LocalDate.now());
+    }
 }

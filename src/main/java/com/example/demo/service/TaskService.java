@@ -1,5 +1,6 @@
 package com.example.demo.service;
 
+import com.example.demo.context.UserContext;
 import com.example.demo.dto.*;
 import com.example.demo.entity.*;
 import com.example.demo.enums.UserRole;
@@ -19,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final EventLogRepository eventLogRepository;
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final TagsRepository tagsRepository;
     private final TaskReportRepository taskReportRepository;
@@ -36,10 +39,11 @@ public class TaskService {
     private final LogRepository logRepository;
     private final FileUploadUtils fileUploadUtils;
 
-    public TaskService(TaskRepository taskRepository, NotificationRepository notificationRepository,UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository, FileUploadUtils fileUploadUtils) {
+    public TaskService(TaskRepository taskRepository, EventLogRepository eventLogRepository, NotificationRepository notificationRepository,UserRepository userRepository, TaskAssignmentRepository taskAssignmentRepository, TagsRepository tagsRepository, TeamRepository teamRepository, RoleRepository roleRepository, TaskReportRepository taskReportRepository, LogRepository logRepository, FileUploadUtils fileUploadUtils) {
 
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
+        this.eventLogRepository = eventLogRepository;
 this.notificationRepository = notificationRepository;
         this.taskAssignmentRepository = taskAssignmentRepository;
         this.tagsRepository=tagsRepository;
@@ -179,6 +183,8 @@ this.notificationRepository = notificationRepository;
 
             // 3. 保存任务
             Task savedTask = taskRepository.save(newTask);
+            eventLogRepository.save(new EventLog(creator.getId(), "TASK CREATE",LocalDateTime.now(),"task", savedTask.getId()));
+
             for (int i = 0; i < task.getAssigneeIds().size(); i++) {
                 LocalDateTime assignedAt = LocalDateTime.now();
                 TaskAssignment taskAssignment = new TaskAssignment(savedTask.getId(),task.getAssigneeIds().get(i),userId,assignedAt);
@@ -374,6 +380,12 @@ this.notificationRepository = notificationRepository;
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("不存在该任务"));
 
         task.setProgress_pct(pct);
+        if(pct>50){
+            eventLogRepository.save(new EventLog(UserContext.getCurrentUserId(), "UPDATE PROGRESS > 50",LocalDateTime.now(),"task", task.getId()));
+        }
+        if(pct>100){
+            eventLogRepository.save(new EventLog(UserContext.getCurrentUserId(), "UPDATE PROGRESS > 100",LocalDateTime.now(),"task", task.getId()));
+        }
         taskRepository.save(task);
     }
 
@@ -468,7 +480,7 @@ this.notificationRepository = notificationRepository;
 
         report.setCreatedAt(LocalDateTime.now());
         taskReportRepository.save(report);
-
+        eventLogRepository.save(new EventLog(UserContext.getCurrentUserId(), "CREATE REPORT",LocalDateTime.now(),"report", report.getReportId()));
 
         Task task=taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("<UNK>"));
         Long ownerId = task.getCreator().getId();
@@ -783,5 +795,42 @@ this.notificationRepository = notificationRepository;
             return dto;
         }).toList();
     }
+    public ResponseEntity<Map<String, Object>> getTaskDaily(
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("startDate and endDate are required");
+        }
+
+        // [startDate, endDate+1) 半开区间
+        LocalDateTime startTime = startDate.atStartOfDay();
+        LocalDateTime endTime = endDate.plusDays(1).atStartOfDay();
+
+        List<EventLogRepository.TaskDailyProjection> projections =
+                eventLogRepository.findTaskDaily(startTime, endTime);
+
+        // 组装 daily 数组
+        List<Map<String, Object>> dailyList = new ArrayList<>();
+        for (EventLogRepository.TaskDailyProjection p : projections) {
+            Map<String, Object> day = new HashMap<>();
+            day.put("date", p.getStatDate());
+            day.put("taskCreateCount", p.getTaskCreateCount());
+            day.put("taskCreateUserCount", p.getTaskCreateUserCount());
+            day.put("reportCreateCount", p.getReportCreateCount());
+            day.put("reportCreateUserCount", p.getReportCreateUserCount());
+            day.put("progressOver50Count", p.getProgressOver50Count());
+            day.put("progressOver100Count", p.getProgressOver100Count());
+            dailyList.add(day);
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("startDate", startDate.toString());
+        body.put("endDate", endDate.toString());
+        body.put("daily", dailyList);
+
+        return ResponseEntity.ok(body);
+    }
+
 
 }
