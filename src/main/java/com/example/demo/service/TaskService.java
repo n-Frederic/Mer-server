@@ -462,29 +462,6 @@ public class TaskService {
             return Map.of("ok", false, "message", "用户不存在");
         }
 
-        // 在验证任务和用户后，添加：
-// 查询该用户对此任务的所有历史报告
-        Optional<TaskReport> userReports = taskReportRepository.findByTaskIdAndReporterId(taskId, reporterId);
-
-        if (!userReports.isEmpty()) {
-            // 检查该用户是否有非拒绝状态的报告
-            boolean hasActiveReport = userReports.stream()
-                    .anyMatch(r -> !"rejected".equals(r.getStatus()));
-
-            if (hasActiveReport) {
-                return Map.of(
-                        "ok", false,
-                        "message", "您已提交过报告，不能重复提交"
-                );
-            }
-
-            // 如果用户的所有报告都是rejected状态，允许创建新报告
-            System.out.println("用户存在已拒绝的报告，允许重新提交新报告");
-
-            // 可选：标记旧报告为历史版本（如果需要保留历史记录）
-            // userReports.forEach(r -> r.setIsLatest(false));
-        }
-
         TaskReport report = new TaskReport();
         report.setTaskId(taskId);
         report.setReporterId(reporterId);
