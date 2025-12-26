@@ -242,13 +242,13 @@ public class TaskController {
     }
 
 
-//    @GetMapping("/statistic")
-//    public ResponseEntity<Map<String, Object>> getTaskDaily(
-//            @RequestParam("startDate")
-//            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-//            @RequestParam("endDate")
-//            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
-//    ) {
-//        return taskService.getTaskDaily(startDate, endDate);
-//    }
+    @GetMapping("/statistic")
+    public ResponseEntity<Map<String, Object>> getTaskDaily(
+            @RequestParam("startDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate")
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate
+    ) {
+        return taskService.getTaskDaily(startDate, endDate);
+    }
 }

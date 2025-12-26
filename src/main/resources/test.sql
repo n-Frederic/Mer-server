@@ -131,16 +131,16 @@ INSERT INTO task
 (task_id, title, description, creator_id, priority, status, progress_pct,start_at, due_at, parent_task)
 VALUES
     -- 原有任务（补充 parent_task 为 NULL，表示顶级任务）
-    (1, 'Release v1.0', 'Cut the first company release', 1001, 'High',   'Reported',100, NOW(), DATE_ADD(NOW(), INTERVAL 10 DAY), NULL),
-    (2, 'Migrate CI',   'Move CI to Github Actions',     1001, 'Medium', 'Reported', 33, NOW(), DATE_ADD(NOW(), INTERVAL 20 DAY), NULL),
+    (1, 'Release v1.0', 'Cut the first company release', 1001, 'High',   'Reported',100, NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), NULL),
+    (2, 'Migrate CI',   'Move CI to Github Actions',     1001, 'Medium', 'Reported', 33, NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), NULL),
 
     -- 新增任务：与原有任务形成父子关系
-    (3, 'Write release docs', 'Prepare release notes for v1.0', 1003, 'Medium', 'Reported',44, NOW(), DATE_ADD(NOW(), INTERVAL 5 DAY), 1),
-    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'Assigned', 55,NOW(), DATE_ADD(NOW(), INTERVAL 15 DAY), 2),
-    (5, 'Fix CI cache issue', 'Resolve dependency cache failure', 1002, 'Urgent', 'Reported', 66,NOW(), DATE_ADD(NOW(), INTERVAL 8 DAY), 4),
+    (3, 'Write release docs', 'Prepare release notes for v1.0', 1003, 'Medium', 'Reported',44, NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), 1),
+    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'Assigned', 55,NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), 2),
+    (5, 'Fix CI cache issue', 'Resolve dependency cache failure', 1002, 'Urgent', 'Reported', 66,NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), 4),
 
     -- 新增顶级任务（无父任务）
-    (6, 'Plan v2.0 roadmap', 'Define features for next release', 1001, 'Low', 'Reported', 77,NULL, DATE_ADD(NOW(), INTERVAL 30 DAY), NULL)
+    (6, 'Plan v2.0 roadmap', 'Define features for next release', 1001, 'Low', 'Reported', 77,NULL, DATE_ADD(NOW(), INTERVAL 3 DAY), NULL)
     ON DUPLICATE KEY UPDATE
                          title=VALUES(title),
                          status=VALUES(status),
@@ -446,6 +446,52 @@ INSERT INTO event_log (
       (26, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:23:00'),
       (27, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:24:00');
 
+
+
+        -- 确保事件调度器开启（需要有足够权限）
+        SET GLOBAL event_scheduler = ON;
+
+        DELIMITER //
+
+        CREATE EVENT IF NOT EXISTS ev_task_due_3days_notification
+        ON SCHEDULE
+            EVERY 1 DAY
+            STARTS CURRENT_DATE + INTERVAL 11 HOUR
+        DO
+        BEGIN
+        INSERT INTO notification (
+            user_id,
+            type,
+            relevent_id,
+            title,
+            body,
+            is_read,
+            created_at
+        )
+        SELECT
+            ta.assignee_id          AS user_id,
+            'task'                  AS type,
+            t.task_id               AS relevent_id,
+            'DDL is 3 days later!!' AS title,
+            'hurry up'              AS body,
+            0                       AS is_read,
+            NOW()                   AS created_at
+        FROM task t
+                 JOIN task_assignment ta
+                      ON ta.task_id = t.task_id
+                 LEFT JOIN notification n
+                           ON n.user_id    = ta.assignee_id
+                               AND n.type       = 'task'
+                               AND n.relevent_id = t.task_id
+                               AND n.title      = 'DDL is 3 days later!!'
+        WHERE
+            t.due_at IS NOT NULL
+          AND t.due_at BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 3 DAY)
+          AND (t.progress_pct IS NULL OR t.progress_pct < 100)
+          AND n.notif_id IS NULL;   -- 避免对同一任务重复提醒
+        END//
+
+DELIMITER ;
 COMMIT;
 
 -- 一些快速验证查询（可选）
