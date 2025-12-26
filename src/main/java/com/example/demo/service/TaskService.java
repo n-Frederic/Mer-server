@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 public class TaskService {
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final EventLogRepository eventLogRepository;
     private final TaskAssignmentRepository taskAssignmentRepository;
     private final TagsRepository tagsRepository;
     private final TaskReportRepository taskReportRepository;
@@ -60,7 +62,7 @@ public class TaskService {
 
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
-
+        this.eventLogRepository=eventLogRepository;
         this.notificationRepository = notificationRepository;
         this.taskAssignmentRepository = taskAssignmentRepository;
         this.tagsRepository=tagsRepository;
@@ -204,6 +206,7 @@ public class TaskService {
 
             // 3. 保存任务
             Task savedTask = taskRepository.save(newTask);
+            eventLogRepository.save(new EventLog(creator.getId(), "TASK CREATE",LocalDateTime.now(),"task", savedTask.getId()));
             for (int i = 0; i < task.getAssigneeIds().size(); i++) {
                 LocalDateTime assignedAt = LocalDateTime.now();
                 TaskAssignment taskAssignment = new TaskAssignment(savedTask.getId(),task.getAssigneeIds().get(i),userId,assignedAt);
@@ -411,6 +414,12 @@ public class TaskService {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new IllegalArgumentException("不存在该任务"));
 
         task.setProgress_pct(pct);
+        if(pct>50){
+            eventLogRepository.save(new EventLog(UserContext.getCurrentUserId(), "UPDATE PROGRESS > 50",LocalDateTime.now(),"task", task.getId()));
+        }
+        if(pct>100){
+            eventLogRepository.save(new EventLog(UserContext.getCurrentUserId(), "UPDATE PROGRESS > 100",LocalDateTime.now(),"task", task.getId()));
+        }
         taskRepository.save(task);
     }
 
@@ -492,7 +501,7 @@ public class TaskService {
         // 保存报告
         report.setCreatedAt(LocalDateTime.now());
         TaskReport savedReport = taskReportRepository.save(report);
-
+        eventLogRepository.save(new EventLog(UserContext.getCurrentUserId(), "CREATE REPORT",LocalDateTime.now(),"report", report.getReportId()));
         // 发送通知给任务创建者
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new RuntimeException("任务不存在"));
         Long ownerId = task.getCreator().getId();
@@ -808,6 +817,42 @@ public class TaskService {
             dto.setDueAt(task.getDueAt());
             return dto;
         }).toList();
+    }
+    public ResponseEntity<Map<String, Object>> getTaskDaily(
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("startDate and endDate are required");
+        }
+
+        // [startDate, endDate+1) 半开区间
+        LocalDateTime startTime = startDate.atStartOfDay();
+        LocalDateTime endTime = endDate.plusDays(1).atStartOfDay();
+
+        List<EventLogRepository.TaskDailyProjection> projections =
+                eventLogRepository.findTaskDaily(startTime, endTime);
+
+        // 组装 daily 数组
+        List<Map<String, Object>> dailyList = new ArrayList<>();
+        for (EventLogRepository.TaskDailyProjection p : projections) {
+            Map<String, Object> day = new HashMap<>();
+            day.put("date", p.getStatDate());
+            day.put("taskCreateCount", p.getTaskCreateCount());
+            day.put("taskCreateUserCount", p.getTaskCreateUserCount());
+            day.put("reportCreateCount", p.getReportCreateCount());
+            day.put("reportCreateUserCount", p.getReportCreateUserCount());
+            day.put("progressOver50Count", p.getProgressOver50Count());
+            day.put("progressOver100Count", p.getProgressOver100Count());
+            dailyList.add(day);
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("startDate", startDate.toString());
+        body.put("endDate", endDate.toString());
+        body.put("daily", dailyList);
+
+        return ResponseEntity.ok(body);
     }
 
 }
