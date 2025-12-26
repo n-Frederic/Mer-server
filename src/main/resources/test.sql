@@ -456,7 +456,7 @@ INSERT INTO event_log (
         CREATE EVENT IF NOT EXISTS ev_task_due_3days_notification
         ON SCHEDULE
             EVERY 1 DAY
-            STARTS CURRENT_DATE + INTERVAL 11 HOUR
+            STARTS CURRENT_DATE + INTERVAL 13 HOUR
         DO
         BEGIN
         INSERT INTO notification (
