@@ -4,18 +4,17 @@ import com.example.demo.context.UserContext;
 import com.example.demo.dto.LogRequestDTO;
 import com.example.demo.dto.LogResponseDTO;
 import com.example.demo.dto.LogUpdateRequest;
-import com.example.demo.entity.Log;
-import com.example.demo.entity.Log_Task;
-import com.example.demo.entity.Tags;
-import com.example.demo.entity.User;
+import com.example.demo.entity.*;
 import com.example.demo.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,13 +24,16 @@ public class LogService {
 
     private final LogRepository logRepository;
     private final TaskRepository taskRepository;
+    private final EventLogRepository eventLogRepository ;
+
     private final LogTaskRepository logTaskRepository;
     private final UserRepository userRepository;
     private final TagsRepository tagsRepository;
 
-    public LogService(LogRepository logRepository, TaskRepository taskRepository, LogTaskRepository logTaskRepository, UserRepository userRepository, TagsRepository tagsRepository) {
+    public LogService(LogRepository logRepository, EventLogRepository eventLogRepository,TaskRepository taskRepository, LogTaskRepository logTaskRepository, UserRepository userRepository, TagsRepository tagsRepository) {
         this.logRepository = logRepository;
         this.taskRepository = taskRepository;
+        this.eventLogRepository = eventLogRepository;
         this.logTaskRepository = logTaskRepository;
         this.userRepository = userRepository;
         this.tagsRepository = tagsRepository;
@@ -55,6 +57,7 @@ public class LogService {
         );
 
         Log saved = logRepository.save(log);
+        eventLogRepository.save(new EventLog(author.getId(),"CREATE LOG", LocalDateTime.now(),"log",log.getId()));
         Long logId = saved.getId();
 
         if (request.getTaskId() != null && !request.getTaskId().isEmpty()) {
@@ -344,6 +347,40 @@ public class LogService {
         }
 
         return true;
+    }
+    public ResponseEntity<Map<String, Object>> getLogAndCommentDaily(
+            LocalDate startDate,
+            LocalDate endDate
+    ) {
+        if (startDate == null || endDate == null) {
+            throw new IllegalArgumentException("startDate and endDate are required");
+        }
+
+        // [startDate, endDate+1) 半开区间
+        LocalDateTime startTime = startDate.atStartOfDay();
+        LocalDateTime endTime = endDate.plusDays(1).atStartOfDay();
+
+        List<EventLogRepository.LogCommentDailyProjection> projections =
+                eventLogRepository.findLogCommentDaily(startTime, endTime);
+
+        // 组装 daily 数组
+        List<Map<String, Object>> dailyList = new ArrayList<>();
+        for (EventLogRepository.LogCommentDailyProjection p : projections) {
+            Map<String, Object> day = new HashMap<>();
+            day.put("date", p.getStatDate());
+            day.put("logCreateCount", p.getLogCreateCount());
+            day.put("logCreateUserCount", p.getLogCreateUserCount());
+            day.put("commentCreateCount", p.getCommentCreateCount());
+            day.put("commentCreateUserCount", p.getCommentCreateUserCount());
+            dailyList.add(day);
+        }
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("startDate", startDate.toString());
+        body.put("endDate", endDate.toString());
+        body.put("daily", dailyList);
+
+        return ResponseEntity.ok(body);
     }
 
 

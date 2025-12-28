@@ -2,6 +2,7 @@
 START TRANSACTION;
 SET FOREIGN_KEY_CHECKS = 0;
 -- 1. 先清空有外键依赖的关联表（避免删除主表数据时触发约束）
+USE mer;
 
 TRUNCATE TABLE task_assignment;
 TRUNCATE TABLE task_report;
@@ -130,16 +131,16 @@ INSERT INTO task
 (task_id, title, description, creator_id, priority, status, progress_pct,start_at, due_at, parent_task)
 VALUES
     -- 原有任务（补充 parent_task 为 NULL，表示顶级任务）
-    (1, 'Release v1.0', 'Cut the first company release', 1001, 'High',   'Reported',100, NOW(), DATE_ADD(NOW(), INTERVAL 10 DAY), NULL),
-    (2, 'Migrate CI',   'Move CI to Github Actions',     1001, 'Medium', 'Reported', 33, NOW(), DATE_ADD(NOW(), INTERVAL 20 DAY), NULL),
+    (1, 'Release v1.0', 'Cut the first company release', 1001, 'High',   'Reported',100, NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), NULL),
+    (2, 'Migrate CI',   'Move CI to Github Actions',     1001, 'Medium', 'Reported', 33, NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), NULL),
 
     -- 新增任务：与原有任务形成父子关系
-    (3, 'Write release docs', 'Prepare release notes for v1.0', 1003, 'Medium', 'Reported',44, NOW(), DATE_ADD(NOW(), INTERVAL 5 DAY), 1),
-    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'Assigned', 55,NOW(), DATE_ADD(NOW(), INTERVAL 15 DAY), 2),
-    (5, 'Fix CI cache issue', 'Resolve dependency cache failure', 1002, 'Urgent', 'Reported', 66,NOW(), DATE_ADD(NOW(), INTERVAL 8 DAY), 4),
+    (3, 'Write release docs', 'Prepare release notes for v1.0', 1003, 'Medium', 'Reported',44, NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), 1),
+    (4, 'Test CI workflow', 'Verify Github Actions pipeline', 1003, 'High', 'Assigned', 55,NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), 2),
+    (5, 'Fix CI cache issue', 'Resolve dependency cache failure', 1002, 'Urgent', 'Reported', 66,NOW(), DATE_ADD(NOW(), INTERVAL 3 DAY), 4),
 
     -- 新增顶级任务（无父任务）
-    (6, 'Plan v2.0 roadmap', 'Define features for next release', 1001, 'Low', 'Reported', 77,NULL, DATE_ADD(NOW(), INTERVAL 30 DAY), NULL)
+    (6, 'Plan v2.0 roadmap', 'Define features for next release', 1001, 'Low', 'Reported', 77,NULL, DATE_ADD(NOW(), INTERVAL 3 DAY), NULL)
     ON DUPLICATE KEY UPDATE
                          title=VALUES(title),
                          status=VALUES(status),
@@ -392,6 +393,105 @@ VALUES
 
 ON DUPLICATE KEY UPDATE is_read=VALUES(is_read);
 
+
+
+TRUNCATE TABLE event_log;
+
+INSERT INTO event_log (
+    event_id,
+    user_id,
+    event_type,
+    target_id,
+    target_type,
+    created_at
+) VALUES
+      -- 1) 登录 LOGIN  （对应 login 表中的两条记录）
+      (1, 1001, 'LOGIN', 1, 'login', '2025-11-19 11:16:10'),
+      (2, 1002, 'LOGIN', 2, 'login', '2025-11-19 11:16:10'),
+
+      -- 2) 任务创建 CREATE TASK  （对应 task 表中的部分任务）
+      (3, 1001, 'CREATE TASK', 1, 'task', '2024-10-25 09:00:00'),
+      (4, 1001, 'CREATE TASK', 2, 'task', '2024-10-25 09:05:00'),
+      (5, 1003, 'CREATE TASK', 3, 'task', '2024-10-26 10:00:00'),
+      (6, 1002, 'CREATE TASK', 5, 'task', '2024-10-28 09:30:00'),
+
+      -- 3) 进度更新：> 50 / > 100 （用 task.progress_pct：4=55,5=66,6=77,1=100）
+      (7, 1003, 'UPDATE PROGRESS > 50', 4, 'task', '2024-10-30 16:00:00'),  -- 55%
+      (8, 1002, 'UPDATE PROGRESS > 50', 5, 'task', '2024-10-31 10:00:00'),  -- 66%
+      (9, 1001, 'UPDATE PROGRESS > 50', 6, 'task', '2024-11-01 09:00:00'),  -- 77%
+      (10, 1002, 'UPDATE PROGRESS > 100', 1, 'task', '2024-10-27 09:10:00'), -- 100% 视作 >100 触发
+
+      -- 4) 创建 report CREATE REPORT （对 task_report 表中的部分记录打点）
+      (11, 1002, 'CREATE REPORT', 1, 'report', '2024-10-26 14:20:18'),
+      (12, 1002, 'CREATE REPORT', 2, 'report', '2024-10-27 09:15:30'),
+      (13, 1003, 'CREATE REPORT', 3, 'report', '2024-10-28 16:30:22'),
+
+      -- 5) 创建 log CREATE LOG （对 log 表中的几条日志）
+      (14, 1002, 'CREATE LOG', 1, 'log', '2024-10-26 18:00:00'),
+      (15, 1003, 'CREATE LOG', 2, 'log', '2024-10-26 18:05:00'),
+      (16, 1001, 'CREATE LOG', 3, 'log', '2024-10-25 19:30:00'),
+
+      -- 6) 创建 comment CREATE COMMENT （对 comment 表中的 4 条记录）
+      (17, 1002, 'CREATE COMMENT', 1, 'comment', '2024-10-27 10:00:00'),
+      (18, 1001, 'CREATE COMMENT', 2, 'comment', '2024-10-27 10:05:00'),
+      (19, 1003, 'CREATE COMMENT', 3, 'comment', '2024-10-28 09:00:00'),
+      (20, 1004, 'CREATE COMMENT', 4, 'comment', '2024-10-28 09:10:00'),
+
+      -- 7) 重置密码 RESET PASSWORD （使用 verification_code + user 1002,1003）
+      (21, 1002, 'RESET PASSWORD', 1002, 'user', '2025-12-25 11:20:00'),
+      (22, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:19:00'),
+        (23, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:20:00'),
+      (24, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:21:00'),
+        (25, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:22:00'),
+      (26, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:23:00'),
+      (27, 1003, 'RESET PASSWORD', 1003, 'user', '2025-12-25 11:24:00');
+
+
+
+        -- 确保事件调度器开启（需要有足够权限）
+        SET GLOBAL event_scheduler = ON;
+
+        DELIMITER //
+
+        CREATE EVENT IF NOT EXISTS ev_task_due_3days_notification
+        ON SCHEDULE
+            EVERY 1 DAY
+            STARTS CURRENT_DATE + INTERVAL 13 HOUR
+        DO
+        BEGIN
+        INSERT INTO notification (
+            user_id,
+            type,
+            relevent_id,
+            title,
+            body,
+            is_read,
+            created_at
+        )
+        SELECT
+            ta.assignee_id          AS user_id,
+            'task'                  AS type,
+            t.task_id               AS relevent_id,
+            'DDL is 3 days later!!' AS title,
+            'hurry up'              AS body,
+            0                       AS is_read,
+            NOW()                   AS created_at
+        FROM task t
+                 JOIN task_assignment ta
+                      ON ta.task_id = t.task_id
+                 LEFT JOIN notification n
+                           ON n.user_id    = ta.assignee_id
+                               AND n.type       = 'task'
+                               AND n.relevent_id = t.task_id
+                               AND n.title      = 'DDL is 3 days later!!'
+        WHERE
+            t.due_at IS NOT NULL
+          AND t.due_at BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 3 DAY)
+          AND (t.progress_pct IS NULL OR t.progress_pct < 100)
+          AND n.notif_id IS NULL;   -- 避免对同一任务重复提醒
+        END//
+
+DELIMITER ;
 COMMIT;
 
 -- 一些快速验证查询（可选）

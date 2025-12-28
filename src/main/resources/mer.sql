@@ -53,7 +53,8 @@ DROP TABLE IF EXISTS
     team,
     department,
     permission,
-    role;
+    role,
+    event_log;          -- 新增：删除旧的 event_log（如存在）
 
 -- =========================================================
 -- 基础字典 / 权限体系
@@ -341,6 +342,54 @@ CREATE TABLE IF NOT EXISTS login (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- =========================================================
+-- 事件埋点日志表（新增）
+-- =========================================================
+CREATE TABLE IF NOT EXISTS event_log (
+                                         event_id     BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '事件ID',
+                                         user_id      BIGINT NULL COMMENT '触发事件的用户ID，系统事件可为NULL',
+                                         event_type   VARCHAR(100) NOT NULL COMMENT '事件类型，如 TASK_CREATED、LOGIN_SUCCESS',
+    target_id    BIGINT NULL COMMENT '目标对象ID',
+    target_type  VARCHAR(50) NULL COMMENT '目标对象类型，如 task/log/report',
+    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '事件时间',
+    KEY idx_event_user (user_id),
+    KEY idx_event_type_time (event_type, created_at),
+    KEY idx_event_target (target_type, target_id),
+    KEY idx_event_created (created_at)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='通用事件埋点日志表';
+
+-- =========================================================
+-- 事件埋点视图（查询用，新建）
+-- =========================================================
+
+-- 1) 按日期 + 事件类型汇总次数（全局统计）
+CREATE OR REPLACE VIEW v_event_daily_type AS
+SELECT
+    DATE(el.created_at) AS event_date,
+    el.event_type,
+    COUNT(*) AS event_count
+FROM event_log el
+GROUP BY DATE(el.created_at), el.event_type;
+
+-- 2) 按日期 + 用户 + 事件类型汇总次数（看某人某类操作频率）
+CREATE OR REPLACE VIEW v_event_daily_user AS
+SELECT
+    DATE(el.created_at) AS event_date,
+    el.user_id,
+    u.name AS user_name,
+    el.event_type,
+    COUNT(*) AS event_count
+FROM event_log el
+    LEFT JOIN user u ON el.user_id = u.user_id
+GROUP BY DATE(el.created_at), el.user_id, u.name, el.event_type;
+
+-- 3) 最近7天的原始事件明细（方便管理端或开发临时排查）
+CREATE OR REPLACE VIEW v_event_recent_7d AS
+SELECT
+    el.*
+FROM event_log el
+WHERE el.created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY);
+
+-- =========================================================
 -- 外键约束添加
 -- =========================================================
 CALL add_fk_if_not_exists('department','fk_dept_parent','ALTER TABLE department ADD CONSTRAINT fk_dept_parent FOREIGN KEY (parent_dept_id) REFERENCES department(dept_id) ON UPDATE CASCADE ON DELETE SET NULL');
@@ -363,6 +412,7 @@ CALL add_fk_if_not_exists('comment','fk_cmt_log','ALTER TABLE comment ADD CONSTR
 CALL add_fk_if_not_exists('comment','fk_cmt_owner','ALTER TABLE comment ADD CONSTRAINT fk_cmt_owner FOREIGN KEY (owner_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE RESTRICT');
 CALL add_fk_if_not_exists('notification','fk_notif_user','ALTER TABLE notification ADD CONSTRAINT fk_notif_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE CASCADE');
 CALL add_fk_if_not_exists('login','fk_login_user','ALTER TABLE login ADD CONSTRAINT fk_login_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE CASCADE');
+-- 新增：事件日志外键（user_id -> user.user_id，系统事件可为NULL）
+CALL add_fk_if_not_exists('event_log','fk_event_user','ALTER TABLE event_log ADD CONSTRAINT fk_event_user FOREIGN KEY (user_id) REFERENCES user(user_id) ON UPDATE CASCADE ON DELETE SET NULL');
 
 SET FOREIGN_KEY_CHECKS = 1;
--- （可选）DROP PROCEDURE IF EXISTS add_fk_if_not_exists;

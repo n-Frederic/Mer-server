@@ -2,20 +2,15 @@ package com.example.demo.service;
 
 import com.example.demo.context.UserContext;
 import com.example.demo.dto.CommentCreateRequest;
-import com.example.demo.entity.Comment;
-import com.example.demo.entity.Log;
-import com.example.demo.entity.Notification;
-import com.example.demo.entity.User;
+import com.example.demo.entity.*;
 import com.example.demo.enums.UserRole;
-import com.example.demo.repository.CommentRepository;
-import com.example.demo.repository.LogRepository;
-import com.example.demo.repository.NotificationRepository;
-import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -24,11 +19,13 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final LogRepository logRepository;
+    private final EventLogRepository eventLogRepository;
     private final NotificationRepository notificationRepository;
 
-    public CommentService(CommentRepository commentRepository,
+    public CommentService(CommentRepository commentRepository,EventLogRepository eventLogRepository,
                           UserRepository userRepository,LogRepository logRepository,NotificationRepository notificationRepository) {
         this.commentRepository = commentRepository;
+        this.eventLogRepository = eventLogRepository;
         this.userRepository = userRepository;
         this.logRepository = logRepository;
         this.notificationRepository = notificationRepository;
@@ -54,7 +51,7 @@ public class CommentService {
         Notification notification=new Notification(authorId,"log",log.getId(),"A new comment on your log: "+log.getSummary(),c.getContent(),false);
         notificationRepository.save(notification);
 
-
+        eventLogRepository.save(new EventLog(OwnerId,"COMMENT", LocalDateTime.now(),"comment",c.getCommentId()));
         return commentRepository.save(c);
     }
 

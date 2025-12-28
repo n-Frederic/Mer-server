@@ -41,6 +41,11 @@ public class AuthInterceptor implements HandlerInterceptor {
         //允许文件访问
         String requestUri = request.getRequestURI();
 
+        // 检查是否是tasks相关请求
+        if (requestUri.contains("/tasks")) {
+            System.out.println("🔍 这是tasks请求: " + requestUri);
+        }
+
         if (requestUri.startsWith("/api/files/")) {
             System.out.println("✅ 文件访问，跳过认证检查");
             return true; // 允许文件访问通过

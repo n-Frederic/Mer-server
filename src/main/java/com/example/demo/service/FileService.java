@@ -1,164 +1,246 @@
-// FileService.java
+// src/main/java/com/example/demo/service/FileService.java
 package com.example.demo.service;
 
-import com.example.demo.entity.Login;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.dto.FileUploadDTO;
+import com.example.demo.entity.TaskReport;
+import com.example.demo.repository.TaskReportRepository;
+import com.example.demo.vo.FileUploadResult;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class FileService {
 
-    private final Path fileStorageLocation;
+    private final CosService cosService;
+    private final TaskReportRepository taskReportRepository; // 添加Repository依赖
 
-    @Autowired
-    private LoginService loginService;
+    @Value("${file.storage.type}")
+    private String storageType;
 
-    @Autowired
-    public FileService(@Value("${file.upload-dir:uploads}") String uploadDir) {
-        System.out.println("🚀 FileService 初始化开始...");
-        System.out.println("📁 配置的上传目录: " + uploadDir);
+    /**
+     * 上传文件到COS
+     */
+    @Transactional
+    public String uploadFile(MultipartFile file, Long taskId) {
+        log.info("开始上传文件: taskId={}, originalFilename={}, size={} bytes",
+                taskId, file.getOriginalFilename(), file.getSize());
 
-        // 尝试多种路径解析方式
-        Path path = Paths.get(uploadDir);
-        if (!path.isAbsolute()) {
-            path = Paths.get(System.getProperty("user.dir"))
-                    .resolve(uploadDir)
-                    .normalize();
+        if (taskId == null) {
+            taskId = 0L;
+            log.warn("⚠️ taskId为null，使用默认值0");
         }
 
-        this.fileStorageLocation = path;
+        // 生成唯一文件名
+        String uuid = UUID.randomUUID().toString();
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
 
-        try {
-            Files.createDirectories(this.fileStorageLocation);
-        } catch (Exception e) {
-            throw new RuntimeException("无法创建文件存储目录", e);
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
         }
 
-        System.out.println("📁 最终存储路径: " + this.fileStorageLocation);
-        System.out.println("📁 当前工作目录 (user.dir): " + System.getProperty("user.dir"));
-        System.out.println("✅ FileService 初始化完成");
+        String fileName = uuid + extension;
 
+        // ✅ 统一使用 tasks/{taskId}/ 目录结构
+        String cosKey = "tasks/" + taskId + "/" + fileName;
+
+        log.info("上传到COS: key={}", cosKey);
+
+        // 上传到COS
+        String fileUrl = cosService.uploadFile(cosKey, file);
+
+        boolean exists = cosService.doesObjectExist(cosKey);
+        if (!exists) {
+            log.error("❌ 文件上传后验证失败: {}", cosKey);
+            throw new RuntimeException("文件上传失败，验证未通过");
+        }
+
+        log.info("✅ 文件上传完成: url={}, taskId={}, fileName={}", fileUrl, taskId, fileName);
+        return fileUrl;
     }
 
-    public Resource loadFileAsResource(Long taskId, String fileName) {
+    /**
+     * 上传文件并关联到报告
+     */
+    @Transactional
+    public String uploadFileForReport(MultipartFile file, Long taskId, Long reportId) {
+        // 先上传文件
+        String fileUrl = uploadFile(file, taskId);
+
+        // 如果提供了reportId，更新报告附件列表
+        if (reportId != null) {
+            try {
+                TaskReport report = taskReportRepository.findById(reportId)
+                        .orElseThrow(() -> new RuntimeException("报告不存在"));
+
+                // 使用实体类的辅助方法添加附件
+                report.addAttachment(fileUrl);
+                taskReportRepository.save(report);
+
+                log.info("✅ 文件路径已保存到报告附件: reportId={}, url={}", reportId, fileUrl);
+            } catch (Exception e) {
+                log.error("保存附件路径到报告失败: reportId={}, url={}", reportId, fileUrl, e);
+                // 可以选择不抛出异常，因为文件已成功上传到COS
+            }
+        }
+
+        return fileUrl;
+    }
+
+    /**
+     * 批量上传文件
+     */
+    @Transactional
+    public List<String> uploadFilesForReport(List<MultipartFile> files, Long taskId, Long reportId) {
+        List<String> fileUrls = new ArrayList<>();
+
+        for (MultipartFile file : files) {
+            try {
+                String fileUrl = uploadFileForReport(file, taskId, reportId);
+                fileUrls.add(fileUrl);
+            } catch (Exception e) {
+                log.error("批量上传中单个文件上传失败: {}", file.getOriginalFilename(), e);
+                // 可以选择继续上传其他文件
+                throw new RuntimeException("文件上传失败: " + file.getOriginalFilename(), e);
+            }
+        }
+
+        return fileUrls;
+    }
+
+    public Resource loadFileAsResource(Long taskId, String filename) {
+        log.info("加载文件资源: taskId={}, filename={}, storageType={}",
+                taskId, filename, storageType);
+
         try {
-            System.out.println("=".repeat(80));
-            System.out.println("🔍 FileService.loadFileAsResource 被调用:");
-            System.out.println("   Task ID: " + taskId);
-            System.out.println("   文件名: " + fileName);
-            System.out.println("📁 存储根目录: " + this.fileStorageLocation);
+            // 方案1: 首先尝试正式路径 tasks/{taskId}/
+            String primaryKey = "tasks/" + taskId + "/" + filename;
 
-            // 构建文件路径
-            String relativePath = "task_reports/" + taskId + "/" + fileName;
-            Path filePath = this.fileStorageLocation.resolve(relativePath).normalize();
+            log.info("尝试从COS下载文件: {}", primaryKey);
 
-            System.out.println("📁 相对路径: " + relativePath);
-            System.out.println("📁 完整文件路径: " + filePath.toString());
-            System.out.println("📁 文件是否存在: " + Files.exists(filePath));
+            if (cosService.doesObjectExist(primaryKey)) {
+                log.info("✅ 文件在正式路径找到: {}", primaryKey);
+                InputStream inputStream = cosService.downloadFile(primaryKey);
 
-            // 如果文件不存在，提供详细的调试信息
-            if (!Files.exists(filePath)) {
-                System.out.println("❌ 文件不存在，开始详细路径检查...");
+                // 将InputStream转换为字节数组，避免重复读取问题
+                byte[] fileBytes = inputStream.readAllBytes();
+                inputStream.close();
 
-                // 检查所有可能的路径
-                List<Path> possiblePaths = new ArrayList<>();
-
-                // 基于当前存储目录的路径
-                possiblePaths.add(filePath);
-
-                // 基于工作目录的路径
-                Path workDir = Paths.get("").toAbsolutePath();
-                possiblePaths.add(workDir.resolve("uploads/task_reports/" + taskId + "/" + fileName));
-                possiblePaths.add(workDir.resolve("./uploads/task_reports/" + taskId + "/" + fileName));
-                possiblePaths.add(workDir.resolve("../uploads/task_reports/" + taskId + "/" + fileName));
-
-                // 绝对路径
-                possiblePaths.add(Paths.get("D:/project/Mer-server/uploads/task_reports/" + taskId + "/" + fileName));
-
-                System.out.println("🔍 检查所有可能路径:");
-                for (Path path : possiblePaths) {
-                    System.out.println("   - " + path + " (存在: " + Files.exists(path) + ")");
-                    if (Files.exists(path)) {
-                        System.out.println("   ✅ 文件实际位置: " + path);
-                        filePath = path;
-                        break;
+                return new ByteArrayResource(fileBytes) {
+                    @Override
+                    public String getFilename() {
+                        return filename;
                     }
-                }
 
-                // 如果仍然没找到，抛出详细错误
-                if (!Files.exists(filePath)) {
-                    System.out.println("❌ 文件在所有可能路径中都不存在");
-                    System.out.println("📁 存储根目录结构:");
-                    printDirectoryStructure(this.fileStorageLocation, 1);
-                    throw new RuntimeException("文件不存在: " + fileName + " at " + filePath);
-                }
+                    @Override
+                    public long contentLength() {
+                        return fileBytes.length;
+                    }
+                };
             }
 
-            // 检查文件权限
-            if (!Files.isReadable(filePath)) {
-                System.out.println("❌ 文件不可读: " + filePath);
-                throw new RuntimeException("文件不可读: " + fileName);
+            // 方案2: 如果在tasks/目录找不到，尝试test/目录（兼容旧数据）
+            String testKey = "test/" + filename;
+            log.info("正式路径未找到，尝试测试路径: {}", testKey);
+
+            if (cosService.doesObjectExist(testKey)) {
+                log.info("⚠️ 文件在测试路径找到: {}", testKey);
+                InputStream inputStream = cosService.downloadFile(testKey);
+
+                byte[] fileBytes = inputStream.readAllBytes();
+                inputStream.close();
+
+                return new ByteArrayResource(fileBytes) {
+                    @Override
+                    public String getFilename() {
+                        return filename;
+                    }
+
+                    @Override
+                    public long contentLength() {
+                        return fileBytes.length;
+                    }
+                };
             }
 
-            Resource resource = new UrlResource(filePath.toUri());
-            if (resource.exists()) {
-                System.out.println("✅ 文件成功加载: " + fileName);
-                System.out.println("✅ 文件大小: " + Files.size(filePath) + " bytes");
-                System.out.println("✅ 文件URL: " + resource.getURL());
-                System.out.println("=".repeat(80));
-                return resource;
+            // 如果所有路径都失败
+            log.error("❌ 文件不存在于任何路径: taskId={}, filename={}", taskId, filename);
+            log.error("查找过的路径:");
+            log.error("  - 正式路径: {}", primaryKey);
+            log.error("  - 测试路径: {}", testKey);
+            throw new RuntimeException("文件不存在: " + filename);
+
+        } catch (Exception e) {
+            log.error("❌ 从COS加载文件失败: taskId={}, filename={}", taskId, filename, e);
+            throw new RuntimeException("加载文件失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 删除文件
+     */
+    public void deleteFile(String fileUrl) {
+        try {
+            cosService.deleteFileByUrl(fileUrl);
+            log.info("文件删除成功: {}", fileUrl);
+        } catch (Exception e) {
+            log.error("删除文件失败: {}", fileUrl, e);
+            throw new RuntimeException("删除文件失败", e);
+        }
+    }
+
+    /**
+     * 从报告中删除附件
+     */
+    @Transactional
+    public void deleteReportAttachment(Long reportId, String fileUrl) {
+        try {
+            TaskReport report = taskReportRepository.findById(reportId)
+                    .orElseThrow(() -> new RuntimeException("报告不存在"));
+
+            // 从附件列表中移除
+            List<String> attachments = report.getAttachmentList();
+            if (attachments.remove(fileUrl)) {
+                report.setAttachmentList(attachments);
+                taskReportRepository.save(report);
+                log.info("✅ 从数据库删除附件引用: reportId={}, url={}", reportId, fileUrl);
+
+                // 可选：同时删除COS中的文件
+                // deleteFile(fileUrl);
             } else {
-                System.out.println("❌ 资源不存在: " + fileName);
-                throw new RuntimeException("文件不存在: " + fileName);
+                log.warn("附件不在列表中: reportId={}, url={}", reportId, fileUrl);
             }
-        } catch (Exception ex) {
-            System.out.println("❌ 文件加载失败: " + ex.getMessage());
-            System.out.println("=".repeat(80));
-            throw new RuntimeException("文件加载失败: " + fileName, ex);
+        } catch (Exception e) {
+            log.error("从报告中删除附件失败: reportId={}, url={}", reportId, fileUrl, e);
+            throw new RuntimeException("删除附件失败", e);
         }
     }
 
-    // 递归打印目录结构
-    private void printDirectoryStructure(Path dir, int depth) {
-        if (depth > 3) return; // 限制递归深度
-
+    /**
+     * 获取报告的附件列表
+     */
+    public List<String> getReportAttachments(Long reportId) {
         try {
-            if (Files.exists(dir) && Files.isDirectory(dir)) {
-                Files.list(dir).forEach(path -> {
-                    try {
-                        String indent = "  ".repeat(depth);
-                        String type = Files.isDirectory(path) ? "[目录]" : "[文件]";
-                        String size = "";
-                        if (!Files.isDirectory(path)) {
-                            try {
-                                size = " (" + Files.size(path) + " bytes)";
-                            } catch (Exception e) {
-                                size = " (大小未知)";
-                            }
-                        }
-                        System.out.println(indent + "📁 " + path.getFileName() + type + size);
-
-                        if (Files.isDirectory(path) && depth < 3) {
-                            printDirectoryStructure(path, depth + 1);
-                        }
-                    } catch (Exception e) {
-                        String indent = "  ".repeat(depth);
-                        System.out.println(indent + "❌ 无法访问: " + path.getFileName());
-                    }
-                });
-            }
+            TaskReport report = taskReportRepository.findById(reportId)
+                    .orElseThrow(() -> new RuntimeException("报告不存在"));
+            return report.getAttachmentList();
         } catch (Exception e) {
-            System.out.println("❌ 无法列出目录: " + dir);
+            log.error("获取报告附件列表失败: reportId={}", reportId, e);
+            return List.of();
         }
     }
 }
